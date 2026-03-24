@@ -6,7 +6,7 @@ plugins {
 
 group = 'com.ohgiraffers'
 version = '0.0.1-SNAPSHOT'
-description = 'team3-backend-hr'
+description = 'team3backendhr'
 
 java {
     toolchain {
