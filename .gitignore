@@ -43,3 +43,9 @@ out/
 ### Application Secrets ###
 src/main/resources/application-db.yml
 src/main/resources/application-secret.yml
+
+### Docs ###
+docs/
+
+### HTTP test files (may contain tokens/credentials) ###
+src/test/http/

@@ -1,4 +1,4 @@
-package com.ohgiraffers.team3backendhr.common;
+package com.ohgiraffers.team3backendhr.common.dto;
 
 import lombok.Builder;
 import lombok.Getter;
