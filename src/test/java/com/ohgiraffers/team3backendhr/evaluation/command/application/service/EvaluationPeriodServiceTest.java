@@ -4,8 +4,8 @@ import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalPe
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.repository.EvaluationPeriodRepository;
-import com.ohgiraffers.team3backendhr.evaluation.command.presentation.dto.EvaluationPeriodCreateRequest;
-import com.ohgiraffers.team3backendhr.evaluation.command.presentation.dto.EvaluationPeriodUpdateRequest;
+import com.ohgiraffers.team3backendhr.evaluation.command.application.dto.request.EvaluationPeriodCreateRequest;
+import com.ohgiraffers.team3backendhr.evaluation.command.application.dto.request.EvaluationPeriodUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
