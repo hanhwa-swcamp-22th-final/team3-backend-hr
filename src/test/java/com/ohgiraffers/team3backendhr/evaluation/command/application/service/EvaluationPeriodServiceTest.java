@@ -58,9 +58,11 @@ class EvaluationPeriodServiceTest {
                 LocalDate.of(2026, 3, 31)
         );
         given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+        given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         assertThatNoException().isThrownBy(() -> service.create(request));
+        verify(idGenerator).generate();
         verify(repository).save(any(EvaluationPeriod.class));
     }
 
