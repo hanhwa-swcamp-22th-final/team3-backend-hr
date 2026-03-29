@@ -1,6 +1,5 @@
 package com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate;
 
-import com.ohgiraffers.team3backendhr.common.IdGenerator;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -24,13 +23,6 @@ public class EvaluationPeriod {
     @Id
     @Column(name = "eval_period_id")
     private Long evalPeriodId;
-
-    @PrePersist
-    private void generateId() {
-        if (this.evalPeriodId == null) {
-            this.evalPeriodId = IdGenerator.generate();
-        }
-    }
 
     @Column(name = "algorithm_version_id", nullable = false)
     private Long algorithmVersionId;

@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.evaluation.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvaluationPeriod;
@@ -26,6 +27,9 @@ class EvaluationPeriodServiceTest {
 
     @Mock
     private EvaluationPeriodRepository repository;
+
+    @Mock
+    private IdGenerator idGenerator;
 
     @InjectMocks
     private EvaluationPeriodService service;

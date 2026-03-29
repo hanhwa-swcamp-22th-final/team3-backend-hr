@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.evaluation.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.repository.EvaluationPeriodRepository;
@@ -15,12 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class EvaluationPeriodService {
 
     private final EvaluationPeriodRepository repository;
+    private final IdGenerator idGenerator;
 
     public void create(EvaluationPeriodCreateRequest request) {
         if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
             throw new IllegalStateException("이미 진행 중인 평가 기간이 있습니다.");
         }
         EvaluationPeriod period = EvaluationPeriod.builder()
+                .evalPeriodId(idGenerator.generate())
                 .algorithmVersionId(request.algorithmVersionId())
                 .evalYear(request.evalYear())
                 .evalSequence(request.evalSequence())

@@ -26,6 +26,7 @@ class EvaluationPeriodRepositoryTest {
 
     private EvaluationPeriod buildPeriod(int year, int seq, EvalPeriodStatus status) {
         return EvaluationPeriod.builder()
+                .evalPeriodId(System.currentTimeMillis() * 1000 + seq)
                 .algorithmVersionId(1L)
                 .evalYear(year)
                 .evalSequence(seq)

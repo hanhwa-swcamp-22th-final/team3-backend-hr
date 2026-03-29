@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-@Component
+@Component("auditorProvider")
 public class AuditorAwareImpl implements AuditorAware<Long> {
 
     @Override
