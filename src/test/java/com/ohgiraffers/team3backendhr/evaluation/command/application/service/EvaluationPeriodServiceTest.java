@@ -111,6 +111,23 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
+    @DisplayName("확정된 평가 기간 수정 시 예외가 발생한다")
+    void update_fail_confirmed() {
+        EvaluationPeriod period = buildPeriod(EvalPeriodStatus.CONFIRMED);
+        given(repository.findById(any())).willReturn(Optional.of(period));
+
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                LocalDate.of(2026, 2, 1),
+                LocalDate.of(2026, 4, 30),
+                2L
+        );
+
+        assertThatThrownBy(() -> service.update(1L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("확정된 평가 기간은 수정할 수 없습니다.");
+    }
+
+    @Test
     @DisplayName("평가 기간을 수정한다")
     void update_success() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);

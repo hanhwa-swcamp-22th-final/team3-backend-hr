@@ -89,6 +89,9 @@ public class EvaluationPeriod {
     }
 
     public void update(LocalDate startDate, LocalDate endDate, Long algorithmVersionId) {
+        if (this.status == EvalPeriodStatus.CONFIRMED) {
+            throw new IllegalStateException("확정된 평가 기간은 수정할 수 없습니다.");
+        }
         if (startDate != null) this.startDate = startDate;
         if (endDate != null) this.endDate = endDate;
         if (algorithmVersionId != null) this.algorithmVersionId = algorithmVersionId;
