@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.evaluation.command.domain.repository;
 
+import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.evaluation.command.domain.aggregate.EvaluationPeriod;
@@ -23,12 +24,14 @@ class EvaluationPeriodRepositoryTest {
     @Autowired
     private EvaluationPeriodRepository repository;
 
-    private EvaluationPeriod buildPeriod(int year, int seq, EvalPeriodStatus status) {
+    private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
+
+    private EvaluationPeriod buildPeriod(int year, EvalPeriodStatus status) {
         return EvaluationPeriod.builder()
-                .evalPeriodId(System.currentTimeMillis() * 1000 + seq)
+                .evalPeriodId(idGenerator.generate())
                 .algorithmVersionId(1L)
                 .evalYear(year)
-                .evalSequence(seq)
+                .evalSequence(1)
                 .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(year, 1, 1))
                 .endDate(LocalDate.of(year, 3, 31))
@@ -39,7 +42,7 @@ class EvaluationPeriodRepositoryTest {
     @Test
     @DisplayName("평가 기간을 저장한다")
     void save_success() {
-        EvaluationPeriod period = buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS);
+        EvaluationPeriod period = buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS);
 
         EvaluationPeriod saved = repository.save(period);
 
@@ -51,7 +54,7 @@ class EvaluationPeriodRepositoryTest {
     @Test
     @DisplayName("ID로 평가 기간을 조회한다")
     void findById_success() {
-        EvaluationPeriod period = repository.save(buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS));
+        EvaluationPeriod period = repository.save(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
 
         Optional<EvaluationPeriod> result = repository.findById(period.getEvalPeriodId());
 
