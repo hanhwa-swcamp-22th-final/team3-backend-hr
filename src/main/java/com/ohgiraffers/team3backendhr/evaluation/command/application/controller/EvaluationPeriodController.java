@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.evaluation.command.application.controller;
 
+import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.evaluation.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.evaluation.command.application.dto.request.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.evaluation.command.application.service.EvaluationPeriodService;
@@ -17,30 +18,30 @@ public class EvaluationPeriodController {
 
     @PostMapping
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<Void> create(@RequestBody EvaluationPeriodCreateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> create(@RequestBody EvaluationPeriodCreateRequest request) {
         service.create(request);
-        return ResponseEntity.status(201).build();
+        return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}/close")
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<Void> close(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> close(@PathVariable Long id) {
         service.close(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}/confirm")
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<Void> confirm(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> confirm(@PathVariable Long id) {
         service.confirm(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<Void> update(@PathVariable Long id,
-                                       @RequestBody EvaluationPeriodUpdateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long id,
+                                                    @RequestBody EvaluationPeriodUpdateRequest request) {
         service.update(id, request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

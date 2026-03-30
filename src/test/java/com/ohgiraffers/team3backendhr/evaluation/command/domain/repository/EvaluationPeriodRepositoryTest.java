@@ -11,10 +11,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -38,35 +37,34 @@ class EvaluationPeriodRepositoryTest {
     }
 
     @Test
-    @DisplayName("연도로 평가 기간 목록을 조회한다")
-    void findByEvalYear_success() {
-        repository.save(buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS));
-        repository.save(buildPeriod(2026, 2, EvalPeriodStatus.CONFIRMED));
-        repository.save(buildPeriod(2025, 1, EvalPeriodStatus.CONFIRMED));
+    @DisplayName("평가 기간을 저장한다")
+    void save_success() {
+        EvaluationPeriod period = buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS);
 
-        List<EvaluationPeriod> result = repository.findByEvalYear(2026);
+        EvaluationPeriod saved = repository.save(period);
 
-        assertThat(result).hasSize(2);
-        assertThat(result).allMatch(p -> p.getEvalYear() == 2026);
+        assertThat(saved.getEvalPeriodId()).isEqualTo(period.getEvalPeriodId());
+        assertThat(saved.getEvalYear()).isEqualTo(2026);
+        assertThat(saved.getStatus()).isEqualTo(EvalPeriodStatus.IN_PROGRESS);
     }
 
     @Test
-    @DisplayName("상태로 평가 기간을 조회한다")
-    void findByStatus_success() {
-        repository.save(buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS));
+    @DisplayName("ID로 평가 기간을 조회한다")
+    void findById_success() {
+        EvaluationPeriod period = repository.save(buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS));
 
-        Optional<EvaluationPeriod> result = repository.findByStatus(EvalPeriodStatus.IN_PROGRESS);
+        Optional<EvaluationPeriod> result = repository.findById(period.getEvalPeriodId());
 
         assertThat(result).isPresent();
-        assertThat(result.get().getStatus()).isEqualTo(EvalPeriodStatus.IN_PROGRESS);
+        assertThat(result.get().getEvalPeriodId()).isEqualTo(period.getEvalPeriodId());
+        assertThat(result.get().getEvalYear()).isEqualTo(2026);
     }
 
     @Test
-    @DisplayName("특정 상태의 평가 기간이 존재하는지 확인한다")
-    void existsByStatus_success() {
-        repository.save(buildPeriod(2026, 1, EvalPeriodStatus.IN_PROGRESS));
+    @DisplayName("존재하지 않는 ID 조회 시 empty를 반환한다")
+    void findById_whenNotFound_thenEmpty() {
+        Optional<EvaluationPeriod> result = repository.findById(-1L);
 
-        assertThat(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).isTrue();
-        assertThat(repository.existsByStatus(EvalPeriodStatus.CLOSING)).isFalse();
+        assertThat(result).isEmpty();
     }
 }

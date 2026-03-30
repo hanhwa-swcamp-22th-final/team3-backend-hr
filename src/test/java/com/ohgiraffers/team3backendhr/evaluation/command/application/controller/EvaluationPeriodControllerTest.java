@@ -50,7 +50,8 @@ class EvaluationPeriodControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true));
 
         verify(service).create(any(EvaluationPeriodCreateRequest.class));
     }
@@ -80,7 +81,8 @@ class EvaluationPeriodControllerTest {
     void close_success() throws Exception {
         mockMvc.perform(patch("/api/evaluation-periods/1/close")
                         .with(csrf()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
 
         verify(service).close(1L);
     }
@@ -91,7 +93,8 @@ class EvaluationPeriodControllerTest {
     void confirm_success() throws Exception {
         mockMvc.perform(patch("/api/evaluation-periods/1/confirm")
                         .with(csrf()))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
 
         verify(service).confirm(1L);
     }
@@ -110,7 +113,8 @@ class EvaluationPeriodControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
 
         verify(service).update(eq(1L), any(EvaluationPeriodUpdateRequest.class));
     }
