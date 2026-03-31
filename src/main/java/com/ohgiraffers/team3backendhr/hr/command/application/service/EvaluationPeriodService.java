@@ -26,12 +26,12 @@ public class EvaluationPeriodService {
         }
         EvaluationPeriod period = EvaluationPeriod.builder()
                 .evalPeriodId(idGenerator.generate())
-                .algorithmVersionId(request.algorithmVersionId())
-                .evalYear(request.evalYear())
-                .evalSequence(request.evalSequence())
-                .evalType(request.evalType())
-                .startDate(request.startDate())
-                .endDate(request.endDate())
+                .algorithmVersionId(request.getAlgorithmVersionId())
+                .evalYear(request.getEvalYear())
+                .evalSequence(request.getEvalSequence())
+                .evalType(request.getEvalType())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
                 .build();
         repository.save(period);
     }
@@ -51,6 +51,6 @@ public class EvaluationPeriodService {
     public void update(Long evalPeriodId, EvaluationPeriodUpdateRequest request) {
         EvaluationPeriod period = repository.findById(evalPeriodId)
                 .orElseThrow(() -> new IllegalArgumentException("평가 기간을 찾을 수 없습니다."));
-        period.update(request.startDate(), request.endDate(), request.algorithmVersionId());
+        period.update(request.getStartDate(), request.getEndDate(), request.getAlgorithmVersionId());
     }
 }
