@@ -7,7 +7,6 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeri
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.hr.query.mapper.EvaluationPeriodQueryMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,9 +30,6 @@ class EvaluationPeriodServiceTest {
 
     @Mock
     private IdGenerator idGenerator;
-
-    @Mock
-    private EvaluationPeriodQueryMapper queryMapper;
 
     @InjectMocks
     private EvaluationPeriodService service;
@@ -61,7 +57,7 @@ class EvaluationPeriodServiceTest {
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 3, 31)
         );
-        given(queryMapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())).willReturn(false);
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
         given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
@@ -81,7 +77,7 @@ class EvaluationPeriodServiceTest {
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 3, 31)
         );
-        given(queryMapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())).willReturn(true);
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(IllegalStateException.class)

@@ -70,4 +70,21 @@ class EvaluationPeriodRepositoryTest {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    @DisplayName("특정 상태의 평가 기간이 존재하면 true를 반환한다")
+    void existsByStatus_true() {
+        // given
+        repository.save(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
+
+        // when & then
+        assertThat(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).isTrue();
+    }
+
+    @Test
+    @DisplayName("특정 상태의 평가 기간이 없으면 false를 반환한다")
+    void existsByStatus_false() {
+        // given & when & then
+        assertThat(repository.existsByStatus(EvalPeriodStatus.CLOSING)).isFalse();
+    }
 }

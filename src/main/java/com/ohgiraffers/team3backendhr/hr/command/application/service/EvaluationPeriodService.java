@@ -6,7 +6,6 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeri
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.hr.query.mapper.EvaluationPeriodQueryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +17,9 @@ public class EvaluationPeriodService {
 
     private final EvaluationPeriodRepository repository;
     private final IdGenerator idGenerator;
-    private final EvaluationPeriodQueryMapper queryMapper;
 
     public void create(EvaluationPeriodCreateRequest request) {
-        if (queryMapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())) {
+        if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
             throw new IllegalStateException("이미 진행 중인 평가 기간이 있습니다.");
         }
         EvaluationPeriod period = EvaluationPeriod.builder()
