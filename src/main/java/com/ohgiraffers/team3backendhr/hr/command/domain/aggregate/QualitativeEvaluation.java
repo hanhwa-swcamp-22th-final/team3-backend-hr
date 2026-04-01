@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class) // createdAt, createdBy 등 Auditing 자동 처리
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA는 기본 생성자 필요, PROTECTED로 외부 직접 생성 방지
-@AllArgsConstructor                                // @Builder가 내부적으로 사용하는 전체 생성자
+@AllArgsConstructor(access = AccessLevel.PRIVATE)  // @Builder가 내부적으로 사용하는 전체 생성자 (외부 직접 생성 방지)
 @Builder
 public class QualitativeEvaluation {
 
@@ -75,8 +75,11 @@ public class QualitativeEvaluation {
 
     /* 임시저장 — NO_INPUT or DRAFT → DRAFT (level 1·2 공용, evaluationLevel은 생성 시 고정) */
     public void saveDraft(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
-        if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
+        if (this.status == QualEvalStatus.SUBMITTED) {
             throw new IllegalStateException("이미 제출된 평가는 수정할 수 없습니다.");
+        }
+        if (this.status == QualEvalStatus.CONFIRMED) {
+            throw new IllegalStateException("이미 확정된 평가는 수정할 수 없습니다.");
         }
         this.evaluatorId = evaluatorId;  // 로그인한 평가자 ID 세팅
         this.evalItems = evalItems;

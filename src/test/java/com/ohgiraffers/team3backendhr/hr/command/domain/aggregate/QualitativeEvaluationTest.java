@@ -78,7 +78,7 @@ class QualitativeEvaluationTest {
         // when & then
         assertThatThrownBy(() -> eval.saveDraft(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 제출된 평가는 수정할 수 없습니다.");
+                .hasMessage("이미 확정된 평가는 수정할 수 없습니다.");
     }
 
     /* ── submit (평가 제출, level 1·2 공용) ────────────────────────────────── */

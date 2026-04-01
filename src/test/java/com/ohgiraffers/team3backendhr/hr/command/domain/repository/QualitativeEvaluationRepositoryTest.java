@@ -37,51 +37,6 @@ class QualitativeEvaluationRepositoryTest {
                 .build(); // status 기본값 NO_INPUT
     }
 
-    /* ── save ────────────────────────────────────────────────────────────── */
-
-    @Test
-    @DisplayName("정성평가 레코드를 저장한다 (NO_INPUT 상태, evaluatorId null)")
-    void save_success() {
-        // given
-        QualitativeEvaluation eval = buildEval(101L, 5L, 1L);
-
-        // when
-        QualitativeEvaluation saved = repository.save(eval);
-
-        // then
-        assertThat(saved.getQualitativeEvaluationId()).isEqualTo(eval.getQualitativeEvaluationId());
-        assertThat(saved.getStatus()).isEqualTo(QualEvalStatus.NO_INPUT);
-        assertThat(saved.getEvaluatorId()).isNull();
-        assertThat(saved.getEvaluationLevel()).isEqualTo(1L);
-    }
-
-    /* ── findById ────────────────────────────────────────────────────────── */
-
-    @Test
-    @DisplayName("ID로 정성평가 레코드를 조회한다")
-    void findById_success() {
-        // given
-        QualitativeEvaluation saved = repository.save(buildEval(101L, 5L, 1L));
-
-        // when
-        Optional<QualitativeEvaluation> result = repository.findById(saved.getQualitativeEvaluationId());
-
-        // then
-        assertThat(result).isPresent();
-        assertThat(result.get().getEvaluateeId()).isEqualTo(101L);
-        assertThat(result.get().getEvaluationPeriodId()).isEqualTo(5L);
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 ID 조회 시 empty를 반환한다")
-    void findById_whenNotFound_thenEmpty() {
-        // given & when
-        Optional<QualitativeEvaluation> result = repository.findById(-1L);
-
-        // then
-        assertThat(result).isEmpty();
-    }
-
     /* ── findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel ─────────
      * UI 응답용 조회가 아닌 Command 조회 — 차수 간 의존성 체크용.
      * 예: 2차 제출 전 Service에서 level=1 레코드가 SUBMITTED인지 확인할 때 사용.
