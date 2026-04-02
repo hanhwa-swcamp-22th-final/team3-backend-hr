@@ -86,7 +86,7 @@ class EvaluationPeriodIntegrationTest {
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
 
         // when
-        mockMvc.perform(post("/api/evaluation-periods")
+        mockMvc.perform(post("/api/v1/hr/evaluation-periods")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -109,7 +109,7 @@ class EvaluationPeriodIntegrationTest {
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30));
 
         // when & then
-        mockMvc.perform(post("/api/evaluation-periods")
+        mockMvc.perform(post("/api/v1/hr/evaluation-periods")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -124,7 +124,7 @@ class EvaluationPeriodIntegrationTest {
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
 
         // when
-        mockMvc.perform(patch("/api/evaluation-periods/" + period.getEvalPeriodId() + "/close")
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId() + "/close")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -142,7 +142,7 @@ class EvaluationPeriodIntegrationTest {
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.CLOSING));
 
         // when
-        mockMvc.perform(patch("/api/evaluation-periods/" + period.getEvalPeriodId() + "/confirm")
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId() + "/confirm")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -162,7 +162,7 @@ class EvaluationPeriodIntegrationTest {
                 LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30), 2L);
 
         // when
-        mockMvc.perform(patch("/api/evaluation-periods/" + period.getEvalPeriodId())
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId())
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
