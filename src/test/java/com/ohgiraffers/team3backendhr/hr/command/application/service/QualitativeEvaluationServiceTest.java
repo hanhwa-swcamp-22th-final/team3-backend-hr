@@ -347,7 +347,7 @@ class QualitativeEvaluationServiceTest {
         service.createRecordsForPeriod(10L);
 
         // then — WORKER 2명 × level 3 = 6개
-        verify(repository).saveAll(argThat(list -> list.size() == 6));
+        verify(repository).saveAll(argThat(list -> ((List<?>) list).size() == 6));
     }
 
     @Test
