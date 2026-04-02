@@ -7,7 +7,6 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeri
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.hr.query.mapper.EvaluationPeriodQueryMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,10 +29,10 @@ class EvaluationPeriodServiceTest {
     private EvaluationPeriodRepository repository;
 
     @Mock
-    private IdGenerator idGenerator;
+    private QualitativeEvaluationService qualitativeEvaluationService;
 
     @Mock
-    private EvaluationPeriodQueryMapper queryMapper;
+    private IdGenerator idGenerator;
 
     @InjectMocks
     private EvaluationPeriodService service;
@@ -51,37 +50,29 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("평가 기간을 생성한다")
+    @DisplayName("평가 기간을 생성하고 Admin에서 WORKER 조회 후 level 1·2·3 레코드를 선생성한다")
     void create_success() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L,
-                2026,
-                1,
-                EvalType.QUALITATIVE,
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 3, 31)
+                1L, 2026, 1, EvalType.QUALITATIVE,
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(queryMapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())).willReturn(false);
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
         given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
         assertThatNoException().isThrownBy(() -> service.create(request));
-        verify(idGenerator).generate();
         verify(repository).save(any(EvaluationPeriod.class));
+        verify(qualitativeEvaluationService).createRecordsForPeriod(123456L);
     }
 
     @Test
     @DisplayName("이미 진행 중인 평가 기간이 있으면 생성 시 예외가 발생한다")
     void create_fail_alreadyInProgress() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L,
-                2026,
-                1,
-                EvalType.QUALITATIVE,
-                LocalDate.of(2026, 1, 1),
-                LocalDate.of(2026, 3, 31)
+                1L, 2026, 1, EvalType.QUALITATIVE,
+                LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(queryMapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())).willReturn(true);
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(IllegalStateException.class)

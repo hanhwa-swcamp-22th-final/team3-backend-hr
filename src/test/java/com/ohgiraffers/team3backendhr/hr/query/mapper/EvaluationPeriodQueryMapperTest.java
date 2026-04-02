@@ -67,12 +67,4 @@ class EvaluationPeriodQueryMapperTest {
         assertThat(result.getStatus()).isEqualTo(EvalPeriodStatus.IN_PROGRESS);
     }
 
-    @Test
-    @DisplayName("특정 상태의 평가 기간이 존재하는지 확인한다")
-    void existsByStatus_success() {
-        repository.saveAndFlush(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
-
-        assertThat(mapper.existsByStatus(EvalPeriodStatus.IN_PROGRESS.name())).isTrue();
-        assertThat(mapper.existsByStatus(EvalPeriodStatus.CLOSING.name())).isFalse();
-    }
 }

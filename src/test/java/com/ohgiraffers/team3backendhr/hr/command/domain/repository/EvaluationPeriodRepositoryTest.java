@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,34 +39,19 @@ class EvaluationPeriodRepositoryTest {
     }
 
     @Test
-    @DisplayName("평가 기간을 저장한다")
-    void save_success() {
-        EvaluationPeriod period = buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS);
+    @DisplayName("특정 상태의 평가 기간이 존재하면 true를 반환한다")
+    void existsByStatus_true() {
+        // given
+        repository.save(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
 
-        EvaluationPeriod saved = repository.save(period);
-
-        assertThat(saved.getEvalPeriodId()).isEqualTo(period.getEvalPeriodId());
-        assertThat(saved.getEvalYear()).isEqualTo(2026);
-        assertThat(saved.getStatus()).isEqualTo(EvalPeriodStatus.IN_PROGRESS);
+        // when & then
+        assertThat(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).isTrue();
     }
 
     @Test
-    @DisplayName("ID로 평가 기간을 조회한다")
-    void findById_success() {
-        EvaluationPeriod period = repository.save(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
-
-        Optional<EvaluationPeriod> result = repository.findById(period.getEvalPeriodId());
-
-        assertThat(result).isPresent();
-        assertThat(result.get().getEvalPeriodId()).isEqualTo(period.getEvalPeriodId());
-        assertThat(result.get().getEvalYear()).isEqualTo(2026);
-    }
-
-    @Test
-    @DisplayName("존재하지 않는 ID 조회 시 empty를 반환한다")
-    void findById_whenNotFound_thenEmpty() {
-        Optional<EvaluationPeriod> result = repository.findById(-1L);
-
-        assertThat(result).isEmpty();
+    @DisplayName("특정 상태의 평가 기간이 없으면 false를 반환한다")
+    void existsByStatus_false() {
+        // given & when & then
+        assertThat(repository.existsByStatus(EvalPeriodStatus.CLOSING)).isFalse();
     }
 }

@@ -9,8 +9,6 @@ import java.util.List;
 @Mapper
 public interface EvaluationPeriodQueryMapper {
 
-    boolean existsByStatus(@Param("status") String status);
-
     EvaluationPeriod findByStatus(@Param("status") String status);
 
     List<EvaluationPeriod> findByEvalYear(@Param("evalYear") Integer evalYear);

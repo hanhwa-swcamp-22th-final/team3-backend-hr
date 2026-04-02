@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.Evaluat
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodService;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class EvaluationPeriodController {
 
     @PostMapping
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<ApiResponse<Void>> create(@RequestBody EvaluationPeriodCreateRequest request) {
+    public ResponseEntity<ApiResponse<Void>> create(@RequestBody @Valid EvaluationPeriodCreateRequest request) {
         service.create(request);
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
