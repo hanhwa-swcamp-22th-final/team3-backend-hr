@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
