@@ -7,6 +7,9 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,17 +17,27 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class QualitativeEvaluationServiceTest {
 
     @Mock
     private QualitativeEvaluationRepository repository;
+
+    @Mock
+    private AdminClient adminClient;
+
+    @Mock
+    private IdGenerator idGenerator;
 
     @InjectMocks
     private QualitativeEvaluationService service;
@@ -316,6 +329,25 @@ class QualitativeEvaluationServiceTest {
         assertThatThrownBy(() -> service.submit(200L, 101L, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("평가 레코드를 찾을 수 없습니다.");
+    }
+
+    /* ── createRecordsForPeriod ──────────────────────────────────────────── */
+
+    @Test
+    @DisplayName("평가 기간 생성 시 WORKER × level 1·2·3 레코드를 선생성한다")
+    void createRecordsForPeriod_success() {
+        // given
+        WorkerResponse w1 = new WorkerResponse(); w1.setEmployeeId(101L);
+        WorkerResponse w2 = new WorkerResponse(); w2.setEmployeeId(102L);
+        given(adminClient.getWorkers()).willReturn(List.of(w1, w2));
+        given(idGenerator.generate()).willReturn(1L, 2L, 3L, 4L, 5L, 6L);
+        given(repository.saveAll(any())).willReturn(List.of());
+
+        // when
+        service.createRecordsForPeriod(10L);
+
+        // then — WORKER 2명 × level 3 = 6개
+        verify(repository).saveAll(argThat(list -> list.size() == 6));
     }
 
     @Test
