@@ -175,7 +175,8 @@ class QualitativeEvaluationServiceTest {
     @DisplayName("2차 평가 임시저장 성공 — level 2 레코드 DRAFT로 전환")
     void saveDraftForDL_success() {
         // given
-        QualitativeEvaluation eval = QualitativeEvaluation.builder()
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
                 .evaluationPeriodId(5L)
@@ -183,7 +184,9 @@ class QualitativeEvaluationServiceTest {
                 .status(QualEvalStatus.NO_INPUT)
                 .build();
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(eval));
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
 
         QualitativeEvaluationDraftRequest request = new QualitativeEvaluationDraftRequest(
                 5L, "{\"LEADERSHIP\": 85}", "2차 임시저장 코멘트입니다.", InputMethod.TEXT);
@@ -192,14 +195,34 @@ class QualitativeEvaluationServiceTest {
         service.saveDraftForDL(300L, 101L, request);
 
         // then
-        assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.DRAFT);
-        assertThat(eval.getEvaluatorId()).isEqualTo(300L);
+        assertThat(level2.getStatus()).isEqualTo(QualEvalStatus.DRAFT);
+        assertThat(level2.getEvaluatorId()).isEqualTo(300L);
+    }
+
+    @Test
+    @DisplayName("2차 평가 임시저장 — 1차 평가가 SUBMITTED 아니면 예외")
+    void saveDraftForDL_fail_level1NotSubmitted() {
+        // given
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.DRAFT);
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
+
+        QualitativeEvaluationDraftRequest request = new QualitativeEvaluationDraftRequest(
+                5L, null, null, InputMethod.TEXT);
+
+        // when & then
+        assertThatThrownBy(() -> service.saveDraftForDL(300L, 101L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다.");
     }
 
     @Test
     @DisplayName("2차 평가 임시저장 — level 2 레코드 없으면 예외")
     void saveDraftForDL_fail_notFound() {
         // given
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.empty());
 
@@ -218,7 +241,8 @@ class QualitativeEvaluationServiceTest {
     @DisplayName("2차 평가 제출 성공 — score 90 이상이면 grade S")
     void submitForDL_success_gradeS() {
         // given
-        QualitativeEvaluation eval = QualitativeEvaluation.builder()
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
                 .evaluationPeriodId(5L)
@@ -226,7 +250,9 @@ class QualitativeEvaluationServiceTest {
                 .status(QualEvalStatus.DRAFT)
                 .build();
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(eval));
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
                 5L, "{\"LEADERSHIP\": 95}", "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 91.0);
@@ -235,15 +261,35 @@ class QualitativeEvaluationServiceTest {
         service.submitForDL(300L, 101L, request);
 
         // then
-        assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
-        assertThat(eval.getGrade()).isEqualTo(Grade.S);
-        assertThat(eval.getScore()).isEqualTo(91.0);
+        assertThat(level2.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
+        assertThat(level2.getGrade()).isEqualTo(Grade.S);
+        assertThat(level2.getScore()).isEqualTo(91.0);
+    }
+
+    @Test
+    @DisplayName("2차 평가 제출 — 1차 평가가 SUBMITTED 아니면 예외")
+    void submitForDL_fail_level1NotSubmitted() {
+        // given
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.NO_INPUT);
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
+
+        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
+                5L, null, "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 88.0);
+
+        // when & then
+        assertThatThrownBy(() -> service.submitForDL(300L, 101L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다.");
     }
 
     @Test
     @DisplayName("2차 평가 제출 — level 2 레코드 없으면 예외")
     void submitForDL_fail_notFound() {
         // given
+        QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.empty());
 

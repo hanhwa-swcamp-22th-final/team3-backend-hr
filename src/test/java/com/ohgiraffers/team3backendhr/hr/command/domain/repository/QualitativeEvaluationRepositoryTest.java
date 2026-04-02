@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +47,10 @@ class QualitativeEvaluationRepositoryTest {
     @DisplayName("피평가자ID·평가기간ID·차수로 레코드를 조회한다")
     void findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel_success() {
         // given — level 1·2·3 레코드 선생성
-        repository.save(buildEval(101L, 5L, 1L));
-        repository.save(buildEval(101L, 5L, 2L));
-        repository.save(buildEval(101L, 5L, 3L));
+        repository.saveAll(List.of(
+                buildEval(101L, 5L, 1L),
+                buildEval(101L, 5L, 2L),
+                buildEval(101L, 5L, 3L)));
 
         // when
         Optional<QualitativeEvaluation> result =
@@ -64,7 +66,7 @@ class QualitativeEvaluationRepositoryTest {
     @DisplayName("존재하지 않는 차수 조회 시 empty를 반환한다")
     void findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel_whenNotFound_thenEmpty() {
         // given
-        repository.save(buildEval(101L, 5L, 1L));
+        repository.saveAll(List.of(buildEval(101L, 5L, 1L)));
 
         // when — level 2는 저장하지 않음
         Optional<QualitativeEvaluation> result =

@@ -7,11 +7,7 @@ import java.util.Optional;
 
 public interface QualitativeEvaluationRepository {
 
-    QualitativeEvaluation save(QualitativeEvaluation qualitativeEvaluation);
-
     List<QualitativeEvaluation> saveAll(List<QualitativeEvaluation> evaluations);
-
-    Optional<QualitativeEvaluation> findById(Long qualitativeEvaluationId);
 
     Optional<QualitativeEvaluation> findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
             Long evaluateeId, Long evaluationPeriodId, Long evaluationLevel);
