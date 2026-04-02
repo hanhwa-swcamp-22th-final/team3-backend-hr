@@ -23,6 +23,9 @@ public class EvaluationPeriodService {
         if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
             throw new IllegalStateException("이미 진행 중인 평가 기간이 있습니다.");
         }
+        if (!request.getEndDate().isAfter(request.getStartDate())) {
+            throw new IllegalArgumentException("종료일은 시작일보다 이후여야 합니다.");
+        }
         EvaluationPeriod period = EvaluationPeriod.builder()
                 .evalPeriodId(idGenerator.generate())
                 .algorithmVersionId(request.getAlgorithmVersionId())
@@ -49,6 +52,9 @@ public class EvaluationPeriodService {
     }
 
     public void update(Long evalPeriodId, EvaluationPeriodUpdateRequest request) {
+        if (!request.getEndDate().isAfter(request.getStartDate())) {
+            throw new IllegalArgumentException("종료일은 시작일보다 이후여야 합니다.");
+        }
         EvaluationPeriod period = repository.findById(evalPeriodId)
                 .orElseThrow(() -> new IllegalArgumentException("평가 기간을 찾을 수 없습니다."));
         period.update(request.getStartDate(), request.getEndDate(), request.getAlgorithmVersionId());

@@ -66,6 +66,20 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
+    @DisplayName("종료일이 시작일보다 이전이면 생성 시 예외가 발생한다")
+    void create_fail_endDateBeforeStartDate() {
+        EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
+                1L, 2026, 1, EvalType.QUALITATIVE,
+                LocalDate.of(2026, 3, 31), LocalDate.of(2026, 1, 1)
+        );
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("종료일은 시작일보다 이후여야 합니다.");
+    }
+
+    @Test
     @DisplayName("이미 진행 중인 평가 기간이 있으면 생성 시 예외가 발생한다")
     void create_fail_alreadyInProgress() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
@@ -109,6 +123,20 @@ class EvaluationPeriodServiceTest {
         service.confirm(1L);
 
         assertThat(period.getStatus()).isEqualTo(EvalPeriodStatus.CONFIRMED);
+    }
+
+    @Test
+    @DisplayName("수정 시 종료일이 시작일보다 이전이면 예외가 발생한다")
+    void update_fail_endDateBeforeStartDate() {
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                LocalDate.of(2026, 4, 30),
+                LocalDate.of(2026, 1, 1),
+                1L
+        );
+
+        assertThatThrownBy(() -> service.update(1L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("종료일은 시작일보다 이후여야 합니다.");
     }
 
     @Test
