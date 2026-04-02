@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationSubmitRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
@@ -70,6 +71,20 @@ public class QualitativeEvaluationService {
         Grade grade = calculateGrade(request.getScore());
         eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(),
                 request.getInputMethod(), request.getScore(), grade);
+    }
+
+    /* 3차(HRM) 최종 확정 — 2차 제출 여부 검증 후 CONFIRMED */
+    public void confirmFinal(Long evaluatorId, Long evaluateeId, QualitativeEvaluationConfirmRequest request) {
+        validateLevel2Submitted(evaluateeId, request.getEvaluationPeriodId());
+        QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 3L);
+        eval.confirmFinal(evaluatorId, request.getEvalComment(), request.getInputMethod());
+    }
+
+    private void validateLevel2Submitted(Long evaluateeId, Long evaluationPeriodId) {
+        QualitativeEvaluation level2 = findByLevel(evaluateeId, evaluationPeriodId, 2L);
+        if (level2.getStatus() != QualEvalStatus.SUBMITTED) {
+            throw new IllegalStateException("2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다.");
+        }
     }
 
     private void validateLevel1Submitted(Long evaluateeId, Long evaluationPeriodId) {

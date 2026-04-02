@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationSubmitRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
@@ -348,6 +349,97 @@ class QualitativeEvaluationServiceTest {
 
         // then — WORKER 2명 × level 3 = 6개
         verify(repository).saveAll(argThat(list -> ((List<?>) list).size() == 6));
+    }
+
+    /* ── confirmFinal (3차 HRM) ─────────────────────────────────────────── */
+
+    @Test
+    @DisplayName("3차 최종 확정 성공 — level 2 SUBMITTED이면 level 3 CONFIRMED")
+    void confirmFinal_success() {
+        // given
+        QualitativeEvaluation level2 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(2L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(2L)
+                .status(QualEvalStatus.SUBMITTED)
+                .build();
+        QualitativeEvaluation level3 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(3L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(3L)
+                .status(QualEvalStatus.NO_INPUT)
+                .build();
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(3L))).willReturn(Optional.of(level3));
+
+        QualitativeEvaluationConfirmRequest request = new QualitativeEvaluationConfirmRequest(
+                5L, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
+
+        // when
+        service.confirmFinal(400L, 101L, request);
+
+        // then
+        assertThat(level3.getStatus()).isEqualTo(QualEvalStatus.CONFIRMED);
+        assertThat(level3.getEvaluatorId()).isEqualTo(400L);
+    }
+
+    @Test
+    @DisplayName("3차 최종 확정 — 2차 평가가 SUBMITTED 아니면 예외")
+    void confirmFinal_fail_level2NotSubmitted() {
+        // given
+        QualitativeEvaluation level2 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(2L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(2L)
+                .status(QualEvalStatus.DRAFT)
+                .build();
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
+
+        QualitativeEvaluationConfirmRequest request = new QualitativeEvaluationConfirmRequest(
+                5L, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
+
+        // when & then
+        assertThatThrownBy(() -> service.confirmFinal(400L, 101L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("3차 최종 확정 — 코멘트 20자 미만이면 예외")
+    void confirmFinal_fail_commentTooShort() {
+        // given
+        QualitativeEvaluation level2 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(2L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(2L)
+                .status(QualEvalStatus.SUBMITTED)
+                .build();
+        QualitativeEvaluation level3 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(3L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(3L)
+                .status(QualEvalStatus.NO_INPUT)
+                .build();
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(3L))).willReturn(Optional.of(level3));
+
+        QualitativeEvaluationConfirmRequest request = new QualitativeEvaluationConfirmRequest(
+                5L, "짧은코멘트", InputMethod.TEXT);
+
+        // when & then
+        assertThatThrownBy(() -> service.confirmFinal(400L, 101L, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
     @Test
