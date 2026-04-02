@@ -5,11 +5,8 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStat
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -33,22 +29,13 @@ class EvaluationPeriodServiceTest {
     private EvaluationPeriodRepository repository;
 
     @Mock
-    private QualitativeEvaluationRepository qualitativeEvaluationRepository;
-
-    @Mock
-    private AdminClient adminClient;
+    private QualitativeEvaluationService qualitativeEvaluationService;
 
     @Mock
     private IdGenerator idGenerator;
 
     @InjectMocks
     private EvaluationPeriodService service;
-
-    private WorkerResponse buildWorker(Long employeeId) {
-        WorkerResponse worker = new WorkerResponse();
-        worker.setEmployeeId(employeeId);
-        return worker;
-    }
 
     private EvaluationPeriod buildPeriod(EvalPeriodStatus status) {
         return EvaluationPeriod.builder()
@@ -72,13 +59,10 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
         given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
-        given(adminClient.getWorkers()).willReturn(List.of(buildWorker(101L), buildWorker(102L)));
-        given(qualitativeEvaluationRepository.saveAll(any())).willReturn(List.of());
 
         assertThatNoException().isThrownBy(() -> service.create(request));
         verify(repository).save(any(EvaluationPeriod.class));
-        verify(adminClient).getWorkers();
-        verify(qualitativeEvaluationRepository).saveAll(any());
+        verify(qualitativeEvaluationService).createRecordsForPeriod(123456L);
     }
 
     @Test

@@ -1,14 +1,20 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationSubmitRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +22,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class QualitativeEvaluationService {
 
     private final QualitativeEvaluationRepository repository;
+    private final AdminClient adminClient;
+    private final IdGenerator idGenerator;
+
+    /* 평가 기간 생성 시 WORKER × level 1·2·3 레코드 선생성 */
+    public void createRecordsForPeriod(Long periodId) {
+        List<WorkerResponse> workers = adminClient.getWorkers();
+        List<QualitativeEvaluation> evaluations = new ArrayList<>();
+        for (WorkerResponse worker : workers) {
+            for (long level = 1; level <= 3; level++) {
+                evaluations.add(QualitativeEvaluation.builder()
+                        .qualitativeEvaluationId(idGenerator.generate())
+                        .evaluateeId(worker.getEmployeeId())
+                        .evaluationPeriodId(periodId)
+                        .evaluationLevel(level)
+                        .build());
+            }
+        }
+        repository.saveAll(evaluations);
+    }
 
     /* 1차(TL) 임시저장 */
     public void saveDraft(Long evaluatorId, Long evaluateeId, QualitativeEvaluationDraftRequest request) {

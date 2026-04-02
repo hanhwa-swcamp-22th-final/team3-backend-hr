@@ -3,19 +3,12 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,8 +16,7 @@ import java.util.List;
 public class EvaluationPeriodService {
 
     private final EvaluationPeriodRepository repository;
-    private final QualitativeEvaluationRepository qualitativeEvaluationRepository;
-    private final AdminClient adminClient;
+    private final QualitativeEvaluationService qualitativeEvaluationService;
     private final IdGenerator idGenerator;
 
     public void create(EvaluationPeriodCreateRequest request) {
@@ -41,21 +33,7 @@ public class EvaluationPeriodService {
                 .endDate(request.getEndDate())
                 .build();
         repository.save(period);
-
-        // Admin 서비스에서 WORKER 목록 조회 후 level 1·2·3 레코드 선생성
-        List<WorkerResponse> workers = adminClient.getWorkers();
-        List<QualitativeEvaluation> evaluations = new ArrayList<>();
-        for (WorkerResponse worker : workers) {
-            for (long level = 1; level <= 3; level++) {
-                evaluations.add(QualitativeEvaluation.builder()
-                        .qualitativeEvaluationId(idGenerator.generate())
-                        .evaluateeId(worker.getEmployeeId())
-                        .evaluationPeriodId(period.getEvalPeriodId())
-                        .evaluationLevel(level)
-                        .build());
-            }
-        }
-        qualitativeEvaluationRepository.saveAll(evaluations);
+        qualitativeEvaluationService.createRecordsForPeriod(period.getEvalPeriodId());
     }
 
     public void close(Long evalPeriodId) {
