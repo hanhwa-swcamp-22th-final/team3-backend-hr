@@ -94,6 +94,57 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
+    @DisplayName("동일한 연도·차수·유형의 평가 기간이 이미 존재하면 생성 시 예외가 발생한다")
+    void create_fail_duplicateSequence() {
+        EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
+                1L, 2026, 1, EvalType.QUALITATIVE,
+                LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30)
+        );
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 1, EvalType.QUALITATIVE)).willReturn(true);
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다.");
+    }
+
+    @Test
+    @DisplayName("날짜가 기존 평가 기간과 겹치면 생성 시 예외가 발생한다")
+    void create_fail_dateOverlap() {
+        EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
+                1L, 2026, 2, EvalType.QUALITATIVE,
+                LocalDate.of(2026, 3, 1), LocalDate.of(2026, 5, 31)
+        );
+        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 2, EvalType.QUALITATIVE)).willReturn(false);
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1))).willReturn(true);
+
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
+    }
+
+    @Test
+    @DisplayName("수정 시 날짜가 다른 평가 기간과 겹치면 예외가 발생한다")
+    void update_fail_dateOverlap() {
+        EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
+        given(repository.findById(any())).willReturn(Optional.of(period));
+
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                LocalDate.of(2026, 3, 1),
+                LocalDate.of(2026, 5, 31),
+                1L
+        );
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
+                LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1), 1L)).willReturn(true);
+
+        assertThatThrownBy(() -> service.update(1L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
+    }
+
+    @Test
     @DisplayName("평가 기간을 마감한다")
     void close_success() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
@@ -128,6 +179,9 @@ class EvaluationPeriodServiceTest {
     @Test
     @DisplayName("수정 시 종료일이 시작일보다 이전이면 예외가 발생한다")
     void update_fail_endDateBeforeStartDate() {
+        EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
+        given(repository.findById(any())).willReturn(Optional.of(period));
+
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 4, 30),
                 LocalDate.of(2026, 1, 1),
@@ -154,6 +208,20 @@ class EvaluationPeriodServiceTest {
         assertThatThrownBy(() -> service.update(1L, request))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("확정된 평가 기간은 수정할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("날짜를 전달하지 않으면 기존 날짜를 유지한 채 algorithmVersionId만 수정한다")
+    void update_success_nullDatesKeepExisting() {
+        EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
+        given(repository.findById(any())).willReturn(Optional.of(period));
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
+                period.getEndDate(), period.getStartDate(), 1L)).willReturn(false);
+
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(null, null, 99L);
+
+        assertThatNoException().isThrownBy(() -> service.update(1L, request));
+        assertThat(period.getAlgorithmVersionId()).isEqualTo(99L);
     }
 
     @Test
