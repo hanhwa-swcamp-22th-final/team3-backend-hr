@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,6 +27,14 @@ public class EvaluationPeriodService {
         }
         if (!request.getEndDate().isAfter(request.getStartDate())) {
             throw new IllegalArgumentException("종료일은 시작일보다 이후여야 합니다.");
+        }
+        if (repository.existsByEvalYearAndEvalSequenceAndEvalType(
+                request.getEvalYear(), request.getEvalSequence(), request.getEvalType())) {
+            throw new IllegalStateException("동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다.");
+        }
+        if (repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                request.getEndDate(), request.getStartDate())) {
+            throw new IllegalStateException("기존 평가 기간과 날짜가 중복됩니다.");
         }
         EvaluationPeriod period = EvaluationPeriod.builder()
                 .evalPeriodId(idGenerator.generate())
@@ -52,11 +62,20 @@ public class EvaluationPeriodService {
     }
 
     public void update(Long evalPeriodId, EvaluationPeriodUpdateRequest request) {
-        if (!request.getEndDate().isAfter(request.getStartDate())) {
-            throw new IllegalArgumentException("종료일은 시작일보다 이후여야 합니다.");
-        }
         EvaluationPeriod period = repository.findById(evalPeriodId)
                 .orElseThrow(() -> new IllegalArgumentException("평가 기간을 찾을 수 없습니다."));
+
+        LocalDate effectiveStart = request.getStartDate() != null ? request.getStartDate() : period.getStartDate();
+        LocalDate effectiveEnd   = request.getEndDate()   != null ? request.getEndDate()   : period.getEndDate();
+
+        if (!effectiveEnd.isAfter(effectiveStart)) {
+            throw new IllegalArgumentException("종료일은 시작일보다 이후여야 합니다.");
+        }
+        if (repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
+                effectiveEnd, effectiveStart, evalPeriodId)) {
+            throw new IllegalStateException("기존 평가 기간과 날짜가 중복됩니다.");
+        }
+
         period.update(request.getStartDate(), request.getEndDate(), request.getAlgorithmVersionId());
     }
 }
