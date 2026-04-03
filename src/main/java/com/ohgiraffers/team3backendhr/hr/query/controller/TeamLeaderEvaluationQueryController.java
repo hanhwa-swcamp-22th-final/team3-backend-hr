@@ -23,7 +23,7 @@ public class TeamLeaderEvaluationQueryController {
     /* TL 팀원 평가 대상 조회 — 같은 부서 WORKER 목록 + 제출 상태 반환 */
     /* periodId 미전달 시 현재 IN_PROGRESS 기간으로 자동 resolve */
     @GetMapping("/targets")
-    @PreAuthorize("hasRole('TL')")
+    @PreAuthorize("hasAuthority('TL')")
     public ResponseEntity<ApiResponse<TlEvaluationTargetResponse>> getTargets(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestParam(required = false) Long periodId) {

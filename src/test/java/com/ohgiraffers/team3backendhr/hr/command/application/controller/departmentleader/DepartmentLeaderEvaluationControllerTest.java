@@ -40,7 +40,7 @@ class DepartmentLeaderEvaluationControllerTest {
 
     private EmployeeUserDetails dlUser() {
         return new EmployeeUserDetails(300L, "EMP002", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_DL")));
+                List.of(new SimpleGrantedAuthority("DL")));
     }
 
     /* ── saveDraft ───────────────────────────────────────────────────────── */

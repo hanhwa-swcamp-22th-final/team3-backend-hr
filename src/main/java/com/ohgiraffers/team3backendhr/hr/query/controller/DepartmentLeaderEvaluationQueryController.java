@@ -23,7 +23,7 @@ public class DepartmentLeaderEvaluationQueryController {
     /* DL 2차 평가 대상 조회 — level 1 SUBMITTED인 대상 + AI 추천 점수 반환 */
     /* periodId 미전달 시 현재 IN_PROGRESS 기간으로 자동 resolve */
     @GetMapping("/targets")
-    @PreAuthorize("hasRole('DL')")
+    @PreAuthorize("hasAuthority('DL')")
     public ResponseEntity<ApiResponse<DlEvaluationTargetResponse>> getTargets(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestParam(required = false) Long periodId) {

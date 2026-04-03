@@ -90,7 +90,7 @@ class EvaluationPeriodIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("평가 기간 생성 시 DB에 저장된다")
     void create_success() throws Exception {
         // given
@@ -113,7 +113,7 @@ class EvaluationPeriodIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("이미 진행 중인 평가 기간이 있으면 400을 반환한다")
     void create_fail_alreadyInProgress() throws Exception {
         // given
@@ -131,7 +131,7 @@ class EvaluationPeriodIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("평가 기간을 마감하면 상태가 CLOSING으로 변경된다")
     void close_success() throws Exception {
         // given
@@ -149,7 +149,7 @@ class EvaluationPeriodIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("평가 기간을 확정하면 상태가 CONFIRMED로 변경된다")
     void confirm_success() throws Exception {
         // given
@@ -167,7 +167,7 @@ class EvaluationPeriodIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("평가 기간을 수정하면 날짜와 알고리즘 버전이 변경된다")
     void update_success() throws Exception {
         // given

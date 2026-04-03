@@ -18,28 +18,28 @@ public class EvaluationPeriodController {
     private final EvaluationPeriodService service;
 
     @PostMapping
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> create(@RequestBody @Valid EvaluationPeriodCreateRequest request) {
         service.create(request);
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}/close")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> close(@PathVariable Long id) {
         service.close(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}/confirm")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> confirm(@PathVariable Long id) {
         service.confirm(id);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PatchMapping("/{id}")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long id,
                                                     @RequestBody EvaluationPeriodUpdateRequest request) {
         service.update(id, request);

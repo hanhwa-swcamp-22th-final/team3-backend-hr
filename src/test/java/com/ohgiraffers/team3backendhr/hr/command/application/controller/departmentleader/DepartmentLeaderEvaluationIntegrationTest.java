@@ -61,7 +61,7 @@ class DepartmentLeaderEvaluationIntegrationTest {
     private UsernamePasswordAuthenticationToken dlAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
                 DL_ID, "DL001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_DL")));
+                List.of(new SimpleGrantedAuthority("DL")));
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 

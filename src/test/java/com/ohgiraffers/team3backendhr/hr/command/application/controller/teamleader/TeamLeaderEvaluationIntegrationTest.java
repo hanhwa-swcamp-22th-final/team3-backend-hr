@@ -59,7 +59,7 @@ class TeamLeaderEvaluationIntegrationTest {
     private UsernamePasswordAuthenticationToken tlAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
                 EVALUATOR_ID, "TL001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_TL")));
+                List.of(new SimpleGrantedAuthority("TL")));
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 

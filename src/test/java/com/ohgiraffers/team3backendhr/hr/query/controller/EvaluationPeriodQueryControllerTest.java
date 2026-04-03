@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -62,7 +64,7 @@ class EvaluationPeriodQueryControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/evaluation-periods")
-                        .with(user("hrm").roles("HRM")))
+                        .with(user("hrm").authorities(new SimpleGrantedAuthority("HRM"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
@@ -92,7 +94,7 @@ class EvaluationPeriodQueryControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/evaluation-periods/deadline")
-                        .with(user("tl").roles("TL")))
+                        .with(user("tl").authorities(new SimpleGrantedAuthority("TL"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }

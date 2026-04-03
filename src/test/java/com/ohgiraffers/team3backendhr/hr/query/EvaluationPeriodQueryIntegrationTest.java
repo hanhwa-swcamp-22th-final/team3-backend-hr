@@ -45,7 +45,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("평가 기간 목록을 조회하면 저장된 전체 기간을 반환한다")
     void getList_success() throws Exception {
         // given
@@ -61,7 +61,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("연도 필터를 전달하면 해당 연도의 기간만 반환된다")
     void getList_filterByYear() throws Exception {
         // given
@@ -76,7 +76,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     @DisplayName("상태 필터를 전달하면 해당 상태의 기간만 반환된다")
     void getList_filterByStatus() throws Exception {
         // given
@@ -91,7 +91,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "TL")
+    @WithMockUser(authorities = "TL")
     @DisplayName("HRM 권한이 없으면 목록 조회 시 403을 반환한다")
     void getList_forbidden() throws Exception {
         mockMvc.perform(get("/api/v1/hr/evaluation-periods"))
@@ -99,7 +99,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "TL")
+    @WithMockUser(authorities = "TL")
     @DisplayName("IN_PROGRESS 기간이 있으면 마감일을 반환한다")
     void getDeadline_success() throws Exception {
         // given
@@ -115,7 +115,7 @@ class EvaluationPeriodQueryIntegrationTest {
     }
 
     @Test
-    @WithMockUser(roles = "TL")
+    @WithMockUser(authorities = "TL")
     @DisplayName("IN_PROGRESS 기간이 없으면 마감일 조회 시 400을 반환한다")
     void getDeadline_fail_noInProgress() throws Exception {
         // given — CONFIRMED 기간만 존재

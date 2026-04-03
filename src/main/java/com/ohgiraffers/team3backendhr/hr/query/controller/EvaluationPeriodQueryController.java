@@ -21,7 +21,7 @@ public class EvaluationPeriodQueryController {
 
     /* 평가 기간 목록 조회 — year·status 필터, 페이징 지원 */
     @GetMapping
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<EvaluationPeriodListResponse>> getEvaluationPeriods(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String status,
@@ -32,7 +32,7 @@ public class EvaluationPeriodQueryController {
 
     /* 마감일 조회 — 현재 IN_PROGRESS 기간의 endDate·daysRemaining 반환 */
     @GetMapping("/deadline")
-    @PreAuthorize("hasAnyRole('TL', 'DL')")
+    @PreAuthorize("hasAnyAuthority('TL', 'DL')")
     public ResponseEntity<ApiResponse<EvaluationPeriodDeadlineResponse>> getDeadline() {
         return ResponseEntity.ok(ApiResponse.success(service.getDeadline()));
     }

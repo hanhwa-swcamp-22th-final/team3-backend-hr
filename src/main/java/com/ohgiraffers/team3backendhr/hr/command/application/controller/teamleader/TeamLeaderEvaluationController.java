@@ -20,7 +20,7 @@ public class TeamLeaderEvaluationController {
     private final QualitativeEvaluationService service;
 
     @PostMapping("/{employeeId}/draft")
-    @PreAuthorize("hasRole('TL')")
+    @PreAuthorize("hasAuthority('TL')")
     public ResponseEntity<ApiResponse<Void>> saveDraft(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @PathVariable Long employeeId,
@@ -30,7 +30,7 @@ public class TeamLeaderEvaluationController {
     }
 
     @PostMapping("/{employeeId}/submit")
-    @PreAuthorize("hasRole('TL')")
+    @PreAuthorize("hasAuthority('TL')")
     public ResponseEntity<ApiResponse<Void>> submit(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @PathVariable Long employeeId,
