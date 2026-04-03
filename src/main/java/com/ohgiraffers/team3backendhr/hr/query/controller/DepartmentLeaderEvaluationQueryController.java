@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/hr/department-leader/evaluations")
@@ -25,7 +24,7 @@ public class DepartmentLeaderEvaluationQueryController {
     /* periodId 미전달 시 현재 IN_PROGRESS 기간으로 자동 resolve */
     @GetMapping("/targets")
     @PreAuthorize("hasRole('DL')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getTargets(
+    public ResponseEntity<ApiResponse<DlEvaluationTargetResponse>> getTargets(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestParam(required = false) Long periodId) {
         return ResponseEntity.ok(ApiResponse.success(

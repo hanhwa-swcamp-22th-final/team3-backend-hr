@@ -1,15 +1,14 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -19,17 +18,13 @@ public class EvaluationPeriodQueryService {
     private final QualitativeEvaluationQueryMapper mapper;
 
     /* 평가 기간 목록 조회 — year·status 필터 + 페이징 (HRM 전용) */
-    public Map<String, Object> getEvaluationPeriods(Integer year, String status, int page, int size) {
+    public EvaluationPeriodListResponse getEvaluationPeriods(Integer year, String status, int page, int size) {
         int offset = page * size;
         List<EvaluationPeriodSummaryResponse> content = mapper.findEvaluationPeriods(year, status, size, offset);
         long totalElements = mapper.countEvaluationPeriods(year, status);
-        long totalPages = (totalElements + size - 1) / size;  // 올림 나눗셈
+        long totalPages = (totalElements + size - 1) / size;
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("content", content);
-        result.put("totalElements", totalElements);
-        result.put("totalPages", totalPages);
-        return result;
+        return new EvaluationPeriodListResponse(content, totalElements, totalPages);
     }
 
     /* 마감일 조회 — 현재 IN_PROGRESS 기간의 endDate·daysRemaining 반환 (TL·DL 전용) */

@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
@@ -18,7 +19,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -64,7 +64,7 @@ class TeamLeaderEvaluationQueryControllerTest {
     void getTargets_success() throws Exception {
         // given
         given(service.getTlTargets(any(), any()))
-                .willReturn(Map.of("evalPeriodId", 5L, "targets", List.of()));
+                .willReturn(new TlEvaluationTargetResponse(5L, List.of()));
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/team-leader/evaluations/targets")

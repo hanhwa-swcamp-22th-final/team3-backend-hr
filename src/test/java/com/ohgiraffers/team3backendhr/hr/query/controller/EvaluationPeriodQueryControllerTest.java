@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.EvaluationPeriodQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
@@ -18,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -58,7 +58,7 @@ class EvaluationPeriodQueryControllerTest {
     void getEvaluationPeriods_success() throws Exception {
         // given
         given(service.getEvaluationPeriods(null, null, 0, 10))
-                .willReturn(Map.of("content", List.of(), "totalElements", 0L, "totalPages", 0L));
+                .willReturn(new EvaluationPeriodListResponse(List.of(), 0L, 0L));
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/evaluation-periods")

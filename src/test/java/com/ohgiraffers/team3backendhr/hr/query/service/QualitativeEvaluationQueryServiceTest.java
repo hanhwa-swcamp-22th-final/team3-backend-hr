@@ -1,7 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,11 +38,11 @@ class QualitativeEvaluationQueryServiceTest {
         given(mapper.findTlTargets(200L, 5L)).willReturn(List.of(item));
 
         // when
-        Map<String, Object> result = service.getTlTargets(200L, 5L);
+        TlEvaluationTargetResponse result = service.getTlTargets(200L, 5L);
 
         // then
-        assertThat(result.get("evalPeriodId")).isEqualTo(5L);
-        assertThat((List<?>) result.get("targets")).hasSize(1);
+        assertThat(result.getEvalPeriodId()).isEqualTo(5L);
+        assertThat(result.getTargets()).hasSize(1);
     }
 
     @Test
@@ -52,10 +53,10 @@ class QualitativeEvaluationQueryServiceTest {
         given(mapper.findTlTargets(200L, 10L)).willReturn(List.of());
 
         // when
-        Map<String, Object> result = service.getTlTargets(200L, null);
+        TlEvaluationTargetResponse result = service.getTlTargets(200L, null);
 
         // then
-        assertThat(result.get("evalPeriodId")).isEqualTo(10L);
+        assertThat(result.getEvalPeriodId()).isEqualTo(10L);
     }
 
     @Test
@@ -82,11 +83,11 @@ class QualitativeEvaluationQueryServiceTest {
         given(mapper.findDlTargets(300L, 5L)).willReturn(List.of(item));
 
         // when
-        Map<String, Object> result = service.getDlTargets(300L, 5L);
+        DlEvaluationTargetResponse result = service.getDlTargets(300L, 5L);
 
         // then
-        assertThat(result.get("evalPeriodId")).isEqualTo(5L);
-        assertThat((List<?>) result.get("targets")).hasSize(1);
+        assertThat(result.getEvalPeriodId()).isEqualTo(5L);
+        assertThat(result.getTargets()).hasSize(1);
     }
 
     @Test
@@ -97,9 +98,9 @@ class QualitativeEvaluationQueryServiceTest {
         given(mapper.findDlTargets(300L, 10L)).willReturn(List.of());
 
         // when
-        Map<String, Object> result = service.getDlTargets(300L, null);
+        DlEvaluationTargetResponse result = service.getDlTargets(300L, null);
 
         // then
-        assertThat(result.get("evalPeriodId")).isEqualTo(10L);
+        assertThat(result.getEvalPeriodId()).isEqualTo(10L);
     }
 }

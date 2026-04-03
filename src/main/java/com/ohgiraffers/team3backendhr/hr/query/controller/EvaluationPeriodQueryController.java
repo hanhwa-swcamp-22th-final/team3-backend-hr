@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.EvaluationPeriodQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/hr/evaluation-periods")
@@ -23,7 +22,7 @@ public class EvaluationPeriodQueryController {
     /* 평가 기간 목록 조회 — year·status 필터, 페이징 지원 */
     @GetMapping
     @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getEvaluationPeriods(
+    public ResponseEntity<ApiResponse<EvaluationPeriodListResponse>> getEvaluationPeriods(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
