@@ -61,7 +61,7 @@ class HrmEvaluationIntegrationTest {
     private UsernamePasswordAuthenticationToken hrmAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
                 HRM_ID, "HRM001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 

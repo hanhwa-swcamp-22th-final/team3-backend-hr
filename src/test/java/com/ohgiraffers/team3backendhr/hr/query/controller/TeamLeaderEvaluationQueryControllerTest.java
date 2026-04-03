@@ -54,7 +54,7 @@ class TeamLeaderEvaluationQueryControllerTest {
 
     private EmployeeUserDetails tlUser() {
         return new EmployeeUserDetails(200L, "TL001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_TL")));
+                List.of(new SimpleGrantedAuthority("TL")));
     }
 
     /* ── GET /team-leader/evaluations/targets ─────────────────────────── */

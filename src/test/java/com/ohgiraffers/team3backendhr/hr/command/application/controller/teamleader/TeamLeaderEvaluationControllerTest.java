@@ -47,13 +47,13 @@ class TeamLeaderEvaluationControllerTest {
     private QualitativeEvaluationService service;
 
     /**
-     * ROLE_TL 권한을 가진 가짜 인증 사용자 생성 헬퍼
+     * TL 권한을 가진 가짜 인증 사용자 생성 헬퍼
      * - employeeId=200, empCode="EMP001"
      * - SimpleGrantedAuthority: String 권한명을 Spring Security 권한 객체로 변환
      */
     private EmployeeUserDetails tlUser() {
         return new EmployeeUserDetails(200L, "EMP001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_TL")));
+                List.of(new SimpleGrantedAuthority("TL")));
     }
 
     /* ── saveDraft (임시저장) ─────────────────────────────────────────────── */

@@ -41,7 +41,7 @@ class TlEvaluationQueryIntegrationTest {
     private UsernamePasswordAuthenticationToken tlAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
                 TL_ID, "TL001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_TL")));
+                List.of(new SimpleGrantedAuthority("TL")));
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 

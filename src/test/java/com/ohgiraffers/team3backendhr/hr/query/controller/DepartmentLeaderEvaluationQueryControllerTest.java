@@ -54,7 +54,7 @@ class DepartmentLeaderEvaluationQueryControllerTest {
 
     private EmployeeUserDetails dlUser() {
         return new EmployeeUserDetails(300L, "DL001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_DL")));
+                List.of(new SimpleGrantedAuthority("DL")));
     }
 
     /* ── GET /department-leader/evaluations/targets ───────────────────── */

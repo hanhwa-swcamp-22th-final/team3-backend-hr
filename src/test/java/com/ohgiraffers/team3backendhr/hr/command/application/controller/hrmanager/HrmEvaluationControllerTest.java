@@ -40,7 +40,7 @@ class HrmEvaluationControllerTest {
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(400L, "HRM001", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
     }
 
     @Test

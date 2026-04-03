@@ -19,7 +19,7 @@ public class HrmEvaluationController {
     private final QualitativeEvaluationService service;
 
     @PostMapping("/{employeeId}/confirm")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> confirmFinal(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @PathVariable Long employeeId,
