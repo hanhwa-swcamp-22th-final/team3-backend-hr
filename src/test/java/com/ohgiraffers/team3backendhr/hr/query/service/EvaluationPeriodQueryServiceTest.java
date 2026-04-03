@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,12 +38,12 @@ class EvaluationPeriodQueryServiceTest {
         given(mapper.countEvaluationPeriods(null, null)).willReturn(1L);
 
         // when
-        Map<String, Object> result = service.getEvaluationPeriods(null, null, 0, 10);
+        EvaluationPeriodListResponse result = service.getEvaluationPeriods(null, null, 0, 10);
 
         // then
-        assertThat((List<?>) result.get("content")).hasSize(1);
-        assertThat(result.get("totalElements")).isEqualTo(1L);
-        assertThat(result.get("totalPages")).isEqualTo(1L);
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getTotalElements()).isEqualTo(1L);
+        assertThat(result.getTotalPages()).isEqualTo(1L);
     }
 
     @Test
@@ -54,12 +54,12 @@ class EvaluationPeriodQueryServiceTest {
         given(mapper.countEvaluationPeriods(2026, "IN_PROGRESS")).willReturn(0L);
 
         // when
-        Map<String, Object> result = service.getEvaluationPeriods(2026, "IN_PROGRESS", 0, 10);
+        EvaluationPeriodListResponse result = service.getEvaluationPeriods(2026, "IN_PROGRESS", 0, 10);
 
         // then
-        assertThat((List<?>) result.get("content")).isEmpty();
-        assertThat(result.get("totalElements")).isEqualTo(0L);
-        assertThat(result.get("totalPages")).isEqualTo(0L);
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isEqualTo(0L);
+        assertThat(result.getTotalPages()).isEqualTo(0L);
     }
 
     /* ── getDeadline ──────────────────────────────────────────────────── */
