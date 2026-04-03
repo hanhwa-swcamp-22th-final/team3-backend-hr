@@ -4,12 +4,14 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDate;
 
@@ -17,13 +19,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Sql(scripts = "/disable-fk.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class EvaluationPeriodRepositoryTest {
 
     @Autowired
     private EvaluationPeriodRepository repository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
 
     private EvaluationPeriod buildPeriod(int year, EvalPeriodStatus status) {
         return EvaluationPeriod.builder()
