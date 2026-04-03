@@ -11,15 +11,17 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPer
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +37,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Sql(scripts = "/disable-fk.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class EvaluationPeriodIntegrationTest {
 
     @Autowired
@@ -53,8 +54,21 @@ class EvaluationPeriodIntegrationTest {
     @Autowired
     private IdGenerator idGenerator;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @MockitoBean
     private AdminClient adminClient;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
 
     private WorkerResponse buildWorker(Long employeeId) {
         WorkerResponse worker = new WorkerResponse();

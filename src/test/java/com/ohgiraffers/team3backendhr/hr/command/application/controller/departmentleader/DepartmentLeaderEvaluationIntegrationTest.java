@@ -10,6 +10,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,9 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-@Sql(scripts = "/disable-fk.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class DepartmentLeaderEvaluationIntegrationTest {
 
     @Autowired
@@ -49,6 +49,9 @@ class DepartmentLeaderEvaluationIntegrationTest {
 
     @Autowired
     private IdGenerator idGenerator;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private static final Long TL_ID = 100L;
     private static final Long DL_ID = 200L;
@@ -64,6 +67,8 @@ class DepartmentLeaderEvaluationIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+
         // level 1 — TL이 이미 제출한 상태
         repository.save(QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(idGenerator.generate())
@@ -85,6 +90,11 @@ class DepartmentLeaderEvaluationIntegrationTest {
                 .evaluationPeriodId(PERIOD_ID)
                 .evaluationLevel(2L)
                 .build());
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
     @Test

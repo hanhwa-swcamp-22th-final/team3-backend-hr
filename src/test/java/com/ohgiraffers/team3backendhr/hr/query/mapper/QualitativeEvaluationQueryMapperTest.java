@@ -3,13 +3,14 @@ package com.ohgiraffers.team3backendhr.hr.query.mapper;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodSummaryResponse;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Sql(scripts = "/disable-fk.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class QualitativeEvaluationQueryMapperTest {
 
     @Autowired
@@ -26,6 +26,16 @@ class QualitativeEvaluationQueryMapperTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
 
     private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
 
