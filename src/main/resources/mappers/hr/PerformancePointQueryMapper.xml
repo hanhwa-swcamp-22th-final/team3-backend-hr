@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.PerformancePointQueryMapper">
+
+    <select id="findSummaryByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse">
+        SELECT
+            COALESCE(SUM(pp.point_amount), 0) AS totalPoints
+        FROM performance_point pp
+        WHERE pp.performance_employee_id = #{employeeId}
+    </select>
+
+    <select id="findHistoryByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.PointHistoryResponse">
+        SELECT
+            pp.performance_point_id AS performancePointId,
+            pp.point_type           AS pointType,
+            pp.point_amount         AS pointAmount,
+            pp.point_earned_date    AS pointEarnedDate,
+            pp.point_description    AS pointDescription,
+            pp.point_source_type    AS pointSourceType
+        FROM performance_point pp
+        WHERE pp.performance_employee_id = #{employeeId}
+        ORDER BY pp.point_earned_date DESC, pp.created_at DESC
+    </select>
+
+</mapper>
