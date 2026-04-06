@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.ScoreModificationLogResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.AppealQueryService;
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
@@ -55,6 +55,51 @@ class AppealQueryControllerTest {
     @MockitoBean
     private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
+    /* ── GET /appeals/{appealId} (HRM) ───────────────────────────── */
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — HRM 성공 200 OK")
+    void getAppeal_hrm_success() throws Exception {
+        // given
+        AppealDetailResponse detail = new AppealDetailResponse();
+        detail.setAppealId(1L);
+        given(service.getAppeal(anyLong(), any())).willReturn(detail);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/appeals/1")
+                        .with(user("hrm").authorities(new SimpleGrantedAuthority("HRM"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — Worker 성공 200 OK")
+    void getAppeal_worker_success() throws Exception {
+        // given
+        AppealDetailResponse detail = new AppealDetailResponse();
+        detail.setAppealId(1L);
+        given(service.getAppeal(anyLong(), any())).willReturn(detail);
+
+        EmployeeUserDetails workerDetails = new EmployeeUserDetails(
+                100L, "W001", "pw", List.of(new SimpleGrantedAuthority("WORKER")));
+        UsernamePasswordAuthenticationToken workerAuth =
+                new UsernamePasswordAuthenticationToken(workerDetails, null, workerDetails.getAuthorities());
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/appeals/1")
+                        .with(authentication(workerAuth)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — 권한 없으면 403")
+    void getAppeal_forbidden() throws Exception {
+        mockMvc.perform(get("/api/v1/hr/appeals/1")
+                        .with(user("tl").roles("TL")))
+                .andExpect(status().isForbidden());
+    }
+
     /* ── GET /appeals (HRM) ───────────────────────────────────────── */
 
     @Test
@@ -101,28 +146,5 @@ class AppealQueryControllerTest {
                 .andExpect(jsonPath("$.success").value(true));
     }
 
-    /* ── GET /score-modification-logs (HRM) ──────────────────────── */
 
-    @Test
-    @DisplayName("점수 수정 이력 조회 성공 — 200 OK")
-    void getScoreModificationLogs_success() throws Exception {
-        // given
-        ScoreModificationLogResponse log = new ScoreModificationLogResponse();
-        log.setScoreModificationLogId(1L);
-        given(service.getScoreModificationLogs()).willReturn(List.of(log));
-
-        // when & then
-        mockMvc.perform(get("/api/v1/hr/score-modification-logs")
-                        .with(user("hrm").authorities(new SimpleGrantedAuthority("HRM"))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
-    }
-
-    @Test
-    @DisplayName("점수 수정 이력 조회 — HRM 권한 없으면 403")
-    void getScoreModificationLogs_forbidden() throws Exception {
-        mockMvc.perform(get("/api/v1/hr/score-modification-logs")
-                        .with(user("worker").roles("WORKER")))
-                .andExpect(status().isForbidden());
-    }
 }

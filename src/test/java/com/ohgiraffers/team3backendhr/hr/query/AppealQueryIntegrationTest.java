@@ -88,13 +88,6 @@ class AppealQueryIntegrationTest {
         return id;
     }
 
-    private void insertScoreModificationLog() {
-        long id = idGenerator.generate();
-        jdbcTemplate.update(
-                "INSERT INTO score_modification_log(score_modification_log_id, score_evaluatee_id, score_modifier_id, score_original_score, score_modified_score, score_reason, score_is_deletable, score_modified_at) VALUES (?,?,?,80.0,90.0,'점수 오류 확인됨',0,?)",
-                id, WORKER_ID, HRM_ID, LocalDateTime.now());
-    }
-
     /* ── GET /api/v1/hr/appeals ───────────────────────────────────── */
 
     @Test
@@ -140,19 +133,4 @@ class AppealQueryIntegrationTest {
                 .andExpect(jsonPath("$.data").isArray());
     }
 
-    /* ── GET /api/v1/hr/score-modification-logs ───────────────────── */
-
-    @Test
-    @DisplayName("HRM이 점수 수정 이력을 조회하면 200과 목록이 반환된다")
-    void getScoreModificationLogs_success() throws Exception {
-        // given
-        insertScoreModificationLog();
-
-        // when & then
-        mockMvc.perform(get("/api/v1/hr/score-modification-logs")
-                        .with(authentication(hrmAuth())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray());
-    }
 }

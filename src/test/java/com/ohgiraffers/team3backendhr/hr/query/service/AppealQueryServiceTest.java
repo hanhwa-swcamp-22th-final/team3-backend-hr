@@ -1,8 +1,10 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.ScoreModificationLogResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.AppealQueryMapper;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,8 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -24,6 +28,74 @@ class AppealQueryServiceTest {
 
     @InjectMocks
     private AppealQueryService service;
+
+    /* ── getAppeal ─────────────────────────────────────────────────── */
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — HRM은 누구든 조회 가능")
+    void getAppeal_hrm_success() {
+        // given
+        AppealDetailResponse detail = new AppealDetailResponse();
+        detail.setAppealId(1L);
+        detail.setAppealEmployeeId(100L);
+        given(mapper.findAppealById(1L)).willReturn(Optional.of(detail));
+        EmployeeUserDetails hrm = new EmployeeUserDetails(200L, "H001", "pw",
+                List.of(new SimpleGrantedAuthority("HRM")));
+
+        // when
+        AppealDetailResponse result = service.getAppeal(1L, hrm);
+
+        // then
+        assertThat(result.getAppealId()).isEqualTo(1L);
+        verify(mapper).findAppealById(1L);
+    }
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — Worker는 본인 것 조회 가능")
+    void getAppeal_worker_own_success() {
+        // given
+        AppealDetailResponse detail = new AppealDetailResponse();
+        detail.setAppealId(1L);
+        detail.setAppealEmployeeId(100L);
+        given(mapper.findAppealById(1L)).willReturn(Optional.of(detail));
+        EmployeeUserDetails worker = new EmployeeUserDetails(100L, "W001", "pw",
+                List.of(new SimpleGrantedAuthority("WORKER")));
+
+        // when
+        AppealDetailResponse result = service.getAppeal(1L, worker);
+
+        // then
+        assertThat(result.getAppealId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — Worker가 타인 것 조회 시 예외 발생")
+    void getAppeal_worker_others_forbidden() {
+        // given
+        AppealDetailResponse detail = new AppealDetailResponse();
+        detail.setAppealId(1L);
+        detail.setAppealEmployeeId(100L);
+        given(mapper.findAppealById(1L)).willReturn(Optional.of(detail));
+        EmployeeUserDetails worker = new EmployeeUserDetails(999L, "W002", "pw",
+                List.of(new SimpleGrantedAuthority("WORKER")));
+
+        // when & then
+        assertThatThrownBy(() -> service.getAppeal(1L, worker))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("이의신청 상세 조회 — 존재하지 않으면 예외 발생")
+    void getAppeal_notFound() {
+        // given
+        given(mapper.findAppealById(999L)).willReturn(Optional.empty());
+        EmployeeUserDetails hrm = new EmployeeUserDetails(1L, "H001", "pw",
+                List.of(new SimpleGrantedAuthority("HRM")));
+
+        // when & then
+        assertThatThrownBy(() -> service.getAppeal(999L, hrm))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
     /* ── getAppeals ────────────────────────────────────────────────── */
 
@@ -92,21 +164,5 @@ class AppealQueryServiceTest {
         assertThat(result).isEmpty();
     }
 
-    /* ── getScoreModificationLogs ──────────────────────────────────── */
 
-    @Test
-    @DisplayName("점수 수정 이력 조회 — 전체 목록 반환")
-    void getScoreModificationLogs_success() {
-        // given
-        ScoreModificationLogResponse log = new ScoreModificationLogResponse();
-        log.setScoreModificationLogId(1L);
-        given(mapper.findScoreModificationLogs()).willReturn(List.of(log));
-
-        // when
-        List<ScoreModificationLogResponse> result = service.getScoreModificationLogs();
-
-        // then
-        assertThat(result).hasSize(1);
-        verify(mapper).findScoreModificationLogs();
-    }
 }

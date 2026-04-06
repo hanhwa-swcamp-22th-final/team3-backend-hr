@@ -3,6 +3,26 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.AppealQueryMapper">
 
+    <!-- HRM — 이의신청 상세 조회 -->
+    <select id="findAppealById"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse">
+        SELECT
+            a.appeal_id                     AS appealId,
+            a.qualitative_evaluation_id     AS qualitativeEvaluationId,
+            a.appeal_employee_id            AS appealEmployeeId,
+            e.employee_name                 AS employeeName,
+            a.appeal_type                   AS appealType,
+            a.title,
+            a.content,
+            a.status,
+            a.review_result                 AS reviewResult,
+            a.filed_at                      AS filedAt,
+            a.reviewed_at                   AS reviewedAt
+        FROM evaluation_appeal a
+        JOIN employee e ON e.employee_id = a.appeal_employee_id
+        WHERE a.appeal_id = #{appealId}
+    </select>
+
     <!-- HRM — 이의신청 목록 조회 (상태 필터) -->
     <select id="findAppeals"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse">

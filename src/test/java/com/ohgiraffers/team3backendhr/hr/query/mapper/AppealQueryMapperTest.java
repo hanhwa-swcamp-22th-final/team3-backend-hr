@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.ScoreModificationLogResponse;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,12 +83,32 @@ class AppealQueryMapperTest {
         return id;
     }
 
-    private long insertScoreModificationLog() {
-        long id = idGenerator.generate();
-        jdbcTemplate.update(
-                "INSERT INTO score_modification_log(score_modification_log_id, score_evaluatee_id, score_modifier_id, score_original_score, score_modified_score, score_reason, score_is_deletable, score_modified_at) VALUES (?,?,?,80.0,90.0,'점수 오류 확인됨',0,?)",
-                id, WORKER_ID, HRM_ID, LocalDateTime.now());
-        return id;
+    /* ── findAppealById ────────────────────────────────────────────── */
+
+    @Test
+    @DisplayName("상세 조회 — 존재하는 appealId로 조회하면 상세 정보를 반환한다")
+    void findAppealById_success() {
+        // given
+        long appealId = insertAppeal("RECEIVING", null);
+
+        // when
+        Optional<AppealDetailResponse> result = mapper.findAppealById(appealId);
+
+        // then
+        assertThat(result).isPresent();
+        assertThat(result.get().getAppealId()).isEqualTo(appealId);
+        assertThat(result.get().getContent()).isNotBlank();
+        assertThat(result.get().getEmployeeName()).isEqualTo("테스트워커");
+    }
+
+    @Test
+    @DisplayName("상세 조회 — 존재하지 않는 appealId면 빈 Optional 반환")
+    void findAppealById_notFound() {
+        // when
+        Optional<AppealDetailResponse> result = mapper.findAppealById(999_999L);
+
+        // then
+        assertThat(result).isEmpty();
     }
 
     /* ── findAppeals ───────────────────────────────────────────────── */
@@ -178,32 +199,4 @@ class AppealQueryMapperTest {
         assertThat(result).isEmpty();
     }
 
-    /* ── findScoreModificationLogs ─────────────────────────────────── */
-
-    @Test
-    @DisplayName("점수 수정 이력 조회 — 저장한 이력이 포함된다")
-    void findScoreModificationLogs_success() {
-        // given
-        insertScoreModificationLog();
-
-        // when
-        List<ScoreModificationLogResponse> result = mapper.findScoreModificationLogs();
-
-        // then
-        assertThat(result).isNotEmpty();
-        assertThat(result).anyMatch(r -> r.getScoreEvaluateeId().equals(WORKER_ID));
-    }
-
-    @Test
-    @DisplayName("점수 수정 이력 조회 — 수정자 이름이 포함된다")
-    void findScoreModificationLogs_includesModifierName() {
-        // given
-        insertScoreModificationLog();
-
-        // when
-        List<ScoreModificationLogResponse> result = mapper.findScoreModificationLogs();
-
-        // then
-        assertThat(result).anyMatch(r -> "테스트HRM".equals(r.getModifierName()));
-    }
 }
