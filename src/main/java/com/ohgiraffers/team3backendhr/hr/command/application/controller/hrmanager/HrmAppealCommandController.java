@@ -19,7 +19,7 @@ public class HrmAppealCommandController {
     private final AppealCommandService service;
 
     @PostMapping("/{appealId}/approve")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> approve(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
@@ -29,7 +29,7 @@ public class HrmAppealCommandController {
     }
 
     @PostMapping("/{appealId}/reject")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> reject(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
@@ -38,7 +38,7 @@ public class HrmAppealCommandController {
     }
 
     @PostMapping("/{appealId}/hold")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> hold(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {

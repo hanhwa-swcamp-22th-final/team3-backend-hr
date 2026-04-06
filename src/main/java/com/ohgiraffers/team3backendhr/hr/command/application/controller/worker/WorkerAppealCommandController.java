@@ -20,7 +20,7 @@ public class WorkerAppealCommandController {
     private final AppealCommandService service;
 
     @PostMapping
-    @PreAuthorize("hasRole('WORKER')")
+    @PreAuthorize("hasAuthority('WORKER')")
     public ResponseEntity<ApiResponse<Void>> register(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody @Valid AppealRegisterRequest request) {
@@ -29,7 +29,7 @@ public class WorkerAppealCommandController {
     }
 
     @PutMapping("/{appealId}")
-    @PreAuthorize("hasRole('WORKER')")
+    @PreAuthorize("hasAuthority('WORKER')")
     public ResponseEntity<ApiResponse<Void>> update(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
@@ -39,7 +39,7 @@ public class WorkerAppealCommandController {
     }
 
     @DeleteMapping("/{appealId}")
-    @PreAuthorize("hasRole('WORKER')")
+    @PreAuthorize("hasAuthority('WORKER')")
     public ResponseEntity<ApiResponse<Void>> cancel(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
