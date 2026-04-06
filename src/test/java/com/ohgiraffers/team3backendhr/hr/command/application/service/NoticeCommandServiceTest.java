@@ -1,7 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeDraftRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
@@ -25,7 +27,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,27 +45,24 @@ class NoticeCommandServiceTest {
     private NoticeCommandService noticeCommandService;
 
     @Nested
-    @DisplayName("createNotice 메서드")
-    class CreateNotice {
+    @DisplayName("publishNotice 메서드 (즉시 게시)")
+    class PublishNotice {
 
         @Test
-        @DisplayName("요청 정보가 포함된 공지가 저장된다")
-        void createNotice_savesNoticeWithRequestInfo() {
+        @DisplayName("즉시 게시 공지가 POSTING 상태로 저장된다")
+        void publishNotice_savesWithPostingStatus() {
             // given
-            NoticeCreateRequest request = new NoticeCreateRequest(
-                    NoticeStatus.PUBLISHED,
-                    true,
+            NoticePublishRequest request = new NoticePublishRequest(
                     "공지 제목",
                     "공지 내용",
-                    LocalDateTime.of(2026, 4, 1, 9, 0),
-                    LocalDateTime.of(2026, 4, 30, 23, 59),
-                    List.of(NoticeTargetRole.WORKER)
+                    true,
+                    LocalDateTime.of(2026, 4, 30, 23, 59)
             );
-            given(idGenerator.generate()).willReturn(1000L, 2000L);
+            given(idGenerator.generate()).willReturn(1000L);
             given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            noticeCommandService.createNotice(request, 99L);
+            noticeCommandService.publishNotice(request, 99L);
 
             // then
             ArgumentCaptor<Notice> captor = ArgumentCaptor.forClass(Notice.class);
@@ -73,65 +71,165 @@ class NoticeCommandServiceTest {
             Notice saved = captor.getValue();
             assertThat(saved.getNoticeId()).isEqualTo(1000L);
             assertThat(saved.getEmployeeId()).isEqualTo(99L);
-            assertThat(saved.getNoticeStatus()).isEqualTo(NoticeStatus.PUBLISHED);
+            assertThat(saved.getNoticeStatus()).isEqualTo(NoticeStatus.POSTING);
             assertThat(saved.getIsImportant()).isEqualTo(1);
             assertThat(saved.getNoticeTitle()).isEqualTo("공지 제목");
             assertThat(saved.getNoticeContent()).isEqualTo("공지 내용");
         }
+    }
+
+    @Nested
+    @DisplayName("scheduleNotice 메서드 (예약 게시)")
+    class ScheduleNotice {
 
         @Test
-        @DisplayName("대상 역할 수만큼 NoticeTarget이 저장된다")
-        void createNotice_savesTargetsForEachRole() {
+        @DisplayName("예약 게시 공지가 RESERVATION 상태로 저장된다")
+        void scheduleNotice_savesWithReservationStatus() {
             // given
-            NoticeCreateRequest request = new NoticeCreateRequest(
-                    NoticeStatus.PUBLISHED,
-                    false,
+            NoticeScheduleRequest request = new NoticeScheduleRequest(
                     "공지 제목",
                     "공지 내용",
+                    false,
                     null,
-                    null,
-                    List.of(NoticeTargetRole.WORKER, NoticeTargetRole.TEAM_LEADER)
+                    LocalDateTime.of(2026, 5, 1, 9, 0)
             );
-            given(idGenerator.generate()).willReturn(1000L, 2000L, 3000L);
+            given(idGenerator.generate()).willReturn(1000L);
             given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            noticeCommandService.createNotice(request, 99L);
+            noticeCommandService.scheduleNotice(request, 99L);
 
             // then
-            ArgumentCaptor<NoticeTarget> captor = ArgumentCaptor.forClass(NoticeTarget.class);
-            verify(noticeTargetRepository, times(2)).save(captor.capture());
+            ArgumentCaptor<Notice> captor = ArgumentCaptor.forClass(Notice.class);
+            verify(noticeRepository).save(captor.capture());
 
-            List<NoticeTarget> savedTargets = captor.getAllValues();
-            assertThat(savedTargets).hasSize(2);
-            assertThat(savedTargets.get(0).getNoticeId()).isEqualTo(1000L);
-            assertThat(savedTargets.get(0).getTargetRole()).isEqualTo(NoticeTargetRole.WORKER);
-            assertThat(savedTargets.get(1).getTargetRole()).isEqualTo(NoticeTargetRole.TEAM_LEADER);
+            Notice saved = captor.getValue();
+            assertThat(saved.getNoticeStatus()).isEqualTo(NoticeStatus.RESERVATION);
+            assertThat(saved.getPublishStartAt()).isEqualTo(LocalDateTime.of(2026, 5, 1, 9, 0));
+        }
+
+        @Test
+        @DisplayName("중요 공지이고 예약 시각이 종료일보다 늦으면 예외 발생")
+        void scheduleNotice_importantAndPublishAfterEndAt_throwsException() {
+            // given — publishStartAt(5월10일) > importantEndAt(5월1일)
+            NoticeScheduleRequest request = new NoticeScheduleRequest(
+                    "공지 제목", "공지 내용",
+                    true,
+                    LocalDateTime.of(2026, 5, 1, 23, 59),   // importantEndAt
+                    LocalDateTime.of(2026, 5, 10, 9, 0)      // publishStartAt (더 늦음)
+            );
+
+            // when & then
+            assertThatThrownBy(() -> noticeCommandService.scheduleNotice(request, 99L))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("중요 공지 종료일보다 이전이어야 합니다");
+        }
+
+        @Test
+        @DisplayName("중요 공지가 아니면 예약 시각이 종료일보다 늦어도 허용")
+        void scheduleNotice_notImportant_noValidation() {
+            // given — isImportant=false 이므로 날짜 검증 없음
+            NoticeScheduleRequest request = new NoticeScheduleRequest(
+                    "공지 제목", "공지 내용",
+                    false,
+                    LocalDateTime.of(2026, 5, 1, 23, 59),
+                    LocalDateTime.of(2026, 5, 10, 9, 0)
+            );
+            given(idGenerator.generate()).willReturn(1000L);
+            given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
+
+            // when & then — 예외 없이 저장됨
+            noticeCommandService.scheduleNotice(request, 99L);
+            verify(noticeRepository).save(any(Notice.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("draftNotice 메서드 (임시 저장)")
+    class DraftNotice {
+
+        @Test
+        @DisplayName("임시 저장 공지가 TEMPORARY 상태로 저장된다")
+        void draftNotice_savesWithTemporaryStatus() {
+            // given
+            NoticeDraftRequest request = new NoticeDraftRequest(null, null, false, null);
+            given(idGenerator.generate()).willReturn(1000L);
+            given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
+
+            // when
+            noticeCommandService.draftNotice(request, 99L);
+
+            // then
+            ArgumentCaptor<Notice> captor = ArgumentCaptor.forClass(Notice.class);
+            verify(noticeRepository).save(captor.capture());
+            assertThat(captor.getValue().getNoticeStatus()).isEqualTo(NoticeStatus.TEMPORARY);
         }
 
         @Test
         @DisplayName("important=false 이면 isImportant 값이 0으로 저장된다")
-        void createNotice_notImportant_savesIsImportantZero() {
+        void draftNotice_notImportant_savesIsImportantZero() {
             // given
-            NoticeCreateRequest request = new NoticeCreateRequest(
-                    NoticeStatus.DRAFT,
-                    false,
-                    "공지 제목",
-                    "공지 내용",
-                    null,
-                    null,
-                    List.of(NoticeTargetRole.WORKER)
-            );
-            given(idGenerator.generate()).willReturn(1000L, 2000L);
+            NoticeDraftRequest request = new NoticeDraftRequest("제목", "내용", false, null);
+            given(idGenerator.generate()).willReturn(1000L);
             given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            noticeCommandService.createNotice(request, 99L);
+            noticeCommandService.draftNotice(request, 99L);
 
             // then
             ArgumentCaptor<Notice> captor = ArgumentCaptor.forClass(Notice.class);
             verify(noticeRepository).save(captor.capture());
             assertThat(captor.getValue().getIsImportant()).isEqualTo(0);
+        }
+    }
+
+    @Nested
+    @DisplayName("incrementViews 메서드")
+    class IncrementViews {
+
+        @Test
+        @DisplayName("POSTING 공지는 조회수가 증가한다")
+        void incrementViews_posting_increasesCount() {
+            Notice notice = Notice.builder()
+                    .noticeId(1L).employeeId(99L)
+                    .noticeStatus(NoticeStatus.POSTING)
+                    .noticeTitle("제목").noticeContent("내용")
+                    .build();
+            given(noticeRepository.findById(1L)).willReturn(Optional.of(notice));
+
+            noticeCommandService.incrementViews(1L);
+
+            assertThat(notice.getNoticeViews()).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("TEMPORARY 공지는 조회수가 증가하지 않는다")
+        void incrementViews_temporary_doesNotIncrease() {
+            Notice notice = Notice.builder()
+                    .noticeId(2L).employeeId(99L)
+                    .noticeStatus(NoticeStatus.TEMPORARY)
+                    .noticeTitle("제목").noticeContent("내용")
+                    .build();
+            given(noticeRepository.findById(2L)).willReturn(Optional.of(notice));
+
+            noticeCommandService.incrementViews(2L);
+
+            assertThat(notice.getNoticeViews()).isEqualTo(0L);
+        }
+
+        @Test
+        @DisplayName("RESERVATION 공지는 조회수가 증가하지 않는다")
+        void incrementViews_reservation_doesNotIncrease() {
+            Notice notice = Notice.builder()
+                    .noticeId(3L).employeeId(99L)
+                    .noticeStatus(NoticeStatus.RESERVATION)
+                    .noticeTitle("제목").noticeContent("내용")
+                    .build();
+            given(noticeRepository.findById(3L)).willReturn(Optional.of(notice));
+
+            noticeCommandService.incrementViews(3L);
+
+            assertThat(notice.getNoticeViews()).isEqualTo(0L);
         }
     }
 
@@ -146,13 +244,13 @@ class NoticeCommandServiceTest {
             Notice existing = Notice.builder()
                     .noticeId(1000L)
                     .employeeId(99L)
-                    .noticeStatus(NoticeStatus.DRAFT)
+                    .noticeStatus(NoticeStatus.TEMPORARY)
                     .noticeTitle("기존 제목")
                     .noticeContent("기존 내용")
                     .build();
 
             NoticeUpdateRequest request = new NoticeUpdateRequest(
-                    NoticeStatus.PUBLISHED,
+                    NoticeStatus.POSTING,
                     true,
                     "수정된 제목",
                     "수정된 내용",
@@ -166,7 +264,7 @@ class NoticeCommandServiceTest {
             noticeCommandService.updateNotice(1000L, request);
 
             // then
-            assertThat(existing.getNoticeStatus()).isEqualTo(NoticeStatus.PUBLISHED);
+            assertThat(existing.getNoticeStatus()).isEqualTo(NoticeStatus.POSTING);
             assertThat(existing.getIsImportant()).isEqualTo(1);
             assertThat(existing.getNoticeTitle()).isEqualTo("수정된 제목");
             assertThat(existing.getNoticeContent()).isEqualTo("수정된 내용");
@@ -177,7 +275,7 @@ class NoticeCommandServiceTest {
         void updateNotice_notFound_throwsException() {
             // given
             NoticeUpdateRequest request = new NoticeUpdateRequest(
-                    NoticeStatus.PUBLISHED, false, "제목", "내용", null, null
+                    NoticeStatus.POSTING, false, "제목", "내용", null, null
             );
             given(noticeRepository.findById(9999L)).willReturn(Optional.empty());
 
@@ -199,7 +297,7 @@ class NoticeCommandServiceTest {
             Notice existing = Notice.builder()
                     .noticeId(1000L)
                     .employeeId(99L)
-                    .noticeStatus(NoticeStatus.PUBLISHED)
+                    .noticeStatus(NoticeStatus.POSTING)
                     .noticeTitle("제목")
                     .noticeContent("내용")
                     .build();

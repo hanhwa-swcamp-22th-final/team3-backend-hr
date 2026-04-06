@@ -2,7 +2,9 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeDraftRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
 import jakarta.validation.Valid;
@@ -19,17 +21,39 @@ public class NoticeController {
 
     private final NoticeCommandService noticeCommandService;
 
+    /* 즉시 게시 */
     @PostMapping
-    @PreAuthorize("hasRole('HRM')")
-    public ResponseEntity<ApiResponse<Void>> createNotice(
+    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    public ResponseEntity<ApiResponse<Void>> publishNotice(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
-            @RequestBody @Valid NoticeCreateRequest request) {
-        noticeCommandService.createNotice(request, userDetails.getEmployeeId());
+            @RequestBody @Valid NoticePublishRequest request) {
+        noticeCommandService.publishNotice(request, userDetails.getEmployeeId());
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
+    /* 예약 게시 */
+    @PostMapping("/schedule")
+    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    public ResponseEntity<ApiResponse<Void>> scheduleNotice(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestBody @Valid NoticeScheduleRequest request) {
+        noticeCommandService.scheduleNotice(request, userDetails.getEmployeeId());
+        return ResponseEntity.status(201).body(ApiResponse.success(null));
+    }
+
+    /* 임시 저장 */
+    @PostMapping("/draft")
+    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    public ResponseEntity<ApiResponse<Void>> draftNotice(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestBody NoticeDraftRequest request) {
+        noticeCommandService.draftNotice(request, userDetails.getEmployeeId());
+        return ResponseEntity.status(201).body(ApiResponse.success(null));
+    }
+
+    /* 수정 */
     @PutMapping("/{noticeId}")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('ROLE_HRM')")
     public ResponseEntity<ApiResponse<Void>> updateNotice(
             @PathVariable Long noticeId,
             @RequestBody @Valid NoticeUpdateRequest request) {
@@ -37,8 +61,9 @@ public class NoticeController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    /* 삭제 */
     @DeleteMapping("/{noticeId}")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('ROLE_HRM')")
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long noticeId) {
         noticeCommandService.deleteNotice(noticeId);
         return ResponseEntity.ok(ApiResponse.success(null));

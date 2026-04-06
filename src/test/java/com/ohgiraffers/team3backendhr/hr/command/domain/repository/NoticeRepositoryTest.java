@@ -7,9 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.ohgiraffers.team3backendhr.config.TestAuditConfig;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.jdbc.Sql;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestAuditConfig.class)
+@Sql(statements = "SET FOREIGN_KEY_CHECKS = 0", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class NoticeRepositoryTest {
 
     @Autowired
@@ -96,5 +102,72 @@ class NoticeRepositoryTest {
 
         assertFalse(result.isEmpty());
         assertTrue(result.stream().allMatch(n -> n.getEmployeeId().equals(employeeId)));
+    }
+
+    @Test
+    @DisplayName("예약 공지 중 publishStartAt 이 기준 시각 이하인 것만 반환된다")
+    void findByNoticeStatusAndPublishStartAtLessThanEqual_returnsOnlyPast() {
+        LocalDateTime past = LocalDateTime.now().minusMinutes(5);
+        LocalDateTime future = LocalDateTime.now().plusHours(1);
+
+        Notice pastReservation = Notice.builder()
+                .noticeId(idGenerator.generate())
+                .employeeId(employeeId)
+                .noticeStatus(NoticeStatus.RESERVATION)
+                .noticeTitle("과거 예약")
+                .noticeContent("내용")
+                .publishStartAt(past)
+                .build();
+        Notice futureReservation = Notice.builder()
+                .noticeId(idGenerator.generate())
+                .employeeId(employeeId)
+                .noticeStatus(NoticeStatus.RESERVATION)
+                .noticeTitle("미래 예약")
+                .noticeContent("내용")
+                .publishStartAt(future)
+                .build();
+        noticeRepository.save(pastReservation);
+        noticeRepository.save(futureReservation);
+
+        List<Notice> result = noticeRepository
+                .findByNoticeStatusAndPublishStartAtLessThanEqual(NoticeStatus.RESERVATION, LocalDateTime.now());
+
+        assertTrue(result.stream().allMatch(n -> n.getNoticeStatus() == NoticeStatus.RESERVATION));
+        assertTrue(result.stream().anyMatch(n -> n.getNoticeTitle().equals("과거 예약")));
+        assertTrue(result.stream().noneMatch(n -> n.getNoticeTitle().equals("미래 예약")));
+    }
+
+    @Test
+    @DisplayName("isImportant=1 이고 importantEndAt 이 기준 시각 이전인 공지만 반환된다")
+    void findByIsImportantAndImportantEndAtLessThan_returnsOnlyExpired() {
+        LocalDateTime past = LocalDateTime.now().minusDays(1);
+        LocalDateTime future = LocalDateTime.now().plusDays(1);
+
+        Notice expiredImportant = Notice.builder()
+                .noticeId(idGenerator.generate())
+                .employeeId(employeeId)
+                .noticeStatus(NoticeStatus.POSTING)
+                .noticeTitle("만료된 중요 공지")
+                .noticeContent("내용")
+                .isImportant(1)
+                .importantEndAt(past)
+                .build();
+        Notice activeImportant = Notice.builder()
+                .noticeId(idGenerator.generate())
+                .employeeId(employeeId)
+                .noticeStatus(NoticeStatus.POSTING)
+                .noticeTitle("활성 중요 공지")
+                .noticeContent("내용")
+                .isImportant(1)
+                .importantEndAt(future)
+                .build();
+        noticeRepository.save(expiredImportant);
+        noticeRepository.save(activeImportant);
+
+        List<Notice> result = noticeRepository
+                .findByIsImportantAndImportantEndAtLessThan(1, LocalDateTime.now());
+
+        assertTrue(result.stream().anyMatch(n -> n.getNoticeTitle().equals("만료된 중요 공지")));
+        assertTrue(result.stream().noneMatch(n -> n.getNoticeTitle().equals("활성 중요 공지")));
     }
 }

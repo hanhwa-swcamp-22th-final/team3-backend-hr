@@ -47,6 +47,41 @@ class NoticeTest {
     }
 
     @Test
+    @DisplayName("publish 호출 시 상태가 POSTING 으로 변경된다")
+    void publish_changesStatusToPosting() {
+        Notice notice = Notice.builder()
+                .noticeId(1L)
+                .employeeId(10L)
+                .noticeStatus(NoticeStatus.RESERVATION)
+                .noticeTitle("예약 공지")
+                .noticeContent("내용")
+                .publishStartAt(LocalDateTime.of(2026, 5, 1, 9, 0))
+                .build();
+
+        notice.publish();
+
+        assertThat(notice.getNoticeStatus()).isEqualTo(NoticeStatus.POSTING);
+    }
+
+    @Test
+    @DisplayName("expireImportant 호출 시 isImportant 가 0 이 된다")
+    void expireImportant_setsIsImportantToZero() {
+        Notice notice = Notice.builder()
+                .noticeId(1L)
+                .employeeId(10L)
+                .noticeStatus(NoticeStatus.POSTING)
+                .noticeTitle("중요 공지")
+                .noticeContent("내용")
+                .isImportant(1)
+                .importantEndAt(LocalDateTime.of(2026, 4, 1, 23, 59))
+                .build();
+
+        notice.expireImportant();
+
+        assertThat(notice.getIsImportant()).isEqualTo(0);
+    }
+
+    @Test
     @DisplayName("incrementViews 를 호출할 때마다 조회수가 1 씩 증가한다")
     void incrementViews_increasesCountByOne() {
         Notice notice = baseNotice();
