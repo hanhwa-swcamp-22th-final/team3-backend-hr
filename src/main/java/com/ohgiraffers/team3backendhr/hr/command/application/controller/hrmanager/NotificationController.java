@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/hr/notifications")
 @RequiredArgsConstructor
-public class NotificationCommandController {
+public class NotificationController {
 
     private final NotificationCommandService notificationCommandService;
 
