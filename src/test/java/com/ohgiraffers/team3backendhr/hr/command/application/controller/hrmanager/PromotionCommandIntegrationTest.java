@@ -8,6 +8,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatu
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,9 +16,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,7 +35,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Sql(statements = "SET FOREIGN_KEY_CHECKS = 0", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class PromotionCommandIntegrationTest {
+
+    @MockitoBean
+    private AdminClient adminClient;
 
     @Autowired
     private MockMvc mockMvc;
