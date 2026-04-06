@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -49,6 +50,17 @@ class AppealServiceTest {
                 .build();
     }
 
+    private QualitativeEvaluation buildConfirmedEval(LocalDateTime confirmedAt) {
+        return QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(10L)
+                .evaluateeId(100L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(3L)
+                .status(QualEvalStatus.CONFIRMED)
+                .confirmedAt(confirmedAt)
+                .build();
+    }
+
     @Test
     @DisplayName("이의신청을 등록하면 파일 그룹이 생성되고 DB에 저장된다")
     void register_success() {
@@ -56,6 +68,8 @@ class AppealServiceTest {
                 10L, AppealType.SCORE_ERRORS,
                 "점수 오류 이의신청", "평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.");
 
+        given(qualitativeEvaluationRepository.findById(10L))
+                .willReturn(Optional.of(buildConfirmedEval(LocalDateTime.now().minusDays(3))));
         given(idGenerator.generate()).willReturn(99L, 1L);
         given(fileGroupRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
         given(appealRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
@@ -64,6 +78,42 @@ class AppealServiceTest {
 
         verify(fileGroupRepository).save(any(AttachmentFileGroup.class));
         verify(appealRepository).save(any(EvaluationAppeal.class));
+    }
+
+    @Test
+    @DisplayName("평가가 CONFIRMED 상태가 아니면 이의신청 등록 시 예외가 발생한다")
+    void register_fail_notConfirmed() {
+        AppealRegisterRequest request = new AppealRegisterRequest(
+                10L, AppealType.SCORE_ERRORS,
+                "점수 오류 이의신청", "평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.");
+
+        QualitativeEvaluation eval = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(10L)
+                .evaluateeId(100L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(2L)
+                .status(QualEvalStatus.SUBMITTED)
+                .build();
+        given(qualitativeEvaluationRepository.findById(10L)).willReturn(Optional.of(eval));
+
+        assertThatThrownBy(() -> service.register(100L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("확정된 평가에 대해서만 이의신청할 수 있습니다.");
+    }
+
+    @Test
+    @DisplayName("결과 통보 후 7일이 지나면 이의신청 등록 시 예외가 발생한다")
+    void register_fail_expired() {
+        AppealRegisterRequest request = new AppealRegisterRequest(
+                10L, AppealType.SCORE_ERRORS,
+                "점수 오류 이의신청", "평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.");
+
+        given(qualitativeEvaluationRepository.findById(10L))
+                .willReturn(Optional.of(buildConfirmedEval(LocalDateTime.now().minusDays(8))));
+
+        assertThatThrownBy(() -> service.register(100L, request))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("결과 통보 후 7일이 지나 이의신청할 수 없습니다.");
     }
 
     @Test

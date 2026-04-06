@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.*;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
@@ -29,6 +30,17 @@ public class AppealCommandService {
 
     /* 이의신청 등록 — 파일 그룹 자동 생성 (S3 추후 도입) */
     public void register(Long appealEmployeeId, AppealRegisterRequest request) {
+        QualitativeEvaluation eval = qualitativeEvaluationRepository
+                .findById(request.getQualitativeEvaluationId())
+                .orElseThrow(() -> new IllegalArgumentException("평가를 찾을 수 없습니다."));
+
+        if (eval.getStatus() != QualEvalStatus.CONFIRMED) {
+            throw new IllegalStateException("확정된 평가에 대해서만 이의신청할 수 있습니다.");
+        }
+        if (eval.getConfirmedAt() == null || eval.getConfirmedAt().plusDays(7).isBefore(LocalDateTime.now())) {
+            throw new IllegalStateException("결과 통보 후 7일이 지나 이의신청할 수 없습니다.");
+        }
+
         Long appealId = idGenerator.generate();
 
         AttachmentFileGroup fileGroup = fileGroupRepository.save(
