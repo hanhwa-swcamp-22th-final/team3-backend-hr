@@ -1,0 +1,158 @@
+package com.ohgiraffers.team3backendhr.hr.query;
+
+import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class AppealQueryIntegrationTest {
+
+    @Autowired private MockMvc mockMvc;
+    @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired private IdGenerator idGenerator;
+    @MockitoBean  private AdminClient adminClient;
+
+    private static final Long WORKER_ID = 910_001L;
+    private static final Long HRM_ID    = 910_002L;
+    private static final Long DEPT_ID   = 810_001L;
+    private static final Long PERIOD_ID = 710_001L;
+    private static final Long EVAL_ID   = 610_001L;
+
+    private UsernamePasswordAuthenticationToken workerAuth() {
+        EmployeeUserDetails u = new EmployeeUserDetails(WORKER_ID, "W9101", "pw",
+                List.of(new SimpleGrantedAuthority("WORKER")));
+        return new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
+    }
+
+    private UsernamePasswordAuthenticationToken hrmAuth() {
+        EmployeeUserDetails u = new EmployeeUserDetails(HRM_ID, "H9101", "pw",
+                List.of(new SimpleGrantedAuthority("HRM")));
+        return new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
+    }
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.update(
+                "INSERT INTO employee(employee_id, department_id, employee_name, employee_role, employee_status, employee_code, employee_password) VALUES (?,?,?,'WORKER','ACTIVE','W9101','pw')",
+                WORKER_ID, DEPT_ID, "쿼리테스트워커");
+        jdbcTemplate.update(
+                "INSERT INTO employee(employee_id, department_id, employee_name, employee_role, employee_status, employee_code, employee_password) VALUES (?,?,?,'HRM','ACTIVE','H9101','pw')",
+                HRM_ID, DEPT_ID, "쿼리테스트HRM");
+        jdbcTemplate.update(
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,2026,1,'QUALITATIVE',?,?,'IN_PROGRESS')",
+                PERIOD_ID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
+        jdbcTemplate.update(
+                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score) VALUES (?,?,?,3,'CONFIRMED',80.0)",
+                EVAL_ID, WORKER_ID, PERIOD_ID);
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
+
+    private long insertAppeal(String status) {
+        long fileGroupId = idGenerator.generate();
+        jdbcTemplate.update(
+                "INSERT INTO attachment_file_group(file_group_id, reference_id, reference_type) VALUES (?,?,'APPEAL')",
+                fileGroupId, EVAL_ID);
+        long id = idGenerator.generate();
+        jdbcTemplate.update(
+                "INSERT INTO evaluation_appeal(appeal_id, qualitative_evaluation_id, appeal_employee_id, appeal_type, title, content, status, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,0,?,?)",
+                id, EVAL_ID, WORKER_ID, status, LocalDateTime.now(), fileGroupId);
+        return id;
+    }
+
+    private void insertScoreModificationLog() {
+        long id = idGenerator.generate();
+        jdbcTemplate.update(
+                "INSERT INTO score_modification_log(score_modification_log_id, score_evaluatee_id, score_modifier_id, score_original_score, score_modified_score, score_reason, score_is_deletable, score_modified_at) VALUES (?,?,?,80.0,90.0,'점수 오류 확인됨',0,?)",
+                id, WORKER_ID, HRM_ID, LocalDateTime.now());
+    }
+
+    /* ── GET /api/v1/hr/appeals ───────────────────────────────────── */
+
+    @Test
+    @DisplayName("HRM이 이의신청 목록을 조회하면 200과 목록이 반환된다")
+    void getAppeals_success() throws Exception {
+        // given
+        insertAppeal("RECEIVING");
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/appeals")
+                        .with(authentication(hrmAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    @Test
+    @DisplayName("상태 필터 RECEIVING으로 조회하면 해당 상태만 반환된다")
+    void getAppeals_withStatusFilter() throws Exception {
+        // given
+        insertAppeal("RECEIVING");
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/appeals?status=RECEIVING")
+                        .with(authentication(hrmAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content[0].status").value("RECEIVING"));
+    }
+
+    /* ── GET /api/v1/hr/appeals/me ────────────────────────────────── */
+
+    @Test
+    @DisplayName("Worker가 내 이의신청 목록을 조회하면 본인 이의신청만 반환된다")
+    void getMyAppeals_success() throws Exception {
+        // given
+        insertAppeal("RECEIVING");
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/appeals/me")
+                        .with(authentication(workerAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    /* ── GET /api/v1/hr/score-modification-logs ───────────────────── */
+
+    @Test
+    @DisplayName("HRM이 점수 수정 이력을 조회하면 200과 목록이 반환된다")
+    void getScoreModificationLogs_success() throws Exception {
+        // given
+        insertScoreModificationLog();
+
+        // when & then
+        mockMvc.perform(get("/api/v1/hr/score-modification-logs")
+                        .with(authentication(hrmAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray());
+    }
+}
