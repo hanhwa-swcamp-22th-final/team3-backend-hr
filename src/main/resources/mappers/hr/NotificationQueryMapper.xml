@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.NotificationQueryMapper">
+
+    <select id="findVisibleByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NotificationResponse">
+        SELECT
+            nr.notification_recipient_id AS notificationRecipientId,
+            n.notification_id            AS notificationId,
+            n.notification_type          AS notificationType,
+            n.notification_title         AS notificationTitle,
+            n.notification_content       AS notificationContent,
+            n.notification_sent_at       AS notificationSentAt,
+            nr.notification_is_read      AS notificationIsRead,
+            nr.notification_read_at      AS notificationReadAt
+        FROM notification_recipient nr
+                 JOIN notification n ON nr.notification_id = n.notification_id
+        WHERE nr.employee_id = #{employeeId}
+          AND nr.notification_is_hide = false
+        ORDER BY n.notification_sent_at DESC
+    </select>
+
+    <select id="findSummaryByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NotificationSummaryResponse">
+        SELECT
+            COUNT(*)                                                               AS totalCount,
+            SUM(CASE WHEN nr.notification_is_read = false THEN 1 ELSE 0 END)      AS unreadCount
+        FROM notification_recipient nr
+        WHERE nr.employee_id = #{employeeId}
+          AND nr.notification_is_hide = false
+    </select>
+
+</mapper>

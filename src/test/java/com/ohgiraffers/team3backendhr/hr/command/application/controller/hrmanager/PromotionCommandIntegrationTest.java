@@ -1,0 +1,122 @@
+package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
+
+import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionHistory;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@Transactional
+class PromotionCommandIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private TierConfigRepository tierConfigRepository;
+
+    @Autowired
+    private PromotionHistoryRepository promotionHistoryRepository;
+
+    private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
+    private static final Long HRM_EMPLOYEE_ID = 99L;
+
+    private Long tierPromotionId;
+    private Long currentTierConfigId;
+    private Long targetTierConfigId;
+
+    private EmployeeUserDetails hrmUser() {
+        return new EmployeeUserDetails(HRM_EMPLOYEE_ID, "EMP-HRM", "password",
+                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+    }
+
+    @BeforeEach
+    void setUp() {
+        EmployeeUserDetails user = hrmUser();
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities())
+        );
+
+        currentTierConfigId = idGenerator.generate();
+        targetTierConfigId = idGenerator.generate();
+
+        tierConfigRepository.save(TierConfig.builder()
+                .tierConfigId(currentTierConfigId)
+                .tierConfigTier(Grade.B)
+                .tierConfigPromotionPoint(500)
+                .build());
+
+        tierConfigRepository.save(TierConfig.builder()
+                .tierConfigId(targetTierConfigId)
+                .tierConfigTier(Grade.A)
+                .tierConfigPromotionPoint(1000)
+                .build());
+
+        tierPromotionId = idGenerator.generate();
+        promotionHistoryRepository.save(PromotionHistory.builder()
+                .tierPromotionId(tierPromotionId)
+                .employeeId(300L)
+                .reviewerId(HRM_EMPLOYEE_ID)
+                .currentTierConfigId(currentTierConfigId)
+                .targetTierConfigId(targetTierConfigId)
+                .build());
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    @DisplayName("승급 확정 전체 흐름 — 200 반환 및 DB에 확정 상태가 반영된다")
+    void confirmPromotion_fullFlow() throws Exception {
+        mockMvc.perform(post("/api/v1/hr/promotions/" + tierPromotionId + "/confirm")
+                        .with(csrf())
+                        .with(user(hrmUser())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId).orElseThrow();
+        assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.CONFIRMATION_OF_PROMOTION);
+        assertThat(history.getTierReviewedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("승급 보류 전체 흐름 — 200 반환 및 DB에 보류 상태가 반영된다")
+    void suspendPromotion_fullFlow() throws Exception {
+        mockMvc.perform(post("/api/v1/hr/promotions/" + tierPromotionId + "/hold")
+                        .with(csrf())
+                        .with(user(hrmUser())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+
+        PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId).orElseThrow();
+        assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.SUSPENSION);
+        assertThat(history.getTierReviewedAt()).isNotNull();
+    }
+}
