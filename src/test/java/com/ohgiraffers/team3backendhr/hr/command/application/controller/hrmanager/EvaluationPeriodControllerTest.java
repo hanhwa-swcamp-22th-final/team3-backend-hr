@@ -38,7 +38,7 @@ class EvaluationPeriodControllerTest {
 
     @Test
     @DisplayName("평가 기간을 생성한다")
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     void create_success() throws Exception {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
                 1L, 2026, 1, EvalType.QUALITATIVE,
@@ -46,7 +46,7 @@ class EvaluationPeriodControllerTest {
                 LocalDate.of(2026, 3, 31)
         );
 
-        mockMvc.perform(post("/api/evaluation-periods")
+        mockMvc.perform(post("/api/v1/hr/evaluation-periods")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -58,7 +58,7 @@ class EvaluationPeriodControllerTest {
 
     @Test
     @DisplayName("이미 진행 중인 평가 기간이 있으면 400을 반환한다")
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     void create_fail_alreadyInProgress() throws Exception {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
                 1L, 2026, 1, EvalType.QUALITATIVE,
@@ -68,7 +68,7 @@ class EvaluationPeriodControllerTest {
         doThrow(new IllegalStateException("이미 진행 중인 평가 기간이 있습니다."))
                 .when(service).create(any());
 
-        mockMvc.perform(post("/api/evaluation-periods")
+        mockMvc.perform(post("/api/v1/hr/evaluation-periods")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -77,9 +77,9 @@ class EvaluationPeriodControllerTest {
 
     @Test
     @DisplayName("평가 기간을 마감한다")
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     void close_success() throws Exception {
-        mockMvc.perform(patch("/api/evaluation-periods/1/close")
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1/close")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -89,9 +89,9 @@ class EvaluationPeriodControllerTest {
 
     @Test
     @DisplayName("평가 기간을 확정한다")
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     void confirm_success() throws Exception {
-        mockMvc.perform(patch("/api/evaluation-periods/1/confirm")
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1/confirm")
                         .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -101,7 +101,7 @@ class EvaluationPeriodControllerTest {
 
     @Test
     @DisplayName("평가 기간을 수정한다")
-    @WithMockUser(roles = "HRM")
+    @WithMockUser(authorities = "HRM")
     void update_success() throws Exception {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 2, 1),
@@ -109,7 +109,7 @@ class EvaluationPeriodControllerTest {
                 2L
         );
 
-        mockMvc.perform(patch("/api/evaluation-periods/1")
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

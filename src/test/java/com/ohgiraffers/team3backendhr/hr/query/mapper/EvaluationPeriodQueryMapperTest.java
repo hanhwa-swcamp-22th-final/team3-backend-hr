@@ -1,70 +1,87 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
-import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
+import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@Transactional
-@Sql(scripts = "/disable-fk.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@MybatisTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class EvaluationPeriodQueryMapperTest {
 
     @Autowired
     private EvaluationPeriodQueryMapper mapper;
 
     @Autowired
-    private EvaluationPeriodRepository repository;
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+    }
+
+    @AfterEach
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
 
     private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
 
-    private EvaluationPeriod buildPeriod(int year, EvalPeriodStatus status) {
-        return EvaluationPeriod.builder()
-                .evalPeriodId(idGenerator.generate())
-                .algorithmVersionId(1L)
-                .evalYear(year)
-                .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
-                .startDate(LocalDate.of(year, 1, 1))
-                .endDate(LocalDate.of(year, 3, 31))
-                .status(status)
-                .build();
+    private void insertPeriod(int year, String status) {
+        jdbcTemplate.update("""
+                INSERT INTO evaluation_period
+                  (eval_period_id, algorithm_version_id, eval_year, eval_sequence,
+                   eval_type, start_date, end_date, status)
+                VALUES (?, 1, ?, 1, 'QUALITATIVE', ?, ?, ?)
+                """,
+                idGenerator.generate(), year,
+                LocalDate.of(year, 1, 1),
+                LocalDate.of(year, 3, 31),
+                status);
     }
+
+    /* ── findByEvalYear ──────────────────────────────────────────────── */
 
     @Test
     @DisplayName("연도로 평가 기간 목록을 조회한다")
     void findByEvalYear_success() {
-        repository.saveAndFlush(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
-        repository.saveAndFlush(buildPeriod(2026, EvalPeriodStatus.CONFIRMED));
-        repository.saveAndFlush(buildPeriod(2025, EvalPeriodStatus.CONFIRMED));
+        // given
+        insertPeriod(2026, "IN_PROGRESS");
+        insertPeriod(2026, "CONFIRMED");
+        insertPeriod(2025, "CONFIRMED");
 
+        // when
         List<EvaluationPeriod> result = mapper.findByEvalYear(2026);
 
+        // then
         assertThat(result).hasSizeGreaterThanOrEqualTo(2);
         assertThat(result).allMatch(p -> p.getEvalYear() == 2026);
     }
 
+    /* ── findByStatus ────────────────────────────────────────────────── */
+
     @Test
     @DisplayName("상태로 평가 기간을 조회한다")
     void findByStatus_success() {
-        repository.saveAndFlush(buildPeriod(2026, EvalPeriodStatus.IN_PROGRESS));
+        // given
+        insertPeriod(2026, "IN_PROGRESS");
 
-        EvaluationPeriod result = mapper.findByStatus(EvalPeriodStatus.IN_PROGRESS.name());
+        // when
+        EvaluationPeriod result = mapper.findByStatus("IN_PROGRESS");
 
+        // then
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(EvalPeriodStatus.IN_PROGRESS);
+        assertThat(result.getStatus().name()).isEqualTo("IN_PROGRESS");
     }
-
 }

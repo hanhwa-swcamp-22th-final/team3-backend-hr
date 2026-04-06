@@ -47,5 +47,3 @@ src/main/resources/application-secret.yml
 ### Docs ###
 docs/
 
-### HTTP test files (may contain tokens/credentials) ###
-src/test/http/

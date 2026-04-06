@@ -1,14 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
+import com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository.JpaQualitativeEvaluationRepository;
 
-import java.util.List;
-import java.util.Optional;
-
-public interface QualitativeEvaluationRepository {
-
-    List<QualitativeEvaluation> saveAll(List<QualitativeEvaluation> evaluations);
-
-    Optional<QualitativeEvaluation> findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-            Long evaluateeId, Long evaluationPeriodId, Long evaluationLevel);
+public interface QualitativeEvaluationRepository extends JpaQualitativeEvaluationRepository {
 }
