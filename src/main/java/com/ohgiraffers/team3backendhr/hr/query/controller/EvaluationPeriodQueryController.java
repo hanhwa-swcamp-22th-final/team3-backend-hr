@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.EvaluationPeriodQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

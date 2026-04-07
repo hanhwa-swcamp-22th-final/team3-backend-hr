@@ -2,9 +2,9 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.teamlea
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationDraftRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationSubmitRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationService;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,13 +27,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * [Controller 계층 테스트] TeamLeaderEvaluationController
+ * [Controller 계층 테스트] TeamLeaderEvaluationCommandController
  *
  * - 전략: @WebMvcTest + MockMvc 로 웹 계층만 분리하여 가볍게 검증
  *   → Service 는 @MockitoBean 으로 대체하고, HTTP 통신 자체(URL 매핑, 상태코드, JSON 응답)에 집중
  * - 비즈니스 로직의 정합성은 QualitativeEvaluationServiceTest 에서 집중 검증
  */
-@WebMvcTest(TeamLeaderEvaluationController.class)
+@WebMvcTest(TeamLeaderEvaluationCommandController.class)
 class TeamLeaderEvaluationControllerTest {
 
     @Autowired
@@ -44,7 +44,7 @@ class TeamLeaderEvaluationControllerTest {
 
     // Service 는 웹 계층 테스트와 무관하므로 Mock 으로 대체
     @MockitoBean
-    private QualitativeEvaluationService service;
+    private QualitativeEvaluationCommandService service;
 
     /**
      * TL 권한을 가진 가짜 인증 사용자 생성 헬퍼

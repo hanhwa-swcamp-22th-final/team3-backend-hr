@@ -57,6 +57,9 @@ public class QualitativeEvaluation {
     @Builder.Default                    // @Builder 사용 시 기본값 적용을 위해 필요
     private QualEvalStatus status = QualEvalStatus.NO_INPUT;
 
+    @Column(name = "confirmed_at")
+    private LocalDateTime confirmedAt;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -120,5 +123,6 @@ public class QualitativeEvaluation {
         this.evalComment = evalComment;
         this.inputMethod = inputMethod;
         this.status = QualEvalStatus.CONFIRMED;
+        this.confirmedAt = LocalDateTime.now();
     }
 }

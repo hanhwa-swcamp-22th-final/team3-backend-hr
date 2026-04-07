@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodListResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodSummaryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodListResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
