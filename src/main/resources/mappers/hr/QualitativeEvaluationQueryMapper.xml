@@ -102,4 +102,76 @@
         ORDER BY e.employee_name
     </select>
 
+
+    <!-- HRM 평가 목록 조회 (periodId·grade·status 필터, 페이징) -->
+    <select id="findEvaluations"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationSummaryItem">
+        SELECT
+            qe.qualitative_evaluation_id    AS evalId,
+            qe.evaluatee_id                 AS evaluateeId,
+            e.employee_name                 AS employeeName,
+            e.employee_tier                 AS employeeTier,
+            qe.evaluation_period_id         AS evaluationPeriodId,
+            qe.evaluation_level             AS evaluationLevel,
+            qe.grade,
+            qe.score,
+            qe.status
+        FROM qualitative_evaluation qe
+        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        <where>
+            qe.evaluation_period_id = #{periodId}
+            <if test="grade != null">AND qe.grade = #{grade}</if>
+            <if test="status != null">AND qe.status = #{status}</if>
+        </where>
+        ORDER BY qe.evaluation_level, e.employee_name
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countEvaluations" resultType="long">
+        SELECT COUNT(*)
+        FROM qualitative_evaluation qe
+        <where>
+            qe.evaluation_period_id = #{periodId}
+            <if test="grade != null">AND qe.grade = #{grade}</if>
+            <if test="status != null">AND qe.status = #{status}</if>
+        </where>
+    </select>
+
+    <!-- HRM 평가 상세 조회 -->
+    <select id="findEvaluationDetail"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse">
+        SELECT
+            qe.qualitative_evaluation_id    AS evalId,
+            qe.evaluatee_id                 AS evaluateeId,
+            e.employee_name                 AS employeeName,
+            e.employee_tier                 AS employeeTier,
+            qe.evaluator_id                 AS evaluatorId,
+            qe.evaluation_period_id         AS evaluationPeriodId,
+            qe.evaluation_level             AS evaluationLevel,
+            qe.eval_items                   AS evalItems,
+            qe.eval_comment                 AS evalComment,
+            qe.grade,
+            qe.score,
+            qe.input_method                 AS inputMethod,
+            qe.status,
+            qe.created_at                   AS createdAt
+        FROM qualitative_evaluation qe
+        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        WHERE qe.qualitative_evaluation_id = #{evalId}
+    </select>
+
+    <!-- HRM 등급별 평가 집계 -->
+    <select id="findEvaluationGradeSummary"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationGradeSummaryItem">
+        SELECT
+            grade,
+            COUNT(*)        AS count,
+            AVG(score)      AS avgScore
+        FROM qualitative_evaluation
+        WHERE evaluation_period_id = #{periodId}
+          AND grade IS NOT NULL
+        GROUP BY grade
+        ORDER BY FIELD(grade, 'S', 'A', 'B', 'C')
+    </select>
+
 </mapper>

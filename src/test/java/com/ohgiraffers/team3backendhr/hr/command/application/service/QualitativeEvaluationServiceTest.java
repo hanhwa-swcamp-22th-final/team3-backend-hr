@@ -3,8 +3,8 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.QualitativeEvaluationEventPublisher;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
@@ -114,7 +114,7 @@ class QualitativeEvaluationServiceTest {
     /* ── submit ──────────────────────────────────────────────────────────── */
 
     @Test
-    @DisplayName("1차 평가 제출 성공 — SUBMITTED 전이, score·grade는 batch 분석 전까지 null")
+    @DisplayName("1차 평가 제출 성공 — SUBMITTED 상태로 전환, score·grade는 null (batch 분석 전)")
     void submit_success() {
         // given
         QualitativeEvaluation eval = buildEval(QualEvalStatus.DRAFT);
@@ -202,7 +202,7 @@ class QualitativeEvaluationServiceTest {
     /* ── submitForDL (2차) ───────────────────────────────────────────────── */
 
     @Test
-    @DisplayName("2차 평가 제출 성공 — SUBMITTED 전이, score·grade는 batch 분석 전까지 null")
+    @DisplayName("2차 평가 제출 성공 — SUBMITTED 상태로 전환, score·grade는 null (batch 분석 전)")
     void submitForDL_success() {
         // given
         QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);

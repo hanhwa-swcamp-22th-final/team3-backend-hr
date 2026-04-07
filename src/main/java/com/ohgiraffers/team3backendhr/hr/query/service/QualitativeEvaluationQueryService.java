@@ -2,6 +2,10 @@ package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationGradeSummaryItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationListResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationSummaryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
@@ -30,6 +34,31 @@ public class QualitativeEvaluationQueryService {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
         return new DlEvaluationTargetResponse(resolvedPeriodId, targets);
+    }
+
+    /* HRM — 평가 상세 조회 */
+    public EvaluationDetailResponse getEvaluationDetail(Long evalId) {
+        EvaluationDetailResponse detail = mapper.findEvaluationDetail(evalId);
+        if (detail == null) {
+            throw new IllegalArgumentException("평가를 찾을 수 없습니다: " + evalId);
+        }
+        return detail;
+    }
+
+    /* HRM — 등급별 평가 집계 */
+    public List<EvaluationGradeSummaryItem> getEvaluationGradeSummary(Long periodId) {
+        Long resolvedPeriodId = resolvePeriodId(periodId);
+        return mapper.findEvaluationGradeSummary(resolvedPeriodId);
+    }
+
+    /* HRM — 평가 목록 조회 (periodId·grade·status 필터, 페이징) */
+    public EvaluationListResponse getEvaluations(Long periodId, String grade, String status, int page, int size) {
+        Long resolvedPeriodId = resolvePeriodId(periodId);
+        int offset = (page - 1) * size;
+        List<EvaluationSummaryItem> content = mapper.findEvaluations(resolvedPeriodId, grade, status, size, offset);
+        long totalCount = mapper.countEvaluations(resolvedPeriodId, grade, status);
+        long totalPages = (long) Math.ceil((double) totalCount / size);
+        return new EvaluationListResponse(content, totalCount, totalPages);
     }
 
     /* periodId null 이면 현재 IN_PROGRESS 기간으로 자동 resolve — 프론트에서 기간 선택 안 해도 동작 */
