@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionHistory;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
@@ -19,18 +20,25 @@ public class PromotionCommandService {
     private final TierConfigRepository tierConfigRepository;
     private final AdminClient adminClient;
 
-    /* 승급 확정 — PromotionHistory 상태를 CONFIRMATION_OF_PROMOTION 으로 변경하고
-     * Admin 서비스에 사원의 현재 티어 갱신을 요청한다. */
+    /* 승급 확정 — PromotionHistory 상태를 CONFIRMATION_OF_PROMOTION 으로 변경한다.
+     * 티어 반영은 applyTierForConfirmed() 에서 일괄 처리한다. */
     public void confirmPromotion(Long tierPromotionId) {
         PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId)
                 .orElseThrow(() -> new IllegalArgumentException("승급 이력을 찾을 수 없습니다."));
         history.confirm();
+    }
 
-        TierConfig targetTierConfig = tierConfigRepository.findById(history.getTargetTierConfigId())
-                .orElseThrow(() -> new IllegalArgumentException("승급 목표 티어 설정을 찾을 수 없습니다."));
-        Grade newTier = targetTierConfig.getTierConfigTier();
-
-        adminClient.updateEmployeeTier(history.getEmployeeId(), newTier);
+    /* 티어 일괄 반영 — CONFIRMATION_OF_PROMOTION 상태인 모든 이력을 Admin 서비스에 반영하고
+     * 상태를 TIER_APPLIED 로 전이한다. */
+    public void applyTierForConfirmed() {
+        promotionHistoryRepository.findByTierPromoStatus(PromotionStatus.CONFIRMATION_OF_PROMOTION)
+                .forEach(history -> {
+                    TierConfig targetTierConfig = tierConfigRepository.findById(history.getTargetTierConfigId())
+                            .orElseThrow(() -> new IllegalArgumentException("승급 목표 티어 설정을 찾을 수 없습니다."));
+                    Grade newTier = targetTierConfig.getTierConfigTier();
+                    adminClient.updateEmployeeTier(history.getEmployeeId(), newTier);
+                    history.applyTier();
+                });
     }
 
     public void suspendPromotion(Long tierPromotionId) {

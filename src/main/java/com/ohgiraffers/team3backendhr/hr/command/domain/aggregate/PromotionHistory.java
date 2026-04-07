@@ -75,6 +75,14 @@ public class PromotionHistory {
         this.tierReviewedAt = LocalDateTime.now();
     }
 
+    /* 상태 전이: CONFIRMATION_OF_PROMOTION → TIER_APPLIED */
+    public void applyTier() {
+        if (this.tierPromoStatus != PromotionStatus.CONFIRMATION_OF_PROMOTION) {
+            throw new IllegalStateException("승급 확정된 이력만 티어에 반영할 수 있습니다.");
+        }
+        this.tierPromoStatus = PromotionStatus.TIER_APPLIED;
+    }
+
     /* 상태 전이: UNDER_REVIEW → SUSPENSION */
     public void suspend() {
         if (this.tierPromoStatus != PromotionStatus.UNDER_REVIEW) {

@@ -21,6 +21,13 @@ public class PromotionController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    @PostMapping("/apply-tier")
+    @PreAuthorize("hasRole('HRM')")
+    public ResponseEntity<ApiResponse<Void>> applyTier() {
+        promotionCommandService.applyTierForConfirmed();
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @PostMapping("/{candidateId}/hold")
     @PreAuthorize("hasRole('HRM')")
     public ResponseEntity<ApiResponse<Void>> suspendPromotion(@PathVariable Long candidateId) {
