@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;

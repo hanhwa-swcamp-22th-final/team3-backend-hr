@@ -5,7 +5,7 @@
 
     <!-- 평가 기간 목록 조회 (HRM) -->
     <select id="findEvaluationPeriods"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodSummaryResponse">
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodSummaryResponse">
         SELECT
             eval_period_id      AS evalPeriodId,
             eval_year           AS evalYear,
@@ -35,7 +35,7 @@
 
     <!-- 현재 IN_PROGRESS 기간 마감일 조회 -->
     <select id="findCurrentDeadline"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.EvaluationPeriodDeadlineResponse">
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse">
         SELECT
             eval_period_id                      AS evalPeriodId,
             eval_year                           AS evalYear,
@@ -58,7 +58,7 @@
 
     <!-- TL 평가 대상 목록 (같은 부서 WORKER, level 1) -->
     <select id="findTlTargets"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetItem">
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem">
         SELECT
             qe.qualitative_evaluation_id    AS evalId,
             qe.evaluatee_id                 AS evaluateeId,
@@ -78,7 +78,7 @@
 
     <!-- DL 평가 대상 목록 (같은 부서, level 1 SUBMITTED, level 2 레코드) -->
     <select id="findDlTargets"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetItem">
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem">
         SELECT
             qe2.qualitative_evaluation_id   AS evalId,
             qe2.evaluatee_id                AS evaluateeId,
