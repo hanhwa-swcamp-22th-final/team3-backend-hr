@@ -122,11 +122,11 @@ class DepartmentLeaderEvaluationIntegrationTest {
     }
 
     @Test
-    @DisplayName("2차 평가 제출 시 상태가 SUBMITTED로 변경되고 grade가 산출된다")
+    @DisplayName("2차 평가 제출 시 상태가 SUBMITTED로 변경되고 score·grade는 null이다 — batch 분석 전")
     void submit_success() throws Exception {
         // given
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                PERIOD_ID, "{\"성과\":92}", "2차 제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT, 92.0);
+                PERIOD_ID, "{\"성과\":92}", "2차 제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
 
         // when
         mockMvc.perform(post("/api/v1/hr/department-leader/evaluations/" + EVALUATEE_ID + "/submit")
@@ -143,8 +143,8 @@ class DepartmentLeaderEvaluationIntegrationTest {
                 .orElseThrow();
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
         assertThat(eval.getEvaluatorId()).isEqualTo(DL_ID);
-        assertThat(eval.getScore()).isEqualTo(92.0);
-        assertThat(eval.getGrade().name()).isEqualTo("S");
+        assertThat(eval.getScore()).isNull();
+        assertThat(eval.getGrade()).isNull();
     }
 
     @Test

@@ -84,20 +84,20 @@ class QualitativeEvaluationTest {
     /* ── submit (평가 제출, level 1·2 공용) ────────────────────────────────── */
 
     @Test
-    @DisplayName("NO_INPUT 상태에서 제출 시 SUBMITTED로 전이되고 evaluatorId·score·grade가 세팅된다")
+    @DisplayName("NO_INPUT 상태에서 제출 시 SUBMITTED로 전이되고 evaluatorId가 세팅된다 — score/grade는 batch 분석 후 세팅")
     void submit_success_fromNoInput() {
         // given
         QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT, 1L);
 
-        // when — grade는 서비스에서 score 기반으로 산출 후 전달
-        eval.submit(EVALUATOR_ID, "{\"TECHNICAL_COMPETENCE\": 90}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT, 88.0, Grade.A);
+        // when
+        eval.submit(EVALUATOR_ID, "{\"TECHNICAL_COMPETENCE\": 90}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT);
 
         // then
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
         assertThat(eval.getEvaluatorId()).isEqualTo(EVALUATOR_ID);
-        assertThat(eval.getScore()).isEqualTo(88.0);
-        assertThat(eval.getGrade()).isEqualTo(Grade.A);
-        assertThat(eval.getEvaluationLevel()).isEqualTo(1L); // evaluationLevel은 변하지 않는다
+        assertThat(eval.getScore()).isNull();   // batch 분석 전이므로 null
+        assertThat(eval.getGrade()).isNull();   // batch 분석 전이므로 null
+        assertThat(eval.getEvaluationLevel()).isEqualTo(1L);
     }
 
     @Test
@@ -107,11 +107,11 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.DRAFT, 2L);
 
         // when
-        eval.submit(EVALUATOR_ID, "{\"TECHNICAL_COMPETENCE\": 90}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT, 75.0, Grade.B);
+        eval.submit(EVALUATOR_ID, "{\"TECHNICAL_COMPETENCE\": 90}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT);
 
         // then
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
-        assertThat(eval.getEvaluationLevel()).isEqualTo(2L); // level 2 레코드도 동일하게 동작
+        assertThat(eval.getEvaluationLevel()).isEqualTo(2L);
     }
 
     @Test
@@ -121,7 +121,7 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT, 1L);
 
         // when & then
-        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "짧은 코멘트", InputMethod.TEXT, 88.0, Grade.A))
+        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "짧은 코멘트", InputMethod.TEXT))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
@@ -133,7 +133,7 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT, 1L);
 
         // when & then
-        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", null, InputMethod.TEXT, 88.0, Grade.A))
+        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", null, InputMethod.TEXT))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
@@ -145,7 +145,7 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.SUBMITTED, 1L);
 
         // when & then
-        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT, 88.0, Grade.A))
+        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 제출된 평가입니다.");
     }
@@ -157,9 +157,38 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.CONFIRMED, 1L);
 
         // when & then
-        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT, 88.0, Grade.A))
+        assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("이미 제출된 평가입니다.");
+    }
+
+    /* ── applyAnalysisResult (batch NLP 분석 결과 반영) ─────────────────────── */
+
+    @Test
+    @DisplayName("SUBMITTED 상태에서 batch 분석 결과 반영 시 score·grade가 세팅된다")
+    void applyAnalysisResult_success() {
+        // given
+        QualitativeEvaluation eval = buildEval(QualEvalStatus.SUBMITTED, 1L);
+
+        // when
+        eval.applyAnalysisResult(88.0, Grade.A);
+
+        // then
+        assertThat(eval.getScore()).isEqualTo(88.0);
+        assertThat(eval.getGrade()).isEqualTo(Grade.A);
+        assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED); // 상태는 유지
+    }
+
+    @Test
+    @DisplayName("SUBMITTED 상태가 아닐 때 batch 분석 결과 반영 시 예외가 발생한다")
+    void applyAnalysisResult_fail_notSubmitted() {
+        // given
+        QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT, 1L);
+
+        // when & then
+        assertThatThrownBy(() -> eval.applyAnalysisResult(88.0, Grade.A))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("제출된 평가에만 분석 결과를 반영할 수 있습니다.");
     }
 
     /* ── confirmFinal (HRM 최종 확정, level 3 전용) ────────────────────────── */

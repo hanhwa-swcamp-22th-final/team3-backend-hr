@@ -46,7 +46,7 @@ public class QualitativeEvaluation {
     private Grade grade;                // S / A / B / C — score 기반으로 서비스에서 자동 산출, 생성 시 null
 
     @Column(name = "score")
-    private Double score;               // TL·DL이 입력한 점수 (0~100)
+    private Double score;               // batch NLP 분석 결과로 세팅되는 점수 (0~100)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "input_method")
@@ -92,22 +92,28 @@ public class QualitativeEvaluation {
     }
 
     /* 평가 제출 — NO_INPUT or DRAFT → SUBMITTED (level 1·2 공용) */
-    /* grade는 서비스에서 score 기반으로 산출 후 전달 / 차수 간 의존성 체크도 서비스에서 수행 */
-    public void submit(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod, Double score, Grade grade) {
+    /* score·grade는 batch NLP 분석 후 applyAnalysisResult()로 세팅 */
+    public void submit(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
             throw new IllegalStateException("이미 제출된 평가입니다.");
         }
         if (evalComment == null || evalComment.length() < 20) {
-            // 코멘트 최소 20자 검증 (API 스펙 요건)
             throw new IllegalArgumentException("평가 코멘트는 최소 20자 이상이어야 합니다.");
         }
         this.evaluatorId = evaluatorId;
         this.evalItems = evalItems;
         this.evalComment = evalComment;
         this.inputMethod = inputMethod;
-        this.score = score;
-        this.grade = grade;             // 서비스에서 score → grade 변환 후 전달
         this.status = QualEvalStatus.SUBMITTED;
+    }
+
+    /* batch NLP 분석 결과 반영 — SUBMITTED 상태에서만 허용 */
+    public void applyAnalysisResult(Double score, Grade grade) {
+        if (this.status != QualEvalStatus.SUBMITTED) {
+            throw new IllegalStateException("제출된 평가에만 분석 결과를 반영할 수 있습니다.");
+        }
+        this.score = score;
+        this.grade = grade;
     }
 
     /* HRM 최종 확정 — NO_INPUT → CONFIRMED (level 3 전용) */

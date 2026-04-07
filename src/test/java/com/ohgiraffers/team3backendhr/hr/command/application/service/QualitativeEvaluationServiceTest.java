@@ -11,6 +11,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEv
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.QualitativeEvaluationEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class QualitativeEvaluationServiceTest {
 
     @Mock
     private IdGenerator idGenerator;
+
+    @Mock
+    private QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
 
     @InjectMocks
     private QualitativeEvaluationCommandService service;
@@ -110,77 +114,23 @@ class QualitativeEvaluationServiceTest {
     /* ── submit ──────────────────────────────────────────────────────────── */
 
     @Test
-    @DisplayName("1차 평가 제출 성공 — score 90 이상이면 grade S")
-    void submit_success_gradeS() {
+    @DisplayName("1차 평가 제출 성공 — SUBMITTED 전이, score·grade는 batch 분석 전까지 null")
+    void submit_success() {
         // given
         QualitativeEvaluation eval = buildEval(QualEvalStatus.DRAFT);
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, "{\"TECHNICAL_COMPETENCE\": 95}", "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 92.0);
+                5L, "{\"TECHNICAL_COMPETENCE\": 95}", "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when
         service.submit(200L, 101L, request);
 
         // then
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
-        assertThat(eval.getGrade()).isEqualTo(Grade.S);
-        assertThat(eval.getScore()).isEqualTo(92.0);
-    }
-
-    @Test
-    @DisplayName("1차 평가 제출 성공 — score 80 이상이면 grade A")
-    void submit_success_gradeA() {
-        // given
-        QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT);
-        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
-
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 85.0);
-
-        // when
-        service.submit(200L, 101L, request);
-
-        // then
-        assertThat(eval.getGrade()).isEqualTo(Grade.A);
-    }
-
-    @Test
-    @DisplayName("1차 평가 제출 성공 — score 70 이상이면 grade B")
-    void submit_success_gradeB() {
-        // given
-        QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT);
-        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
-
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 75.0);
-
-        // when
-        service.submit(200L, 101L, request);
-
-        // then
-        assertThat(eval.getGrade()).isEqualTo(Grade.B);
-    }
-
-    @Test
-    @DisplayName("1차 평가 제출 성공 — score 70 미만이면 grade C")
-    void submit_success_gradeC() {
-        // given
-        QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT);
-        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
-                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
-
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 60.0);
-
-        // when
-        service.submit(200L, 101L, request);
-
-        // then
-        assertThat(eval.getGrade()).isEqualTo(Grade.C);
+        assertThat(eval.getScore()).isNull();
+        assertThat(eval.getGrade()).isNull();
     }
 
     /* ── saveDraftForDL (2차) ────────────────────────────────────────────── */
@@ -252,8 +202,8 @@ class QualitativeEvaluationServiceTest {
     /* ── submitForDL (2차) ───────────────────────────────────────────────── */
 
     @Test
-    @DisplayName("2차 평가 제출 성공 — score 90 이상이면 grade S")
-    void submitForDL_success_gradeS() {
+    @DisplayName("2차 평가 제출 성공 — SUBMITTED 전이, score·grade는 batch 분석 전까지 null")
+    void submitForDL_success() {
         // given
         QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
@@ -269,15 +219,15 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, "{\"LEADERSHIP\": 95}", "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 91.0);
+                5L, "{\"LEADERSHIP\": 95}", "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when
         service.submitForDL(300L, 101L, request);
 
         // then
         assertThat(level2.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
-        assertThat(level2.getGrade()).isEqualTo(Grade.S);
-        assertThat(level2.getScore()).isEqualTo(91.0);
+        assertThat(level2.getScore()).isNull();
+        assertThat(level2.getGrade()).isNull();
     }
 
     @Test
@@ -289,7 +239,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 88.0);
+                5L, null, "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when & then
         assertThatThrownBy(() -> service.submitForDL(300L, 101L, request))
@@ -308,7 +258,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.empty());
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 88.0);
+                5L, null, "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when & then
         assertThatThrownBy(() -> service.submitForDL(300L, 101L, request))
@@ -324,7 +274,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.empty());
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 85.0);
+                5L, null, "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when & then
         assertThatThrownBy(() -> service.submit(200L, 101L, request))
@@ -451,11 +401,40 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "짧은코멘트", InputMethod.TEXT, 85.0);
+                5L, null, "짧은코멘트", InputMethod.TEXT);
 
         // when & then
         assertThatThrownBy(() -> service.submit(200L, 101L, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
+    }
+
+    /* ── applyAnalysisResult (batch NLP 분석 결과 반영) ─────────────────────── */
+
+    @Test
+    @DisplayName("batch 분석 결과 반영 성공 — score·grade가 세팅된다")
+    void applyAnalysisResult_success() {
+        // given
+        QualitativeEvaluation eval = buildEval(QualEvalStatus.SUBMITTED);
+        given(repository.findById(1L)).willReturn(Optional.of(eval));
+
+        // when
+        service.applyAnalysisResult(1L, 88.0, Grade.A);
+
+        // then
+        assertThat(eval.getScore()).isEqualTo(88.0);
+        assertThat(eval.getGrade()).isEqualTo(Grade.A);
+    }
+
+    @Test
+    @DisplayName("batch 분석 결과 반영 — 평가 레코드 없으면 예외")
+    void applyAnalysisResult_fail_notFound() {
+        // given
+        given(repository.findById(999L)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> service.applyAnalysisResult(999L, 88.0, Grade.A))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("평가 레코드를 찾을 수 없습니다.");
     }
 }

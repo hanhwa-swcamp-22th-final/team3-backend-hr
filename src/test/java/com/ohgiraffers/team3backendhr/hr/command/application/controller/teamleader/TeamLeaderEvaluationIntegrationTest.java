@@ -106,11 +106,11 @@ class TeamLeaderEvaluationIntegrationTest {
     }
 
     @Test
-    @DisplayName("1차 평가 제출 시 상태가 SUBMITTED로 변경되고 grade가 산출된다")
+    @DisplayName("1차 평가 제출 시 상태가 SUBMITTED로 변경되고 score·grade는 null이다 — batch 분석 전")
     void submit_success() throws Exception {
         // given
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                PERIOD_ID, "{\"성과\":85}", "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT, 85.0);
+                PERIOD_ID, "{\"성과\":85}", "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
 
         // when
         mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/submit")
@@ -127,8 +127,8 @@ class TeamLeaderEvaluationIntegrationTest {
                 .orElseThrow();
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED);
         assertThat(eval.getEvaluatorId()).isEqualTo(EVALUATOR_ID);
-        assertThat(eval.getScore()).isEqualTo(85.0);
-        assertThat(eval.getGrade().name()).isEqualTo("A");
+        assertThat(eval.getScore()).isNull();
+        assertThat(eval.getGrade()).isNull();
     }
 
     @Test
@@ -136,7 +136,7 @@ class TeamLeaderEvaluationIntegrationTest {
     void saveDraft_fail_alreadySubmitted() throws Exception {
         // given — 먼저 제출
         QualitativeEvaluationSubmitRequest submitRequest = new QualitativeEvaluationSubmitRequest(
-                PERIOD_ID, null, "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT, 85.0);
+                PERIOD_ID, null, "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
         mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/submit")
                         .with(csrf())
                         .with(authentication(tlAuth()))
