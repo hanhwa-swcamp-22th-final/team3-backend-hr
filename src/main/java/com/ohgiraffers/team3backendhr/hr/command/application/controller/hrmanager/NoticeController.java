@@ -23,7 +23,7 @@ public class NoticeController {
 
     /* 즉시 게시 */
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> publishNotice(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody @Valid NoticePublishRequest request) {
@@ -33,7 +33,7 @@ public class NoticeController {
 
     /* 예약 게시 */
     @PostMapping("/schedule")
-    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> scheduleNotice(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody @Valid NoticeScheduleRequest request) {
@@ -41,19 +41,19 @@ public class NoticeController {
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
-    /* 임시 저장 */
+    /* 임시 저장 — 생성된 noticeId 반환 (재저장 시 프론트에서 noticeId 포함하여 재요청) */
     @PostMapping("/draft")
-    @PreAuthorize("hasAuthority('ROLE_HRM')")
-    public ResponseEntity<ApiResponse<Void>> draftNotice(
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Long>> draftNotice(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody NoticeDraftRequest request) {
-        noticeCommandService.draftNotice(request, userDetails.getEmployeeId());
-        return ResponseEntity.status(201).body(ApiResponse.success(null));
+        Long noticeId = noticeCommandService.draftNotice(request, userDetails.getEmployeeId());
+        return ResponseEntity.status(201).body(ApiResponse.success(noticeId));
     }
 
     /* 수정 */
     @PutMapping("/{noticeId}")
-    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> updateNotice(
             @PathVariable Long noticeId,
             @RequestBody @Valid NoticeUpdateRequest request) {
@@ -63,7 +63,7 @@ public class NoticeController {
 
     /* 삭제 */
     @DeleteMapping("/{noticeId}")
-    @PreAuthorize("hasAuthority('ROLE_HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long noticeId) {
         noticeCommandService.deleteNotice(noticeId);
         return ResponseEntity.ok(ApiResponse.success(null));

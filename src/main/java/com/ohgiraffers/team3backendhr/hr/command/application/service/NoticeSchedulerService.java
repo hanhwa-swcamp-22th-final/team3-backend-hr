@@ -20,7 +20,7 @@ public class NoticeSchedulerService {
     /**
      * 예약 게시 전환: publishStartAt이 현재 시각 이전인 RESERVATION 공지를 POSTING으로 변경
      */
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(cron = "${scheduler.notice-publish-cron}")
     @Transactional
     public void publishScheduledNotices() {
         List<Notice> targets = noticeRepository
@@ -32,7 +32,7 @@ public class NoticeSchedulerService {
     /**
      * 중요 공지 만료: important_end_at이 지난 중요 공지의 is_important를 0으로 변경
      */
-    @Scheduled(fixedDelay = 60_000)
+    @Scheduled(cron = "${scheduler.notice-expire-cron}")
     @Transactional
     public void expireImportantNotices() {
         List<Notice> targets = noticeRepository

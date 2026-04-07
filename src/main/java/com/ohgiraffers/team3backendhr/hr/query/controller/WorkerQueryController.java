@@ -7,6 +7,11 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.PointHistoryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.MissionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.PerformancePointQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +26,7 @@ public class WorkerQueryController {
 
     private final PerformancePointQueryService performancePointQueryService;
     private final MissionQueryService missionQueryService;
+    private final WorkerProfileQueryService workerProfileQueryService;
 
     @GetMapping("/point-summary")
     public ResponseEntity<ApiResponse<PointSummaryResponse>> getPointSummary(
@@ -55,5 +61,37 @@ public class WorkerQueryController {
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(
                 missionQueryService.getUpgradeMissions(userDetails.getEmployeeId())));
+    }
+
+    /* HR-064: 내 프로필 조회 */
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<EmployeeProfileResponse>> getProfile(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerProfileQueryService.getProfile(userDetails.getEmployeeId())));
+    }
+
+    /* HR-065: 내 스킬 조회 */
+    @GetMapping("/skills")
+    public ResponseEntity<ApiResponse<List<EmployeeSkillResponse>>> getSkills(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerProfileQueryService.getSkills(userDetails.getEmployeeId())));
+    }
+
+    /* HR-066: Tier 마일스톤 조회 */
+    @GetMapping("/tier-milestones")
+    public ResponseEntity<ApiResponse<List<TierMilestoneResponse>>> getTierMilestones(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerProfileQueryService.getTierMilestones(userDetails.getEmployeeId())));
+    }
+
+    /* HR-067: Tier 차트 조회 */
+    @GetMapping("/tier-chart")
+    public ResponseEntity<ApiResponse<List<TierChartPointResponse>>> getTierChart(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerProfileQueryService.getTierChart(userDetails.getEmployeeId())));
     }
 }

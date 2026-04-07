@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "notice")
 @EntityListeners(AuditingEntityListener.class)
+@SQLRestriction("is_deleted = 0")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -66,6 +68,13 @@ public class Notice {
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Integer isDeleted = 0;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public void update(String title, String content, NoticeStatus status,
                        boolean important, LocalDateTime publishStartAt, LocalDateTime importantEndAt) {
         this.noticeTitle = title;
@@ -73,6 +82,18 @@ public class Notice {
         this.noticeStatus = status;
         this.isImportant = important ? 1 : 0;
         this.publishStartAt = publishStartAt;
+        this.importantEndAt = importantEndAt;
+    }
+
+    /* 임시 저장 재저장 — TEMPORARY 상태에서만 호출, 제목·내용 null 허용 */
+    public void updateDraft(String title, String content,
+                            boolean important, LocalDateTime importantEndAt) {
+        if (this.noticeStatus != NoticeStatus.TEMPORARY) {
+            throw new IllegalStateException("임시 저장 상태인 공지만 재저장할 수 있습니다.");
+        }
+        if (title != null) this.noticeTitle = title;
+        if (content != null) this.noticeContent = content;
+        this.isImportant = important ? 1 : 0;
         this.importantEndAt = importantEndAt;
     }
 
@@ -88,5 +109,11 @@ public class Notice {
 
     public void incrementViews() {
         this.noticeViews++;
+    }
+
+    /* Soft Delete */
+    public void softDelete() {
+        this.isDeleted = 1;
+        this.deletedAt = LocalDateTime.now();
     }
 }

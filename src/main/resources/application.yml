@@ -44,6 +44,14 @@ jwt:
   expiration: 1800000
   refresh-expiration: 604800000
 
+# External Service Clients
 feign:
   admin:
     url: http://localhost:8080
+  scm:
+    url: http://localhost:8082
+
+# Scheduler
+scheduler:
+  notice-publish-cron: "0 * * * * *"
+  notice-expire-cron:  "0 * * * * *"

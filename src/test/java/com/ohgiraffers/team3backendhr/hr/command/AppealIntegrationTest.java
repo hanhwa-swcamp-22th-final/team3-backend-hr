@@ -55,13 +55,13 @@ class AppealIntegrationTest {
 
     private UsernamePasswordAuthenticationToken workerAuth() {
         EmployeeUserDetails u = new EmployeeUserDetails(WORKER_ID, "W001", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER")));
+                List.of(new SimpleGrantedAuthority("WORKER")));
         return new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
     }
 
     private UsernamePasswordAuthenticationToken hrmAuth() {
         EmployeeUserDetails u = new EmployeeUserDetails(HRM_ID, "HRM001", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
         return new UsernamePasswordAuthenticationToken(u, null, u.getAuthorities());
     }
 

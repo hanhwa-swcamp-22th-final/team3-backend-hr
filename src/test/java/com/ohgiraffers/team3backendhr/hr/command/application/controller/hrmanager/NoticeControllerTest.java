@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -29,7 +30,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(NoticeCommandController.class)
+@WebMvcTest(NoticeController.class)
 class NoticeControllerTest {
 
     @Autowired
@@ -43,7 +44,7 @@ class NoticeControllerTest {
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(99L, "EMP-HRM", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
     }
 
     @Test
@@ -118,9 +119,10 @@ class NoticeControllerTest {
     }
 
     @Test
-    @DisplayName("공지 임시 저장 성공 — 201 Created")
+    @DisplayName("공지 임시 저장 성공 — 201 Created, noticeId 반환")
     void draftNotice_success() throws Exception {
-        NoticeDraftRequest request = new NoticeDraftRequest(null, null, false, null);
+        NoticeDraftRequest request = new NoticeDraftRequest(null, null, null, false, null);
+        given(noticeCommandService.draftNotice(any(NoticeDraftRequest.class), eq(99L))).willReturn(1000L);
 
         mockMvc.perform(post("/api/v1/hr/notices/draft")
                         .with(csrf())
@@ -128,7 +130,8 @@ class NoticeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(1000));
 
         verify(noticeCommandService).draftNotice(any(NoticeDraftRequest.class), eq(99L));
     }

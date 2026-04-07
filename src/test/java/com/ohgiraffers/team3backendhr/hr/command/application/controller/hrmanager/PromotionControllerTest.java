@@ -20,7 +20,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(PromotionCommandController.class)
+@WebMvcTest(PromotionController.class)
 class PromotionControllerTest {
 
     @Autowired
@@ -31,7 +31,7 @@ class PromotionControllerTest {
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(99L, "EMP-HRM", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
     }
 
     @Test

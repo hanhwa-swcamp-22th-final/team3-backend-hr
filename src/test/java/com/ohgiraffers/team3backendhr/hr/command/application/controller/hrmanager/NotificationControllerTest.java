@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(NotificationCommandController.class)
+@WebMvcTest(NotificationController.class)
 class NotificationControllerTest {
 
     @Autowired
@@ -32,7 +32,7 @@ class NotificationControllerTest {
 
     private EmployeeUserDetails workerUser() {
         return new EmployeeUserDetails(200L, "EMP-WORKER", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER")));
+                List.of(new SimpleGrantedAuthority("WORKER")));
     }
 
     @Test
