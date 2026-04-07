@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationGradeSummaryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationListResponse;
@@ -34,6 +35,25 @@ public class QualitativeEvaluationQueryService {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
         return new DlEvaluationTargetResponse(resolvedPeriodId, targets);
+    }
+
+    /* TL — 제출 완료 평가 상세 조회 (본인 제출분만) */
+    public EvaluationDetailResponse getTlEvaluationDetail(Long tlId, Long evalId) {
+        EvaluationDetailResponse detail = mapper.findTlEvaluationDetail(evalId, tlId);
+        if (detail == null) {
+            throw new IllegalArgumentException("평가를 찾을 수 없습니다: " + evalId);
+        }
+        return detail;
+    }
+
+    /* DL — 1차 평가 항목 + AI 추천 점수 조회 */
+    public DlEvaluationDetailResponse getDlEvaluationDetail(Long evaluateeId, Long periodId) {
+        Long resolvedPeriodId = resolvePeriodId(periodId);
+        DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(evaluateeId, resolvedPeriodId);
+        if (detail == null) {
+            throw new IllegalArgumentException("평가 정보를 찾을 수 없습니다.");
+        }
+        return detail;
     }
 
     /* HRM — 평가 상세 조회 */

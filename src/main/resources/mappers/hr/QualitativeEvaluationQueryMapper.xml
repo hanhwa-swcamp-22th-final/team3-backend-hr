@@ -137,6 +137,56 @@
         </where>
     </select>
 
+    <!-- TL 제출 완료 평가 상세 조회 (본인 제출분만) -->
+    <select id="findTlEvaluationDetail"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse">
+        SELECT
+            qe.qualitative_evaluation_id    AS evalId,
+            qe.evaluatee_id                 AS evaluateeId,
+            e.employee_name                 AS employeeName,
+            e.employee_tier                 AS employeeTier,
+            qe.evaluator_id                 AS evaluatorId,
+            qe.evaluation_period_id         AS evaluationPeriodId,
+            qe.evaluation_level             AS evaluationLevel,
+            qe.eval_items                   AS evalItems,
+            qe.eval_comment                 AS evalComment,
+            qe.grade,
+            qe.score,
+            qe.input_method                 AS inputMethod,
+            qe.status,
+            qe.created_at                   AS createdAt
+        FROM qualitative_evaluation qe
+        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        WHERE qe.qualitative_evaluation_id = #{evalId}
+          AND qe.evaluator_id = #{tlId}
+          AND qe.evaluation_level = 1
+    </select>
+
+    <!-- DL 1차 평가 항목 + AI 추천 점수 조회 -->
+    <select id="findDlEvaluationDetail"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse">
+        SELECT
+            qe.qualitative_evaluation_id    AS evalId,
+            qe.evaluatee_id                 AS evaluateeId,
+            e.employee_name                 AS employeeName,
+            e.employee_tier                 AS employeeTier,
+            tl.employee_name                AS evaluatorName,
+            qe.evaluation_period_id         AS evaluationPeriodId,
+            qe.eval_items                   AS evalItems,
+            qe.eval_comment                 AS evalComment,
+            qe.score                        AS firstStageScore,
+            qe.grade                        AS firstStageGrade,
+            NULL                            AS aiRecommendedScore,
+            qe.status
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id = qe.evaluatee_id
+        LEFT JOIN employee tl ON tl.employee_id = qe.evaluator_id
+        WHERE qe.evaluatee_id = #{evaluateeId}
+          AND qe.evaluation_period_id = #{periodId}
+          AND qe.evaluation_level = 1
+          AND qe.status = 'SUBMITTED'
+    </select>
+
     <!-- HRM 평가 상세 조회 -->
     <select id="findEvaluationDetail"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse">

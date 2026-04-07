@@ -185,6 +185,55 @@ class QualitativeEvaluationQueryServiceTest {
 
     /* ── getEvaluationGradeSummary (HRM) ─────────────────────────────── */
 
+    /* ── getTlEvaluationDetail (TL) ───────────────────────────────────── */
+
+    @Test
+    @DisplayName("TL 제출 완료 평가 상세 조회 — 정상 반환")
+    void getTlEvaluationDetail_success() {
+        // given
+        EvaluationDetailResponse detail = new EvaluationDetailResponse();
+        detail.setEvalId(1L);
+        given(mapper.findTlEvaluationDetail(1L, 200L)).willReturn(detail);
+
+        // when
+        EvaluationDetailResponse result = service.getTlEvaluationDetail(200L, 1L);
+
+        // then
+        assertThat(result.getEvalId()).isEqualTo(1L);
+    }
+
+    @Test
+    @DisplayName("TL 제출 완료 평가 상세 조회 — 존재하지 않으면 예외")
+    void getTlEvaluationDetail_notFound_throwsException() {
+        // given
+        given(mapper.findTlEvaluationDetail(99L, 200L)).willReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> service.getTlEvaluationDetail(200L, 99L))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    /* ── getDlEvaluationDetail (DL) ───────────────────────────────────── */
+
+    @Test
+    @DisplayName("DL 1차 평가 항목 조회 — 정상 반환")
+    void getDlEvaluationDetail_success() {
+        // given
+        com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse detail =
+                new com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse();
+        detail.setEvaluateeId(101L);
+        given(mapper.findDlEvaluationDetail(101L, 5L)).willReturn(detail);
+
+        // when
+        com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse result =
+                service.getDlEvaluationDetail(101L, 5L);
+
+        // then
+        assertThat(result.getEvaluateeId()).isEqualTo(101L);
+    }
+
+    /* ── getEvaluationGradeSummary (HRM) ─────────────────────────────── */
+
     @Test
     @DisplayName("HRM 등급별 평가 집계 — 정상 반환")
     void getEvaluationGradeSummary_success() {

@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,5 +31,15 @@ public class DepartmentLeaderEvaluationQueryController {
             @RequestParam(required = false) Long periodId) {
         return ResponseEntity.ok(ApiResponse.success(
                 service.getDlTargets(userDetails.getEmployeeId(), periodId)));
+    }
+
+    /* DL — 특정 사원의 1차 평가 항목 + AI 추천 점수 조회 */
+    @GetMapping("/{employeeId}")
+    @PreAuthorize("hasAuthority('DL')")
+    public ResponseEntity<ApiResponse<DlEvaluationDetailResponse>> getEvaluationDetail(
+            @PathVariable Long employeeId,
+            @RequestParam(required = false) Long periodId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                service.getDlEvaluationDetail(employeeId, periodId)));
     }
 }
