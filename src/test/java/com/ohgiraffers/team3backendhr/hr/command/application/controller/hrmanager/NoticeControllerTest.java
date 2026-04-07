@@ -2,11 +2,12 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeDraftRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTargetRole;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,14 +47,12 @@ class NoticeControllerTest {
     }
 
     @Test
-    @DisplayName("공지 생성 성공 — 201 Created")
-    void createNotice_success() throws Exception {
-        NoticeCreateRequest request = new NoticeCreateRequest(
-                NoticeStatus.PUBLISHED, true,
+    @DisplayName("공지 즉시 게시 성공 — 201 Created")
+    void publishNotice_success() throws Exception {
+        NoticePublishRequest request = new NoticePublishRequest(
                 "전사 공지", "공지 내용입니다.",
-                LocalDateTime.of(2026, 4, 1, 9, 0),
-                LocalDateTime.of(2026, 4, 30, 23, 59),
-                List.of(NoticeTargetRole.WORKER, NoticeTargetRole.TEAM_LEADER)
+                true,
+                LocalDateTime.of(2026, 4, 30, 23, 59)
         );
 
         mockMvc.perform(post("/api/v1/hr/notices")
@@ -64,18 +63,14 @@ class NoticeControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(noticeCommandService).createNotice(any(NoticeCreateRequest.class), eq(99L));
+        verify(noticeCommandService).publishNotice(any(NoticePublishRequest.class), eq(99L));
     }
 
     @Test
-    @DisplayName("공지 생성 — 제목 누락 시 400")
-    void createNotice_fail_missingTitle() throws Exception {
-        NoticeCreateRequest request = new NoticeCreateRequest(
-                NoticeStatus.PUBLISHED, false,
-                "",
-                "공지 내용입니다.",
-                null, null,
-                List.of(NoticeTargetRole.WORKER)
+    @DisplayName("공지 즉시 게시 — 제목 누락 시 400")
+    void publishNotice_fail_missingTitle() throws Exception {
+        NoticePublishRequest request = new NoticePublishRequest(
+                "", "공지 내용입니다.", false, null
         );
 
         mockMvc.perform(post("/api/v1/hr/notices")
@@ -87,10 +82,62 @@ class NoticeControllerTest {
     }
 
     @Test
+    @DisplayName("공지 예약 게시 성공 — 201 Created")
+    void scheduleNotice_success() throws Exception {
+        NoticeScheduleRequest request = new NoticeScheduleRequest(
+                "전사 공지", "공지 내용입니다.",
+                false,
+                null,
+                LocalDateTime.of(2099, 5, 1, 9, 0)
+        );
+
+        mockMvc.perform(post("/api/v1/hr/notices/schedule")
+                        .with(csrf())
+                        .with(user(hrmUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true));
+
+        verify(noticeCommandService).scheduleNotice(any(NoticeScheduleRequest.class), eq(99L));
+    }
+
+    @Test
+    @DisplayName("공지 예약 게시 — 예약 시각 누락 시 400")
+    void scheduleNotice_fail_missingPublishStartAt() throws Exception {
+        NoticeScheduleRequest request = new NoticeScheduleRequest(
+                "전사 공지", "공지 내용입니다.", false, null, null
+        );
+
+        mockMvc.perform(post("/api/v1/hr/notices/schedule")
+                        .with(csrf())
+                        .with(user(hrmUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("공지 임시 저장 성공 — 201 Created")
+    void draftNotice_success() throws Exception {
+        NoticeDraftRequest request = new NoticeDraftRequest(null, null, false, null);
+
+        mockMvc.perform(post("/api/v1/hr/notices/draft")
+                        .with(csrf())
+                        .with(user(hrmUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true));
+
+        verify(noticeCommandService).draftNotice(any(NoticeDraftRequest.class), eq(99L));
+    }
+
+    @Test
     @DisplayName("공지 수정 성공 — 200 OK (PUT)")
     void updateNotice_success() throws Exception {
         NoticeUpdateRequest request = new NoticeUpdateRequest(
-                NoticeStatus.PUBLISHED, false,
+                NoticeStatus.POSTING, false,
                 "수정된 제목", "수정된 내용",
                 null, null
         );
@@ -110,7 +157,7 @@ class NoticeControllerTest {
     @DisplayName("공지 수정 — 존재하지 않으면 404")
     void updateNotice_notFound() throws Exception {
         NoticeUpdateRequest request = new NoticeUpdateRequest(
-                NoticeStatus.PUBLISHED, false, "제목", "내용", null, null
+                NoticeStatus.POSTING, false, "제목", "내용", null, null
         );
         doThrow(new IllegalArgumentException("공지를 찾을 수 없습니다."))
                 .when(noticeCommandService).updateNotice(any(), any());

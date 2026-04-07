@@ -76,6 +76,16 @@ public class Notice {
         this.importantEndAt = importantEndAt;
     }
 
+    /* 예약 → 게시중 전환 */
+    public void publish() {
+        this.noticeStatus = NoticeStatus.POSTING;
+    }
+
+    /* 중요 공지 만료 */
+    public void expireImportant() {
+        this.isImportant = 0;
+    }
+
     public void incrementViews() {
         this.noticeViews++;
     }

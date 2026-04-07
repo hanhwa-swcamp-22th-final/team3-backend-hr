@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.NoticeQueryMapper">
+
+    <sql id="noticeListColumns">
+        notice_id        AS noticeId,
+        notice_title     AS noticeTitle,
+        employee_id      AS authorId,
+        notice_status    AS noticeStatus,
+        is_important     AS isImportant,
+        notice_views     AS noticeViews,
+        created_at       AS createdAt,
+        publish_start_at AS publishStartAt,
+        important_end_at AS importantEndAt
+    </sql>
+
+    <sql id="noticeWhere">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND notice_title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <if test="status != null and status != ''">
+                AND notice_status = #{status}
+            </if>
+            <if test="isImportant != null">
+                AND is_important = #{isImportant ? 1 : 0}
+            </if>
+        </where>
+    </sql>
+
+    <select id="findNotices"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse">
+        SELECT
+        <include refid="noticeListColumns"/>
+        FROM notice
+        <include refid="noticeWhere"/>
+        ORDER BY created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countNotices" resultType="long">
+        SELECT COUNT(*)
+        FROM notice
+        <include refid="noticeWhere"/>
+    </select>
+
+    <select id="findById"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse">
+        SELECT
+            notice_id        AS noticeId,
+            notice_title     AS noticeTitle,
+            notice_content   AS noticeContent,
+            employee_id      AS authorId,
+            notice_status    AS noticeStatus,
+            is_important     AS isImportant,
+            notice_views     AS noticeViews,
+            created_at       AS createdAt,
+            publish_start_at AS publishStartAt,
+            important_end_at AS importantEndAt
+        FROM notice
+        WHERE notice_id = #{noticeId}
+    </select>
+
+    <select id="findPinned"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse">
+        SELECT
+            notice_id        AS noticeId,
+            notice_title     AS noticeTitle,
+            notice_content   AS noticeContent,
+            created_at       AS createdAt,
+            important_end_at AS importantEndAt
+        FROM notice
+        WHERE is_important = 1
+          AND notice_status = 'POSTING'
+          AND (important_end_at IS NULL OR important_end_at > NOW())
+        ORDER BY created_at DESC
+        LIMIT 1
+    </select>
+
+</mapper>

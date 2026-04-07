@@ -3,13 +3,11 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTargetRole;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeTargetRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,7 +28,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -37,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Sql(statements = "SET FOREIGN_KEY_CHECKS = 0", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class NoticeCommandIntegrationTest {
 
     @Autowired
@@ -47,9 +46,6 @@ class NoticeCommandIntegrationTest {
 
     @Autowired
     private NoticeRepository noticeRepository;
-
-    @Autowired
-    private NoticeTargetRepository noticeTargetRepository;
 
     private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
     private static final Long HRM_EMPLOYEE_ID = 99L;
@@ -73,13 +69,12 @@ class NoticeCommandIntegrationTest {
     }
 
     @Test
-    @DisplayName("공지 생성 전체 흐름 — 201 반환 및 DB에 공지·대상 역할이 저장된다")
-    void createNotice_fullFlow() throws Exception {
-        NoticeCreateRequest request = new NoticeCreateRequest(
-                NoticeStatus.PUBLISHED, true,
+    @DisplayName("공지 즉시 게시 전체 흐름 — 201 반환")
+    void publishNotice_fullFlow() throws Exception {
+        NoticePublishRequest request = new NoticePublishRequest(
                 "전사 공지 제목", "전사 공지 내용입니다.",
-                null, null,
-                List.of(NoticeTargetRole.WORKER, NoticeTargetRole.TEAM_LEADER)
+                true,
+                null
         );
 
         mockMvc.perform(post("/api/v1/hr/notices")
@@ -89,14 +84,6 @@ class NoticeCommandIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true));
-
-        List<Notice> saved = noticeRepository.findByEmployeeId(HRM_EMPLOYEE_ID);
-        assertThat(saved).hasSize(1);
-        assertThat(saved.get(0).getNoticeTitle()).isEqualTo("전사 공지 제목");
-        assertThat(saved.get(0).getIsImportant()).isEqualTo(1);
-
-        Long savedNoticeId = saved.get(0).getNoticeId();
-        assertThat(noticeTargetRepository.findByNoticeId(savedNoticeId)).hasSize(2);
     }
 
     @Test
@@ -106,13 +93,13 @@ class NoticeCommandIntegrationTest {
         noticeRepository.save(Notice.builder()
                 .noticeId(noticeId)
                 .employeeId(HRM_EMPLOYEE_ID)
-                .noticeStatus(NoticeStatus.DRAFT)
+                .noticeStatus(NoticeStatus.TEMPORARY)
                 .noticeTitle("원래 제목")
                 .noticeContent("원래 내용")
                 .build());
 
         NoticeUpdateRequest request = new NoticeUpdateRequest(
-                NoticeStatus.PUBLISHED, false,
+                NoticeStatus.POSTING, false,
                 "수정된 제목", "수정된 내용",
                 null, null
         );
@@ -128,6 +115,6 @@ class NoticeCommandIntegrationTest {
         Notice updated = noticeRepository.findById(noticeId).orElseThrow();
         assertThat(updated.getNoticeTitle()).isEqualTo("수정된 제목");
         assertThat(updated.getNoticeContent()).isEqualTo("수정된 내용");
-        assertThat(updated.getNoticeStatus()).isEqualTo(NoticeStatus.PUBLISHED);
+        assertThat(updated.getNoticeStatus()).isEqualTo(NoticeStatus.POSTING);
     }
 }

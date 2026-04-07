@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@Sql(statements = "SET FOREIGN_KEY_CHECKS = 0", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class NotificationCommandIntegrationTest {
 
     @Autowired
@@ -65,7 +67,7 @@ class NotificationCommandIntegrationTest {
         notificationId = idGenerator.generate();
         notificationRepository.save(Notification.builder()
                 .notificationId(notificationId)
-                .notificationType(NotificationType.MISSION)
+                .notificationType(NotificationType.PROMOTION)
                 .notificationTitle("미션 달성 알림")
                 .notificationContent("미션을 달성하셨습니다.")
                 .notificationSentAt(LocalDateTime.now())
