@@ -63,12 +63,12 @@ class NoticeQueryControllerTest {
 
     private EmployeeUserDetails workerUser() {
         return new EmployeeUserDetails(1L, "EMP-WORKER", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER")));
+                List.of(new SimpleGrantedAuthority("WORKER")));
     }
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(99L, "EMP-HRM", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
     }
 
     @Test

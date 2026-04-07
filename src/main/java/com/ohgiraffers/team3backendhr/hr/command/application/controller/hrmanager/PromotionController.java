@@ -15,21 +15,21 @@ public class PromotionController {
     private final PromotionCommandService promotionCommandService;
 
     @PostMapping("/{candidateId}/confirm")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> confirmPromotion(@PathVariable Long candidateId) {
         promotionCommandService.confirmPromotion(candidateId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/apply-tier")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> applyTier() {
         promotionCommandService.applyTierForConfirmed();
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @PostMapping("/{candidateId}/hold")
-    @PreAuthorize("hasRole('HRM')")
+    @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> suspendPromotion(@PathVariable Long candidateId) {
         promotionCommandService.suspendPromotion(candidateId);
         return ResponseEntity.ok(ApiResponse.success(null));

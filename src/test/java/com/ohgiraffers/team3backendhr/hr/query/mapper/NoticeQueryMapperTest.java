@@ -52,7 +52,7 @@ class NoticeQueryMapperTest {
     void setUp() {
         // 보안 컨텍스트 설정 (created_by NOT NULL 충족)
         EmployeeUserDetails user = new EmployeeUserDetails(employeeId, "EMP-TEST", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
 

@@ -52,7 +52,7 @@ class NoticeCommandIntegrationTest {
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(HRM_EMPLOYEE_ID, "EMP-HRM", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_HRM")));
+                List.of(new SimpleGrantedAuthority("HRM")));
     }
 
     @BeforeEach

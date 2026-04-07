@@ -65,7 +65,7 @@ class WorkerQueryControllerTest {
 
     private EmployeeUserDetails workerUserDetails() {
         return new EmployeeUserDetails(1L, "EMP-WORKER", "pw",
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER")));
+                List.of(new SimpleGrantedAuthority("WORKER")));
     }
 
     private MissionResponse sampleMission(Long id, String status) {

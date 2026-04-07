@@ -38,7 +38,7 @@ public class NoticeQueryController {
             @RequestParam(defaultValue = "20") int size) {
 
         boolean isHrm = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_HRM"));
+                .anyMatch(a -> a.getAuthority().equals("HRM"));
 
         String effectiveStatus = isHrm ? status : "POSTING";
 

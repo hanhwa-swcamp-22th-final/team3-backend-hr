@@ -54,7 +54,7 @@ class NotificationCommandIntegrationTest {
 
     private EmployeeUserDetails workerUser() {
         return new EmployeeUserDetails(WORKER_EMPLOYEE_ID, "EMP-WORKER", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_WORKER")));
+                List.of(new SimpleGrantedAuthority("WORKER")));
     }
 
     @BeforeEach
