@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
+import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QualitativeKafkaTopics;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,8 @@ public class QualitativeEvaluationAnalyzedListener {
 
     private static final Logger log = LoggerFactory.getLogger(QualitativeEvaluationAnalyzedListener.class);
 
+    private final QualitativeEvaluationCommandService qualitativeEvaluationCommandService;
+
     @KafkaListener(
         topics = QualitativeKafkaTopics.QUALITATIVE_EVALUATION_ANALYZED,
         containerFactory = "qualitativeAnalyzedKafkaListenerContainerFactory"
@@ -26,6 +30,12 @@ public class QualitativeEvaluationAnalyzedListener {
             event.getSQual(),
             event.getNormalizedTier()
         );
-        // TODO ?袁⑹뒄 ??HR 鈺곌퀬??筌뤴뫀??揶쏄퉮?? ???뵝 獄쏆뮉六? ?遺얇늺 揶쏄퉮???紐꺿봺椰꾧퀡以??類ㅼ삢??뺣뼄.
+
+        Grade grade = Grade.valueOf(event.getNormalizedTier());
+        qualitativeEvaluationCommandService.applyAnalysisResult(
+            event.getQualitativeEvaluationId(),
+            event.getSQual().doubleValue(),
+            grade
+        );
     }
 }

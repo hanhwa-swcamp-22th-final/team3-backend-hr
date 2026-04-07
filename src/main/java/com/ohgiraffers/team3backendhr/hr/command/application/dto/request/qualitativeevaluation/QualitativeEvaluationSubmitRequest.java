@@ -1,8 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
-import jakarta.validation.constraints.DecimalMax;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -23,9 +21,4 @@ public class QualitativeEvaluationSubmitRequest {
 
     @NotNull(message = "입력 방식은 필수입니다.")
     private final InputMethod inputMethod;
-
-    @NotNull(message = "점수는 필수입니다.")
-    @DecimalMin(value = "0.0", message = "점수는 0 이상이어야 합니다.")
-    @DecimalMax(value = "100.0", message = "점수는 100 이하이어야 합니다.")
-    private final Double score;
 }

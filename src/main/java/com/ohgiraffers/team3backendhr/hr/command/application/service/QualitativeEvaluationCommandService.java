@@ -54,15 +54,7 @@ public class QualitativeEvaluationCommandService {
 
     public void submit(Long evaluatorId, Long evaluateeId, QualitativeEvaluationSubmitRequest request) {
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 1L);
-        Grade grade = calculateGrade(request.getScore());
-        eval.submit(
-            evaluatorId,
-            request.getEvalItems(),
-            request.getEvalComment(),
-            request.getInputMethod(),
-            request.getScore(),
-            grade
-        );
+        eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
         publishSubmittedEventAfterCommit(eval);
     }
 
@@ -75,16 +67,14 @@ public class QualitativeEvaluationCommandService {
     public void submitForDL(Long evaluatorId, Long evaluateeId, QualitativeEvaluationSubmitRequest request) {
         validateLevel1Submitted(evaluateeId, request.getEvaluationPeriodId());
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
-        Grade grade = calculateGrade(request.getScore());
-        eval.submit(
-            evaluatorId,
-            request.getEvalItems(),
-            request.getEvalComment(),
-            request.getInputMethod(),
-            request.getScore(),
-            grade
-        );
+        eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
         publishSubmittedEventAfterCommit(eval);
+    }
+
+    public void applyAnalysisResult(Long evaluationId, Double score, Grade grade) {
+        QualitativeEvaluation eval = repository.findById(evaluationId)
+            .orElseThrow(() -> new IllegalArgumentException("평가 레코드를 찾을 수 없습니다."));
+        eval.applyAnalysisResult(score, grade);
     }
 
     /* 3차(HRM) 최종 확정 — 2차 제출 여부 검증 후 CONFIRMED */
@@ -112,13 +102,6 @@ public class QualitativeEvaluationCommandService {
         return repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 evaluateeId, evaluationPeriodId, level)
             .orElseThrow(() -> new IllegalArgumentException("평가 레코드를 찾을 수 없습니다."));
-    }
-
-    private Grade calculateGrade(Double score) {
-        if (score >= 90) return Grade.S;
-        if (score >= 80) return Grade.A;
-        if (score >= 70) return Grade.B;
-        return Grade.C;
     }
 
     private void publishSubmittedEventAfterCommit(QualitativeEvaluation evaluation) {

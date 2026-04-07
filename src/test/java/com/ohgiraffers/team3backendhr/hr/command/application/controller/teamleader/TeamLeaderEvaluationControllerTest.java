@@ -135,13 +135,13 @@ class TeamLeaderEvaluationControllerTest {
     @Test
     @DisplayName("1차 평가 제출 성공 — 200 OK")
     void submit_success() throws Exception {
-        // given: 유효한 제출 요청 (evalItems, 20자 이상 comment, score 0~100)
+        // given
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
                 5L, "{\"TECHNICAL_COMPETENCE\": 90}",
                 "이번 분기 설비 대응 역량이 크게 향상되었으며 안전 수칙도 철저히 준수하였습니다.",
-                InputMethod.TEXT, 92.0);
+                InputMethod.TEXT);
 
-        // when & then: POST /api/v1/hr/team-leader/evaluations/101/submit 요청 → 200 OK
+        // when & then
         mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/101/submit")
                         .with(csrf())
                         .with(user(tlUser()))
@@ -150,42 +150,15 @@ class TeamLeaderEvaluationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        // then: 인증 사용자 ID(200L)와 경로변수(101L)가 Service 로 정확히 전달됐는지 검증
         verify(service).submit(eq(200L), eq(101L), any(QualitativeEvaluationSubmitRequest.class));
     }
 
-    /**
-     * [입력 검증] eval_comment 는 최소 20자 이상 — ERD 명세 기준.
-     * 20자 미만이면 Bean Validation(@Size) 에서 400 을 반환해야 한다.
-     */
     @Test
     @DisplayName("1차 평가 제출 — 코멘트 20자 미만이면 400")
     void submit_fail_commentTooShort() throws Exception {
-        // given: "짧은 코멘트" = 6자 (20자 미만)
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "짧은 코멘트", InputMethod.TEXT, 85.0);
+                5L, null, "짧은 코멘트", InputMethod.TEXT);
 
-        // when & then: Bean Validation 실패 → 400 Bad Request
-        mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/101/submit")
-                        .with(csrf())
-                        .with(user(tlUser()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    /**
-     * [입력 검증] score 는 0~100 범위 — ERD 명세 기준.
-     * 100 초과이면 Bean Validation(@DecimalMax) 에서 400 을 반환해야 한다.
-     */
-    @Test
-    @DisplayName("1차 평가 제출 — score 100 초과이면 400")
-    void submit_fail_scoreOutOfRange() throws Exception {
-        // given: score = 110.0 (100 초과)
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT, 110.0);
-
-        // when & then: Bean Validation 실패 → 400 Bad Request
         mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/101/submit")
                         .with(csrf())
                         .with(user(tlUser()))

@@ -101,7 +101,7 @@ class DepartmentLeaderEvaluationControllerTest {
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
                 5L, "{\"LEADERSHIP\": 90}",
                 "2차 평가 코멘트입니다. 리더십과 팀 관리 역량이 우수하여 높은 점수를 부여합니다.",
-                InputMethod.TEXT, 88.0);
+                InputMethod.TEXT);
 
         mockMvc.perform(post("/api/v1/hr/department-leader/evaluations/101/submit")
                         .with(csrf())
@@ -118,21 +118,7 @@ class DepartmentLeaderEvaluationControllerTest {
     @DisplayName("2차 평가 제출 — 코멘트 20자 미만이면 400")
     void submit_fail_commentTooShort() throws Exception {
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "짧은 코멘트", InputMethod.TEXT, 85.0);
-
-        mockMvc.perform(post("/api/v1/hr/department-leader/evaluations/101/submit")
-                        .with(csrf())
-                        .with(user(dlUser()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("2차 평가 제출 — score 100 초과이면 400")
-    void submit_fail_scoreOutOfRange() throws Exception {
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                5L, null, "2차 평가 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT, 105.0);
+                5L, null, "짧은 코멘트", InputMethod.TEXT);
 
         mockMvc.perform(post("/api/v1/hr/department-leader/evaluations/101/submit")
                         .with(csrf())
