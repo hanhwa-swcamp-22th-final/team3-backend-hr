@@ -17,6 +17,7 @@
 
     <sql id="noticeWhere">
         <where>
+            is_deleted = 0
             <if test="keyword != null and keyword != ''">
                 AND notice_title LIKE CONCAT('%', #{keyword}, '%')
             </if>
@@ -60,6 +61,7 @@
             important_end_at AS importantEndAt
         FROM notice
         WHERE notice_id = #{noticeId}
+          AND is_deleted = 0
     </select>
 
     <select id="findPinned"
@@ -73,6 +75,7 @@
         FROM notice
         WHERE is_important = 1
           AND notice_status = 'POSTING'
+          AND is_deleted = 0
           AND (important_end_at IS NULL OR important_end_at > NOW())
         ORDER BY created_at DESC
         LIMIT 1

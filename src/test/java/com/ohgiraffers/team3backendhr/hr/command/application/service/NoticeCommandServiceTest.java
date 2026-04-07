@@ -7,10 +7,7 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeS
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTarget;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTargetRole;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeTargetRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,9 +31,6 @@ class NoticeCommandServiceTest {
 
     @Mock
     private NoticeRepository noticeRepository;
-
-    @Mock
-    private NoticeTargetRepository noticeTargetRepository;
 
     @Mock
     private IdGenerator idGenerator;
@@ -149,27 +143,48 @@ class NoticeCommandServiceTest {
     class DraftNotice {
 
         @Test
-        @DisplayName("임시 저장 공지가 TEMPORARY 상태로 저장된다")
-        void draftNotice_savesWithTemporaryStatus() {
+        @DisplayName("신규 임시 저장 — TEMPORARY 상태로 저장되고 noticeId가 반환된다")
+        void draftNotice_savesWithTemporaryStatusAndReturnsId() {
             // given
-            NoticeDraftRequest request = new NoticeDraftRequest(null, null, false, null);
+            NoticeDraftRequest request = new NoticeDraftRequest(null, null, null, false, null);
             given(idGenerator.generate()).willReturn(1000L);
             given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
 
             // when
-            noticeCommandService.draftNotice(request, 99L);
+            Long returnedId = noticeCommandService.draftNotice(request, 99L);
 
             // then
             ArgumentCaptor<Notice> captor = ArgumentCaptor.forClass(Notice.class);
             verify(noticeRepository).save(captor.capture());
             assertThat(captor.getValue().getNoticeStatus()).isEqualTo(NoticeStatus.TEMPORARY);
+            assertThat(returnedId).isEqualTo(1000L);
+        }
+
+        @Test
+        @DisplayName("noticeId 있으면 기존 임시 저장 공지를 업데이트하고 noticeId를 반환한다")
+        void draftNotice_withNoticeId_updatesExistingDraft() {
+            // given
+            Notice existing = Notice.builder()
+                    .noticeId(1000L).employeeId(99L)
+                    .noticeStatus(NoticeStatus.TEMPORARY)
+                    .noticeTitle("기존 제목").noticeContent("기존 내용")
+                    .build();
+            NoticeDraftRequest request = new NoticeDraftRequest(1000L, "수정 제목", "수정 내용", false, null);
+            given(noticeRepository.findById(1000L)).willReturn(Optional.of(existing));
+
+            // when
+            Long returnedId = noticeCommandService.draftNotice(request, 99L);
+
+            // then
+            assertThat(existing.getNoticeTitle()).isEqualTo("수정 제목");
+            assertThat(returnedId).isEqualTo(1000L);
         }
 
         @Test
         @DisplayName("important=false 이면 isImportant 값이 0으로 저장된다")
         void draftNotice_notImportant_savesIsImportantZero() {
             // given
-            NoticeDraftRequest request = new NoticeDraftRequest("제목", "내용", false, null);
+            NoticeDraftRequest request = new NoticeDraftRequest(null, "제목", "내용", false, null);
             given(idGenerator.generate()).willReturn(1000L);
             given(noticeRepository.save(any(Notice.class))).willAnswer(inv -> inv.getArgument(0));
 
@@ -291,8 +306,8 @@ class NoticeCommandServiceTest {
     class DeleteNotice {
 
         @Test
-        @DisplayName("공지와 대상 역할이 모두 삭제된다")
-        void deleteNotice_deletesNoticeAndTargets() {
+        @DisplayName("Soft Delete — is_deleted = 1, deleted_at 설정된다")
+        void deleteNotice_softDeletes() {
             // given
             Notice existing = Notice.builder()
                     .noticeId(1000L)
@@ -301,20 +316,14 @@ class NoticeCommandServiceTest {
                     .noticeTitle("제목")
                     .noticeContent("내용")
                     .build();
-
-            List<NoticeTarget> targets = List.of(
-                    NoticeTarget.builder().noticeTargetId(2000L).noticeId(1000L).targetRole(NoticeTargetRole.WORKER).build()
-            );
-
             given(noticeRepository.findById(1000L)).willReturn(Optional.of(existing));
-            given(noticeTargetRepository.findByNoticeId(1000L)).willReturn(targets);
 
             // when
             noticeCommandService.deleteNotice(1000L);
 
             // then
-            verify(noticeTargetRepository).deleteAll(targets);
-            verify(noticeRepository).delete(existing);
+            assertThat(existing.getIsDeleted()).isEqualTo(1);
+            assertThat(existing.getDeletedAt()).isNotNull();
         }
 
         @Test

@@ -41,14 +41,14 @@ public class NoticeController {
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
-    /* 임시 저장 */
+    /* 임시 저장 — 생성된 noticeId 반환 (재저장 시 프론트에서 noticeId 포함하여 재요청) */
     @PostMapping("/draft")
     @PreAuthorize("hasAuthority('ROLE_HRM')")
-    public ResponseEntity<ApiResponse<Void>> draftNotice(
+    public ResponseEntity<ApiResponse<Long>> draftNotice(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody NoticeDraftRequest request) {
-        noticeCommandService.draftNotice(request, userDetails.getEmployeeId());
-        return ResponseEntity.status(201).body(ApiResponse.success(null));
+        Long noticeId = noticeCommandService.draftNotice(request, userDetails.getEmployeeId());
+        return ResponseEntity.status(201).body(ApiResponse.success(noticeId));
     }
 
     /* 수정 */

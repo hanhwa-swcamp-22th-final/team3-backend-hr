@@ -1,6 +1,10 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +43,54 @@ public class AdminRestClient implements AdminClient {
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<List<WorkerResponse>>() {}
+        ).getBody();
+    }
+
+    @Override
+    public EmployeeProfileResponse getWorkerProfile(Long employeeId) {
+        return restTemplate.getForObject(
+                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/profile",
+                EmployeeProfileResponse.class
+        );
+    }
+
+    @Override
+    public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
+        return restTemplate.exchange(
+                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/skills",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<EmployeeSkillResponse>>() {}
+        ).getBody();
+    }
+
+    @Override
+    public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
+        return restTemplate.exchange(
+                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-milestones",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<TierMilestoneResponse>>() {}
+        ).getBody();
+    }
+
+    @Override
+    public List<TierChartPointResponse> getTierChart(Long employeeId) {
+        return restTemplate.exchange(
+                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-chart",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<TierChartPointResponse>>() {}
+        ).getBody();
+    }
+
+    @Override
+    public List<Long> getTeamMemberIds(Long leaderId) {
+        return restTemplate.exchange(
+                adminBaseUrl + "/api/v1/admin/employees/" + leaderId + "/team-members",
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Long>>() {}
         ).getBody();
     }
 

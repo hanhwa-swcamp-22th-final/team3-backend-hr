@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserD
 import com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.MissionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.PerformancePointQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
 import com.ohgiraffers.team3backendhr.jwt.RestAuthenticationEntryPoint;
@@ -43,6 +44,9 @@ class WorkerQueryControllerTest {
 
     @MockitoBean
     private MissionQueryService missionQueryService;
+
+    @MockitoBean
+    private WorkerProfileQueryService workerProfileQueryService;
 
     @MockitoBean
     private PerformancePointQueryService performancePointQueryService;

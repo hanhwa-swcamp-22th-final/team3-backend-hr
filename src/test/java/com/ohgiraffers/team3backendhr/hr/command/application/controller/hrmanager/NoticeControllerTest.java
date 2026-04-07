@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -118,9 +119,10 @@ class NoticeControllerTest {
     }
 
     @Test
-    @DisplayName("공지 임시 저장 성공 — 201 Created")
+    @DisplayName("공지 임시 저장 성공 — 201 Created, noticeId 반환")
     void draftNotice_success() throws Exception {
-        NoticeDraftRequest request = new NoticeDraftRequest(null, null, false, null);
+        NoticeDraftRequest request = new NoticeDraftRequest(null, null, null, false, null);
+        given(noticeCommandService.draftNotice(any(NoticeDraftRequest.class), eq(99L))).willReturn(1000L);
 
         mockMvc.perform(post("/api/v1/hr/notices/draft")
                         .with(csrf())
@@ -128,7 +130,8 @@ class NoticeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(1000));
 
         verify(noticeCommandService).draftNotice(any(NoticeDraftRequest.class), eq(99L));
     }

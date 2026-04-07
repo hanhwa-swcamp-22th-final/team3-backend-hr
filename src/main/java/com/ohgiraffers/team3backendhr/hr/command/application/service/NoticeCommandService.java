@@ -7,15 +7,12 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeS
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTarget;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeTargetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +20,6 @@ import java.util.List;
 public class NoticeCommandService {
 
     private final NoticeRepository noticeRepository;
-    private final NoticeTargetRepository noticeTargetRepository;
     private final IdGenerator idGenerator;
 
     /* 즉시 게시 — status: POSTING */
@@ -57,13 +53,25 @@ public class NoticeCommandService {
         );
     }
 
-    /* 임시 저장 — status: TEMPORARY, 제목·내용 선택 */
-    public void draftNotice(NoticeDraftRequest request, Long employeeId) {
-        saveNotice(
+    /* 임시 저장 — noticeId 있으면 기존 TEMPORARY 공지 재저장, 없으면 신규 생성.
+     * 생성된(또는 기존) noticeId 반환 — 프론트에서 재저장 시 사용 */
+    public Long draftNotice(NoticeDraftRequest request, Long employeeId) {
+        if (request.getNoticeId() != null) {
+            Notice notice = noticeRepository.findById(request.getNoticeId())
+                    .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+            notice.updateDraft(
+                    request.getNoticeTitle(),
+                    request.getNoticeContent(),
+                    request.isImportant(),
+                    request.getImportantEndAt()
+            );
+            return notice.getNoticeId();
+        }
+        return saveNotice(
                 NoticeStatus.TEMPORARY,
                 employeeId,
-                request.getNoticeTitle(),
-                request.getNoticeContent(),
+                request.getNoticeTitle() != null ? request.getNoticeTitle() : "",
+                request.getNoticeContent() != null ? request.getNoticeContent() : "",
                 request.isImportant(),
                 null,
                 request.getImportantEndAt()
@@ -73,6 +81,10 @@ public class NoticeCommandService {
     public void updateNotice(Long noticeId, NoticeUpdateRequest request) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+        if (request.getNoticeStatus() == NoticeStatus.RESERVATION
+                && request.getPublishStartAt() == null) {
+            throw new IllegalArgumentException("예약 게시 시각은 필수입니다.");
+        }
         notice.update(
                 request.getNoticeTitle(),
                 request.getNoticeContent(),
@@ -92,19 +104,19 @@ public class NoticeCommandService {
         }
     }
 
+    /* Soft Delete — is_deleted = 1, deleted_at = now() */
     public void deleteNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
-        List<NoticeTarget> targets = noticeTargetRepository.findByNoticeId(noticeId);
-        noticeTargetRepository.deleteAll(targets);
-        noticeRepository.delete(notice);
+        notice.softDelete();
     }
 
-    private void saveNotice(NoticeStatus status, Long employeeId,
-                             String title, String content, boolean isImportant,
-                             LocalDateTime publishStartAt, LocalDateTime importantEndAt) {
+    private Long saveNotice(NoticeStatus status, Long employeeId,
+                            String title, String content, boolean isImportant,
+                            LocalDateTime publishStartAt, LocalDateTime importantEndAt) {
+        Long newId = idGenerator.generate();
         Notice notice = Notice.builder()
-                .noticeId(idGenerator.generate())
+                .noticeId(newId)
                 .employeeId(employeeId)
                 .noticeStatus(status)
                 .isImportant(isImportant ? 1 : 0)
@@ -114,5 +126,6 @@ public class NoticeCommandService {
                 .importantEndAt(importantEndAt)
                 .build();
         noticeRepository.save(notice);
+        return newId;
     }
 }
