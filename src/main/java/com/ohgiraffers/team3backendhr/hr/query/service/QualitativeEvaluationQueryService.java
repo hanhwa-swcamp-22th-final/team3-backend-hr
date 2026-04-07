@@ -1,9 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetItem;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.DlEvaluationTargetResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetItem;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.TlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

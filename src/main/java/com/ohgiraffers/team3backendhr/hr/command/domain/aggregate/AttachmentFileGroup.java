@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class AttachmentFileGroup {
 
@@ -23,7 +23,7 @@ public class AttachmentFileGroup {
     @Column(name = "file_group_id")
     private Long fileGroupId;
 
-    @Column(name = "reference_id", nullable = false)
+    @Column(name = "reference_id")
     private Long referenceId;
 
     @Enumerated(EnumType.STRING)
@@ -45,4 +45,8 @@ public class AttachmentFileGroup {
     @LastModifiedBy
     @Column(name = "updated_by")
     private Long updatedBy;
+
+    public void assignReference(Long referenceId) {
+        this.referenceId = referenceId;
+    }
 }

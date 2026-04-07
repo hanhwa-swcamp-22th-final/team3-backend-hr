@@ -2,8 +2,8 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.QualitativeEvaluationConfirmRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationService;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationConfirmRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(HrmEvaluationController.class)
+@WebMvcTest(HrmEvaluationCommandController.class)
 class HrmEvaluationControllerTest {
 
     @Autowired
@@ -36,7 +36,7 @@ class HrmEvaluationControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private QualitativeEvaluationService service;
+    private QualitativeEvaluationCommandService service;
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(400L, "HRM001", "password",

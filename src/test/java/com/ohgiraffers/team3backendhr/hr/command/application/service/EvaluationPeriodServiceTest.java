@@ -5,8 +5,8 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStat
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,13 +29,13 @@ class EvaluationPeriodServiceTest {
     private EvaluationPeriodRepository repository;
 
     @Mock
-    private QualitativeEvaluationService qualitativeEvaluationService;
+    private QualitativeEvaluationCommandService qualitativeEvaluationService;
 
     @Mock
     private IdGenerator idGenerator;
 
     @InjectMocks
-    private EvaluationPeriodService service;
+    private EvaluationPeriodCommandService service;
 
     private EvaluationPeriod buildPeriod(EvalPeriodStatus status) {
         return EvaluationPeriod.builder()

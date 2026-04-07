@@ -1,9 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodCreateRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.EvaluationPeriodUpdateRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodService;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(EvaluationPeriodController.class)
+@WebMvcTest(EvaluationPeriodCommandController.class)
 class EvaluationPeriodControllerTest {
 
     @Autowired
@@ -34,7 +34,7 @@ class EvaluationPeriodControllerTest {
     private ObjectMapper objectMapper;
 
     @MockitoBean
-    private EvaluationPeriodService service;
+    private EvaluationPeriodCommandService service;
 
     @Test
     @DisplayName("평가 기간을 생성한다")
