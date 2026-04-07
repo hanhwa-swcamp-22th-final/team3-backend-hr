@@ -33,13 +33,14 @@ public class DepartmentLeaderEvaluationQueryController {
                 service.getDlTargets(userDetails.getEmployeeId(), periodId)));
     }
 
-    /* DL — 특정 사원의 1차 평가 항목 + AI 추천 점수 조회 */
+    /* DL — 특정 사원의 1차 평가 항목 + AI 추천 점수 조회 (본인 부서 직원만) */
     @GetMapping("/{employeeId}")
     @PreAuthorize("hasAuthority('DL')")
     public ResponseEntity<ApiResponse<DlEvaluationDetailResponse>> getEvaluationDetail(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @PathVariable Long employeeId,
             @RequestParam(required = false) Long periodId) {
         return ResponseEntity.ok(ApiResponse.success(
-                service.getDlEvaluationDetail(employeeId, periodId)));
+                service.getDlEvaluationDetail(userDetails.getEmployeeId(), employeeId, periodId)));
     }
 }

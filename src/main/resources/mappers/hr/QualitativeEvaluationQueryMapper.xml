@@ -181,10 +181,12 @@
         FROM qualitative_evaluation qe
         JOIN employee e  ON e.employee_id = qe.evaluatee_id
         LEFT JOIN employee tl ON tl.employee_id = qe.evaluator_id
+        JOIN employee dl ON dl.employee_id = #{dlId}
         WHERE qe.evaluatee_id = #{evaluateeId}
           AND qe.evaluation_period_id = #{periodId}
           AND qe.evaluation_level = 1
           AND qe.status = 'SUBMITTED'
+          AND e.department_id = dl.department_id
     </select>
 
     <!-- HRM 평가 상세 조회 -->

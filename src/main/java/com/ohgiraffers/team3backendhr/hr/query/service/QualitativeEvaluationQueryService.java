@@ -46,12 +46,12 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* DL — 1차 평가 항목 + AI 추천 점수 조회 */
-    public DlEvaluationDetailResponse getDlEvaluationDetail(Long evaluateeId, Long periodId) {
+    /* DL — 1차 평가 항목 + AI 추천 점수 조회 (본인 부서 직원만) */
+    public DlEvaluationDetailResponse getDlEvaluationDetail(Long dlId, Long evaluateeId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
-        DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(evaluateeId, resolvedPeriodId);
+        DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(dlId, evaluateeId, resolvedPeriodId);
         if (detail == null) {
-            throw new IllegalArgumentException("평가 정보를 찾을 수 없습니다.");
+            throw new IllegalArgumentException("평가 정보를 찾을 수 없거나 접근 권한이 없습니다.");
         }
         return detail;
     }

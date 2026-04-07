@@ -216,20 +216,32 @@ class QualitativeEvaluationQueryServiceTest {
     /* ── getDlEvaluationDetail (DL) ───────────────────────────────────── */
 
     @Test
-    @DisplayName("DL 1차 평가 항목 조회 — 정상 반환")
+    @DisplayName("DL 1차 평가 항목 조회 — 본인 부서 직원이면 정상 반환")
     void getDlEvaluationDetail_success() {
         // given
         com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse detail =
                 new com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse();
         detail.setEvaluateeId(101L);
-        given(mapper.findDlEvaluationDetail(101L, 5L)).willReturn(detail);
+        given(mapper.findDlEvaluationDetail(200L, 101L, 5L)).willReturn(detail);
 
         // when
         com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse result =
-                service.getDlEvaluationDetail(101L, 5L);
+                service.getDlEvaluationDetail(200L, 101L, 5L);
 
         // then
         assertThat(result.getEvaluateeId()).isEqualTo(101L);
+    }
+
+    @Test
+    @DisplayName("DL 1차 평가 항목 조회 — 타 부서 직원이면 예외")
+    void getDlEvaluationDetail_otherDept_throwsException() {
+        // given
+        given(mapper.findDlEvaluationDetail(200L, 999L, 5L)).willReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> service.getDlEvaluationDetail(200L, 999L, 5L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("접근 권한이 없습니다");
     }
 
     /* ── getEvaluationGradeSummary (HRM) ─────────────────────────────── */

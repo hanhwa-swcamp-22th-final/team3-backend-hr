@@ -61,8 +61,9 @@ public interface QualitativeEvaluationQueryMapper {
             @Param("evalId") Long evalId,
             @Param("tlId") Long tlId);
 
-    /* DL — 1차 평가 항목 + AI 추천 점수 조회 */
+    /* DL — 1차 평가 항목 + AI 추천 점수 조회 (본인 부서 직원만) */
     DlEvaluationDetailResponse findDlEvaluationDetail(
+            @Param("dlId") Long dlId,
             @Param("evaluateeId") Long evaluateeId,
             @Param("periodId") Long periodId);
 
