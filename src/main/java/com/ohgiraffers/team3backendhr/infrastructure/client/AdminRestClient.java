@@ -1,27 +1,28 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
+import java.net.URI;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.util.List;
-
 /**
  * Admin 서비스 HTTP 클라이언트.
- * application.yml 에 feign.admin.url 이 설정된 경우 활성화된다.
+ * application.yml 의 feign.admin.url 이 설정된 경우 생성된다.
  */
 @Slf4j
 @Component("adminRestClient")
@@ -38,12 +39,15 @@ public class AdminRestClient implements AdminClient {
 
     @Override
     public List<WorkerResponse> getWorkers() {
-        return restTemplate.exchange(
-                adminBaseUrl + "/api/v1/admin/employees/workers",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<WorkerResponse>>() {}
-        ).getBody();
+        ResponseEntity<AdminApiResponse<List<WorkerResponse>>> response = restTemplate.exchange(
+            adminBaseUrl + "/api/v1/organization/employees",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {}
+        );
+
+        AdminApiResponse<List<WorkerResponse>> body = response.getBody();
+        return body != null ? body.getData() : List.of();
     }
 
     @Override
@@ -101,6 +105,6 @@ public class AdminRestClient implements AdminClient {
                 .patch(URI.create(url))
                 .body(new TierUpdateRequest(newTier));
         restTemplate.exchange(request, Void.class);
-        log.info("[AdminRestClient] 티어 업데이트 완료 — employeeId={}, newTier={}", employeeId, newTier);
+        log.info("[AdminRestClient] 티어 업데이트 완료 - employeeId={}, newTier={}", employeeId, newTier);
     }
 }

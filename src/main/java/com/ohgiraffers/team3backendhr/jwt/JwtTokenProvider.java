@@ -1,6 +1,11 @@
 package com.ohgiraffers.team3backendhr.jwt;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.security.SecurityException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -10,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 
-@Component // bean 등록
+@Component
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -24,7 +29,6 @@ public class JwtTokenProvider {
         secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    /* JWT Token 유효성 검사 메서드 */
     public boolean validateToken(String token) {
         try {
             Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
@@ -40,14 +44,18 @@ public class JwtTokenProvider {
         }
     }
 
-    // JWT 토큰 생성 -> Header, Payload(Claims), Signature
     public String getEmployeeCodeFromJWT(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
+        Claims claims = Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
 
+        String employeeCode = claims.get("employeeCode", String.class);
+        if (employeeCode != null && !employeeCode.isBlank()) {
+            return employeeCode;
+        }
+
+        return claims.getSubject();
+    }
 }

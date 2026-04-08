@@ -37,6 +37,7 @@ public class QualitativeKafkaConfig {
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(config);
     }
 
@@ -54,7 +55,11 @@ public class QualitativeKafkaConfig {
 
         JsonDeserializer<QualitativeEvaluationAnalyzedEvent> deserializer =
             new JsonDeserializer<>(QualitativeEvaluationAnalyzedEvent.class);
-        deserializer.addTrustedPackages("com.ohgiraffers.team3backendhr.infrastructure.kafka.dto");
+        deserializer.ignoreTypeHeaders();
+        deserializer.addTrustedPackages(
+            "com.ohgiraffers.team3backendhr.infrastructure.kafka.dto",
+            "com.ohgiraffers.team3backendbatch.infrastructure.kafka.dto"
+        );
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
     }

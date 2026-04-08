@@ -1,0 +1,185 @@
+﻿### HR Qualitative Evaluation API Test
+# HR service itself has no login controller, so tokens are issued by admin auth service.
+# Replace the login credentials and target IDs below to match your local seed data.
+# Recommended flow:
+# 1) Login as HRM / TL / DL
+# 2) HRM creates period
+# 3) TL draft -> TL submit
+# 4) DL detail -> DL draft -> DL submit
+# 5) HRM list/detail -> HRM confirm
+# 6) Check Kafka UI topics and batch logs
+
+@adminBaseUrl = http://localhost:8080
+@hrBaseUrl = http://localhost:8081
+@batchBaseUrl = http://localhost:8084
+
+@hrmEmail = HRmanager1@company.com
+@hrmPassword = password123!
+@tlEmail = teamleader1@company.com
+@tlPassword = password123!
+@dlEmail = departmentleader1@company.com
+@dlPassword = password123!
+@workerEmail = worker1@company.com
+@workerPassword = password123!
+
+# Replace these IDs after checking your local data.
+@employeeId = 1775612047560224
+@periodId = 1775625914826156
+@tlEvalId = 1775625915672993
+@dlEvalEmployeeId = 1775612047560224
+@hrmEvalId = 1775625915672995
+
+### HRM login via admin auth
+POST {{adminBaseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "employeeEmail": "{{hrmEmail}}",
+  "password": "{{hrmPassword}}"
+}
+
+> {%
+    client.global.set("hrmAccessToken", response.body.data.accessToken);
+    client.global.set("hrmRefreshToken", response.body.data.refreshToken);
+%}
+
+### TL login via admin auth
+POST {{adminBaseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "employeeEmail": "{{tlEmail}}",
+  "password": "{{tlPassword}}"
+}
+
+> {%
+    client.global.set("tlAccessToken", response.body.data.accessToken);
+    client.global.set("tlRefreshToken", response.body.data.refreshToken);
+%}
+
+### DL login via admin auth
+POST {{adminBaseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "employeeEmail": "{{dlEmail}}",
+  "password": "{{dlPassword}}"
+}
+
+> {%
+    client.global.set("dlAccessToken", response.body.data.accessToken);
+    client.global.set("dlRefreshToken", response.body.data.refreshToken);
+%}
+
+### HRM create evaluation period
+POST {{hrBaseUrl}}/api/v1/hr/evaluation-periods
+Content-Type: application/json
+Authorization: Bearer {{hrmAccessToken}}
+
+{
+  "algorithmVersionId": 1775615512678526,
+  "evalYear": 2026,
+  "evalSequence": 4,
+  "evalType": "QUALITATIVE",
+  "startDate": "2026-04-01",
+  "endDate": "2026-04-30"
+}
+
+### HRM list evaluation periods
+GET {{hrBaseUrl}}/api/v1/hr/evaluation-periods
+Authorization: Bearer {{hrmAccessToken}}
+
+### TL get current targets
+GET {{hrBaseUrl}}/api/v1/hr/team-leader/evaluations/targets?periodId={{periodId}}
+Authorization: Bearer {{tlAccessToken}}
+
+### TL save draft
+POST {{hrBaseUrl}}/api/v1/hr/team-leader/evaluations/{{employeeId}}/draft
+Content-Type: application/json
+Authorization: Bearer {{tlAccessToken}}
+
+{
+  "evaluationPeriodId": {{periodId}},
+  "evalItems": "attendance, safety, teamwork",
+  "evalComment": "작업 지시 이해가 빠르고 협업 태도가 안정적입니다. 안전 수칙 준수와 생산 라인 대응에서도 일관된 모습을 보였습니다.",
+  "inputMethod": "TEXT"
+}
+
+### TL submit
+# This should publish hr.qualitative-evaluation.submitted to Kafka.
+POST {{hrBaseUrl}}/api/v1/hr/team-leader/evaluations/{{employeeId}}/submit
+Content-Type: application/json
+Authorization: Bearer {{tlAccessToken}}
+
+{
+  "evaluationPeriodId": {{periodId}},
+  "evalItems": "[\"attendance\",\"safety\",\"teamwork\"]",
+  "evalComment": "작업 지시 이해가 빠르고 협업 태도가 안정적입니다. 안전 수칙 준수와 생산 라인 대응에서도 일관된 모습을 보였습니다.",
+  "inputMethod": "TEXT"
+}
+
+### TL get submitted evaluation detail
+GET {{hrBaseUrl}}/api/v1/hr/team-leader/evaluations/{{tlEvalId}}
+Authorization: Bearer {{tlAccessToken}}
+
+### DL get current targets
+GET {{hrBaseUrl}}/api/v1/hr/department-leader/evaluations/targets?periodId={{periodId}}
+Authorization: Bearer {{dlAccessToken}}
+
+### DL get employee detail
+GET {{hrBaseUrl}}/api/v1/hr/department-leader/evaluations/{{dlEvalEmployeeId}}?periodId={{periodId}}
+Authorization: Bearer {{dlAccessToken}}
+
+### DL save draft
+POST {{hrBaseUrl}}/api/v1/hr/department-leader/evaluations/{{employeeId}}/draft
+Content-Type: application/json
+Authorization: Bearer {{dlAccessToken}}
+
+{
+  "evaluationPeriodId": {{periodId}},
+  "evalItems": "leadership, quality-review",
+  "evalComment": "1차 평가 내용을 검토했고 전반적인 업무 집중도와 품질 대응이 우수했습니다. 반복 불량 관리 측면도 안정적입니다.",
+  "inputMethod": "TEXT"
+}
+
+### DL submit
+# Depending on service logic, this becomes level 2 qualitative evaluation.
+POST {{hrBaseUrl}}/api/v1/hr/department-leader/evaluations/{{employeeId}}/submit
+Content-Type: application/json
+Authorization: Bearer {{dlAccessToken}}
+
+{
+  "evaluationPeriodId": {{periodId}},
+  "evalItems": "leadership, quality-review",
+  "evalComment": "1차 평가 내용을 검토했고 전반적인 업무 집중도와 품질 대응이 우수했습니다. 반복 불량 관리 측면도 안정적입니다.",
+  "inputMethod": "TEXT"
+}
+
+### HRM get qualitative evaluation list
+GET {{hrBaseUrl}}/api/v1/hr/evaluations?periodId={{periodId}}&page=1&size=10
+Authorization: Bearer {{hrmAccessToken}}
+
+### HRM get qualitative evaluation detail
+GET {{hrBaseUrl}}/api/v1/hr/evaluations/{{hrmEvalId}}
+Authorization: Bearer {{hrmAccessToken}}
+
+### HRM confirm final evaluation
+POST {{hrBaseUrl}}/api/v1/hr/hr-manager/evaluations/{{employeeId}}/confirm
+Content-Type: application/json
+Authorization: Bearer {{hrmAccessToken}}
+
+{
+  "evaluationPeriodId": {{periodId}},
+  "evalComment": "1차와 2차 평가 및 배치 분석 결과를 검토한 결과 최종 확정에 무리가 없다고 판단합니다.",
+  "inputMethod": "TEXT"
+}
+
+### HRM summary by grade
+GET {{hrBaseUrl}}/api/v1/hr/evaluations/summary?periodId={{periodId}}
+Authorization: Bearer {{hrmAccessToken}}
+
+### Batch jobs overview (optional)
+GET {{batchBaseUrl}}/api/v1/batch/jobs
+
+### Batch execution logs (optional)
+GET {{batchBaseUrl}}/api/v1/batch/system-logs

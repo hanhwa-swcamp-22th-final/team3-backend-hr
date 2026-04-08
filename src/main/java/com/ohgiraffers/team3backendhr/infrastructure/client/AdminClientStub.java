@@ -6,17 +6,16 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillRes
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
+import java.math.BigDecimal;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.List;
-
 /**
  * AdminClient 임시 Mock 구현체.
  * Admin 서비스 API 확정 전까지 하드코딩 데이터를 반환한다.
- * feign.admin.url 프로퍼티 설정 시 AdminRestClient 로 자동 교체됨.
+ * feign.admin.url 프로퍼티 설정 시 AdminRestClient 로 자동 교체된다.
  */
 @Slf4j
 @Component
@@ -49,7 +48,7 @@ public class AdminClientStub implements AdminClient {
     public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
         return List.of(
                 EmployeeSkillResponse.builder().skillId(1L).skillName("용접").skillLevel("ADVANCED").build(),
-                EmployeeSkillResponse.builder().skillId(2L).skillName("절삭가공").skillLevel("INTERMEDIATE").build(),
+                EmployeeSkillResponse.builder().skillId(2L).skillName("원인분석").skillLevel("INTERMEDIATE").build(),
                 EmployeeSkillResponse.builder().skillId(3L).skillName("품질검사").skillLevel("BEGINNER").build()
         );
     }
@@ -60,7 +59,7 @@ public class AdminClientStub implements AdminClient {
                 TierMilestoneResponse.builder().milestoneId(1L).description("정량 평가 80점 이상").requiredPoint(80).isAchieved(true).build(),
                 TierMilestoneResponse.builder().milestoneId(2L).description("정성 평가 75점 이상").requiredPoint(75).isAchieved(true).build(),
                 TierMilestoneResponse.builder().milestoneId(3L).description("종합 점수 700점 이상").requiredPoint(700).isAchieved(true).build(),
-                TierMilestoneResponse.builder().milestoneId(4L).description("이의신청 미제기").requiredPoint(0).isAchieved(false).build()
+                TierMilestoneResponse.builder().milestoneId(4L).description("이의요청 미제기").requiredPoint(0).isAchieved(false).build()
         );
     }
 
@@ -81,7 +80,7 @@ public class AdminClientStub implements AdminClient {
 
     @Override
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
-        log.warn("[AdminClientStub] updateEmployeeTier 호출 무시 — Admin 서비스 미연결 (employeeId={}, newTier={})",
+        log.warn("[AdminClientStub] updateEmployeeTier 호출 무시 - Admin 서비스 미연결(employeeId={}, newTier={})",
                 employeeId, newTier);
     }
 
