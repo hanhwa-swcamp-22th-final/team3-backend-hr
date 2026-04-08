@@ -69,7 +69,7 @@ class AppealIntegrationTest {
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         jdbcTemplate.update(
-                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score) VALUES (?,?,?,?,'CONFIRMED',80.0)",
+                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score, confirmed_at) VALUES (?,?,?,?,'CONFIRMED',80.0,NOW())",
                 EVAL_ID, WORKER_ID, PERIOD_ID, 3);
     }
 

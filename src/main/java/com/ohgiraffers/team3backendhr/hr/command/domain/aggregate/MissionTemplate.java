@@ -32,7 +32,7 @@ public class MissionTemplate {
     @Column(name = "mission_type", nullable = false)
     private MissionType missionType;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = UpgradeToTierConverter.class)
     @Column(name = "upgrade_to_tier", nullable = false)
     private UpgradeToTier upgradeToTier;
 
