@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.DashboardQueryMapper">
+
+    <!-- HR-001: HRM 전사 KPI 요약 -->
+    <select id="findHrmKpiSummary"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse">
+        SELECT
+            ROUND(AVG(qe.score), 1)                                                          AS avgScore,
+            COUNT(DISTINCT qe.evaluatee_id)                                                  AS totalEmployees,
+            ROUND(
+                SUM(CASE WHEN qe.status = 'CONFIRMED' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+                1)                                                                           AS evaluationRate,
+            SUM(CASE WHEN qe.status = 'NO_INPUT'   THEN 1 ELSE 0 END)                       AS unevaluatedCount,
+            SUM(CASE WHEN qe.grade = 'S'           THEN 1 ELSE 0 END)                       AS sTierCount,
+            SUM(CASE WHEN qe.grade = 'A'           THEN 1 ELSE 0 END)                       AS aTierCount,
+            SUM(CASE WHEN qe.grade = 'B'           THEN 1 ELSE 0 END)                       AS bTierCount,
+            SUM(CASE WHEN qe.grade = 'C'           THEN 1 ELSE 0 END)                       AS cTierCount
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.eval_year     = #{year}
+          AND ep.eval_sequence = #{quarter}
+          AND qe.evaluation_level = 3
+    </select>
+
+    <!-- HR-002: HRM 사원별 KPI 상세 목록 -->
+    <select id="findHrmKpiDetails"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem">
+        SELECT
+            qe.evaluatee_id     AS employeeId,
+            e.employee_name     AS employeeName,
+            e.employee_tier     AS employeeTier,
+            qe.score            AS qualitativeScore,
+            qe.grade,
+            qe.status           AS evalStatus
+        FROM qualitative_evaluation qe
+        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.eval_year     = #{year}
+          AND ep.eval_sequence = #{quarter}
+          AND qe.evaluation_level = 3
+        ORDER BY qe.score DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countHrmKpiDetails" resultType="long">
+        SELECT COUNT(*)
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.eval_year     = #{year}
+          AND ep.eval_sequence = #{quarter}
+          AND qe.evaluation_level = 3
+    </select>
+
+    <!-- HR-003: HRM KPI 추이 (연도별 분기) -->
+    <select id="findHrmKpiTrends"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem">
+        SELECT
+            ep.eval_year        AS year,
+            ep.eval_sequence    AS quarter,
+            ROUND(AVG(qe.score), 1)                                AS avgScore,
+            SUM(CASE WHEN qe.grade = 'S' THEN 1 ELSE 0 END)       AS sTierCount,
+            SUM(CASE WHEN qe.grade = 'A' THEN 1 ELSE 0 END)       AS aTierCount,
+            SUM(CASE WHEN qe.grade = 'B' THEN 1 ELSE 0 END)       AS bTierCount,
+            SUM(CASE WHEN qe.grade = 'C' THEN 1 ELSE 0 END)       AS cTierCount
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.eval_year = #{year}
+          AND qe.evaluation_level = 3
+        GROUP BY ep.eval_year, ep.eval_sequence
+        ORDER BY ep.eval_year, ep.eval_sequence
+    </select>
+
+    <!-- HR-005: TL 팀 지표 요약 (같은 부서 WORKER, level 1) -->
+    <select id="findTlDashboardSummary"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardSummaryResponse">
+        SELECT
+            ROUND(AVG(qe.score), 1)                                                          AS teamAvgScore,
+            ROUND(
+                SUM(CASE WHEN qe.status != 'NO_INPUT' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+                1)                                                                           AS evaluationRate,
+            SUM(CASE WHEN qe.status = 'CONFIRMED'  THEN 1 ELSE 0 END)                       AS completedCount,
+            SUM(CASE WHEN e.employee_tier = 'S'    THEN 1 ELSE 0 END)                       AS sTierCount,
+            SUM(CASE WHEN e.employee_tier = 'A'    THEN 1 ELSE 0 END)                       AS aTierCount,
+            SUM(CASE WHEN e.employee_tier = 'B'    THEN 1 ELSE 0 END)                       AS bTierCount,
+            SUM(CASE WHEN e.employee_tier = 'C'    THEN 1 ELSE 0 END)                       AS cTierCount
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee tl ON tl.employee_id = #{tlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 1
+          AND e.department_id = tl.department_id
+          AND e.employee_role = 'WORKER'
+    </select>
+
+    <!-- HR-006: TL 팀원별 지표 -->
+    <select id="findTlDashboardMembers"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardMemberItem">
+        SELECT
+            qe.evaluatee_id     AS employeeId,
+            e.employee_name     AS employeeName,
+            e.employee_code     AS employeeCode,
+            e.employee_tier     AS tier,
+            qe.score            AS qualitativeScore,
+            qe.grade,
+            qe.status           AS evalStatus
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee tl ON tl.employee_id = #{tlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 1
+          AND e.department_id = tl.department_id
+          AND e.employee_role = 'WORKER'
+        ORDER BY qe.score DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countTlDashboardMembers" resultType="long">
+        SELECT COUNT(*)
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee tl ON tl.employee_id = #{tlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 1
+          AND e.department_id = tl.department_id
+          AND e.employee_role = 'WORKER'
+    </select>
+
+    <!-- HR-007: DL 부서 지표 요약 (같은 부서 WORKER, level 2) -->
+    <select id="findDlDashboardSummary"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardSummaryResponse">
+        SELECT
+            ROUND(AVG(qe.score), 1)                                                          AS deptAvgScore,
+            ROUND(
+                SUM(CASE WHEN qe.status != 'NO_INPUT' THEN 1 ELSE 0 END) * 100.0 / COUNT(*),
+                1)                                                                           AS evaluationRate,
+            SUM(CASE WHEN qe.status = 'NO_INPUT'   THEN 1 ELSE 0 END)                       AS unevaluatedCount,
+            SUM(CASE WHEN e.employee_tier = 'S'    THEN 1 ELSE 0 END)                       AS sTierCount,
+            SUM(CASE WHEN e.employee_tier = 'A'    THEN 1 ELSE 0 END)                       AS aTierCount,
+            SUM(CASE WHEN e.employee_tier = 'B'    THEN 1 ELSE 0 END)                       AS bTierCount,
+            SUM(CASE WHEN e.employee_tier = 'C'    THEN 1 ELSE 0 END)                       AS cTierCount
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee dl ON dl.employee_id = #{dlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 2
+          AND e.department_id = dl.department_id
+          AND e.employee_role = 'WORKER'
+    </select>
+
+    <!-- HR-008: DL 팀별 현황 (같은 부서 TL 기준으로 팀 구분) -->
+    <select id="findDlDashboardTeams"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardTeamItem">
+        SELECT
+            tl_emp.employee_id                                                               AS tlId,
+            tl_emp.employee_name                                                             AS tlName,
+            COUNT(DISTINCT qe.evaluatee_id)                                                  AS memberCount,
+            ROUND(AVG(qe.score), 1)                                                          AS teamAvgScore,
+            CASE
+                WHEN SUM(CASE WHEN qe.status = 'NO_INPUT' THEN 1 ELSE 0 END) = 0
+                    THEN '평가완료'
+                ELSE '심사중'
+            END                                                                              AS evaluationStatus
+        FROM qualitative_evaluation qe
+        JOIN employee e    ON e.employee_id    = qe.evaluatee_id
+        JOIN employee dl   ON dl.employee_id   = #{dlId}
+        JOIN employee tl_emp ON tl_emp.department_id = e.department_id
+                            AND tl_emp.employee_role = 'TL'
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 1
+          AND e.department_id = dl.department_id
+          AND e.employee_role = 'WORKER'
+        GROUP BY tl_emp.employee_id, tl_emp.employee_name
+        ORDER BY teamAvgScore DESC
+    </select>
+
+    <!-- HR-009: DL 팀원 역량/성과 목록 -->
+    <select id="findDlDashboardMembers"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardMemberItem">
+        SELECT
+            qe.evaluatee_id     AS employeeId,
+            e.employee_name     AS employeeName,
+            e.employee_tier     AS employeeTier,
+            qe.score            AS qualitativeScore,
+            qe.grade,
+            qe.status           AS evalStatus
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee dl ON dl.employee_id = #{dlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 2
+          AND e.department_id = dl.department_id
+          AND e.employee_role = 'WORKER'
+        ORDER BY qe.score DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countDlDashboardMembers" resultType="long">
+        SELECT COUNT(*)
+        FROM qualitative_evaluation qe
+        JOIN employee e  ON e.employee_id  = qe.evaluatee_id
+        JOIN employee dl ON dl.employee_id = #{dlId}
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.status = 'IN_PROGRESS'
+          AND qe.evaluation_level = 2
+          AND e.department_id = dl.department_id
+          AND e.employee_role = 'WORKER'
+    </select>
+
+</mapper>

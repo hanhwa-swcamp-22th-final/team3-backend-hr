@@ -1,8 +1,15 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgEmployeeResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgTeamMembersResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgUnitTreeResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
@@ -102,5 +109,90 @@ public class AdminRestClient implements AdminClient {
                 .body(new TierUpdateRequest(newTier));
         restTemplate.exchange(request, Void.class);
         log.info("[AdminRestClient] 티어 업데이트 완료 — employeeId={}, newTier={}", employeeId, newTier);
+    }
+
+    @Override
+    public OrgUnitTreeResponse getOrgTree() {
+        return restTemplate.getForObject(
+                adminBaseUrl + "/api/v1/admin/org/units",
+                OrgUnitTreeResponse.class
+        );
+    }
+
+    @Override
+    public List<OrgEmployeeResponse> getEmployees(Long departmentId, Long teamId, String keyword, int page, int size) {
+        String url = adminBaseUrl + "/api/v1/admin/org/employees?page=" + page + "&size=" + size
+                + (departmentId != null ? "&departmentId=" + departmentId : "")
+                + (teamId != null ? "&teamId=" + teamId : "")
+                + (keyword != null ? "&keyword=" + keyword : "");
+        return restTemplate.exchange(url, HttpMethod.GET, null,
+                new ParameterizedTypeReference<List<OrgEmployeeResponse>>() {}).getBody();
+    }
+
+    @Override
+    public OrgTeamMembersResponse getTeamMembers(Long teamId) {
+        return restTemplate.getForObject(
+                adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
+                OrgTeamMembersResponse.class
+        );
+    }
+
+    @Override
+    public Long createDepartment(DepartmentCreateRequest request) {
+        return restTemplate.postForObject(
+                adminBaseUrl + "/api/v1/admin/org/departments",
+                request, Long.class
+        );
+    }
+
+    @Override
+    public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
+        restTemplate.put(adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId, request);
+        return departmentId;
+    }
+
+    @Override
+    public void deleteDepartment(Long departmentId) {
+        restTemplate.delete(adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId);
+    }
+
+    @Override
+    public Long createTeam(Long departmentId, TeamCreateRequest request) {
+        return restTemplate.postForObject(
+                adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId + "/teams",
+                request, Long.class
+        );
+    }
+
+    @Override
+    public Long updateTeam(Long teamId, TeamCreateRequest request) {
+        restTemplate.put(adminBaseUrl + "/api/v1/admin/org/teams/" + teamId, request);
+        return teamId;
+    }
+
+    @Override
+    public void deleteTeam(Long teamId) {
+        restTemplate.delete(adminBaseUrl + "/api/v1/admin/org/teams/" + teamId);
+    }
+
+    @Override
+    public DepartmentDetailResponse getDepartmentDetail(Long departmentId) {
+        return restTemplate.getForObject(
+                adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId,
+                DepartmentDetailResponse.class
+        );
+    }
+
+    @Override
+    public void addTeamMembers(Long teamId, TeamMemberAddRequest request) {
+        restTemplate.postForObject(
+                adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
+                request, Void.class
+        );
+    }
+
+    @Override
+    public void removeTeamMember(Long teamId, Long employeeId) {
+        restTemplate.delete(adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members/" + employeeId);
     }
 }

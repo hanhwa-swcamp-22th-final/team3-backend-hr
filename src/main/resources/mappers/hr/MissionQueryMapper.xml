@@ -21,13 +21,29 @@
         mp.completed_at         AS completedAt
     </sql>
 
+    <!-- 현재 티어 기준 수행 가능한 미션만 표시.
+         완료된 미션은 과거 티어 것도 계속 조회 가능 -->
+    <sql id="tierFilter">
+        AND (
+            mp.status = 'COMPLETED'
+            OR mt.upgrade_to_tier = CASE e.employee_tier
+                WHEN 'C' THEN 'B'
+                WHEN 'B' THEN 'A'
+                WHEN 'A' THEN 'S'
+                WHEN 'S' THEN 'S+'
+            END
+        )
+    </sql>
+
     <select id="findAllByEmployeeId"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse">
         SELECT
         <include refid="missionColumns"/>
         FROM mission_progress mp
                  JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
+                 JOIN employee e ON e.employee_id = mp.employee_id
         WHERE mp.employee_id = #{employeeId}
+        <include refid="tierFilter"/>
         <if test="status != null and status != ''">
             AND mp.status = #{status}
         </if>
@@ -41,10 +57,12 @@
         <include refid="missionColumns"/>
         FROM mission_progress mp
                  JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
+                 JOIN employee e ON e.employee_id = mp.employee_id
         WHERE mp.employee_id = #{employeeId}
           AND mt.is_active = true
+        <include refid="tierFilter"/>
         ORDER BY
-            FIELD(mt.upgrade_to_tier, 'B', 'A', 'S'),
+            FIELD(mt.upgrade_to_tier, 'B', 'A', 'S', 'S+'),
             mp.status DESC,
             mp.created_at DESC
     </select>
