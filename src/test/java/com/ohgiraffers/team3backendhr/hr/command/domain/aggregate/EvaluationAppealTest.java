@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.EvaluationAppeal;
@@ -43,7 +44,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.REVIEWING);
 
         assertThatThrownBy(() -> appeal.update(AppealType.OTHERS, "제목", "20자 이상의 수정 내용입니다."))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("접수 중인 이의신청만 수정할 수 있습니다.");
     }
 
@@ -53,7 +54,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
 
         assertThatThrownBy(() -> appeal.update(AppealType.OTHERS, "짧음", "20자 이상의 수정 내용입니다."))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("제목은 5자 이상 100자 이하여야 합니다.");
     }
 
@@ -63,7 +64,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
 
         assertThatThrownBy(() -> appeal.update(AppealType.OTHERS, "정상적인 제목", "짧은 내용"))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("내용은 20자 이상 2000자 이하여야 합니다.");
     }
 
@@ -87,7 +88,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.COMPLETED);
 
         assertThatThrownBy(() -> appeal.cancel())
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("완료된 이의신청은 취소할 수 없습니다.");
     }
 
@@ -110,7 +111,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.REVIEWING);
 
         assertThatThrownBy(() -> appeal.startReview(200L))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 검토 중인 이의신청입니다.");
     }
 
@@ -135,7 +136,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
 
         assertThatThrownBy(() -> appeal.approve(200L, ReviewResult.ACKNOWLEDGE))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("검토 중인 이의신청만 처리할 수 있습니다.");
     }
 
@@ -170,7 +171,7 @@ class EvaluationAppealTest {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
 
         assertThatThrownBy(() -> appeal.hold())
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("검토 중인 이의신청만 처리할 수 있습니다.");
     }
 }

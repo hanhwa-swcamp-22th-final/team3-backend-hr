@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodSummaryResponse;
@@ -31,8 +33,7 @@ public class EvaluationPeriodQueryService {
     public EvaluationPeriodDeadlineResponse getDeadline() {
         EvaluationPeriodDeadlineResponse response = mapper.findCurrentDeadline();
         if (response == null) {
-            // IN_PROGRESS 기간이 없으면 TL·DL이 평가할 수 없는 상태
-            throw new IllegalStateException("현재 진행 중인 평가 기간이 없습니다.");
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }
         return response;
     }

@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -101,7 +103,7 @@ class HrmEvaluationControllerTest {
         QualitativeEvaluationConfirmRequest request = new QualitativeEvaluationConfirmRequest(
                 5L, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
-        doThrow(new IllegalStateException("2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.EVALUATION_LEVEL2_NOT_SUBMITTED))
                 .when(service).confirmFinal(any(), any(), any());
 
         // when & then

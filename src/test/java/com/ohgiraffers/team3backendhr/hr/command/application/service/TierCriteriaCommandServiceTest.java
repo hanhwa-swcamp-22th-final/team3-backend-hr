@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
@@ -57,7 +59,7 @@ class TierCriteriaCommandServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.saveCriteria(List.of(req)))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("100");
     }
 }

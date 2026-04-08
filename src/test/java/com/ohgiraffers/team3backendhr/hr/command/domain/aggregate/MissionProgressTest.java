@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionProgress;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionStatus;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +63,7 @@ class MissionProgressTest {
         assertThatThrownBy(() ->
                 progress.updateProgress(BigDecimal.valueOf(11), BigDecimal.valueOf(10))
         )
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 완료된 미션입니다.");
     }
 }

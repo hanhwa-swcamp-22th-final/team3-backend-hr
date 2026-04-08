@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
 import org.junit.jupiter.api.DisplayName;
@@ -49,8 +50,8 @@ class PromotionHistoryTest {
         history.confirm();
 
         assertThatThrownBy(history::confirm)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("심사 중인 승급 후보만 확정할 수 있습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
     }
 
     @Test
@@ -60,7 +61,7 @@ class PromotionHistoryTest {
         history.suspend();
 
         assertThatThrownBy(history::suspend)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("심사 중인 승급 후보만 보류할 수 있습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
     }
 }

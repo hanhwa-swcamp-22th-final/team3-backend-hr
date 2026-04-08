@@ -12,6 +12,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "qualitative_evaluation")
 @EntityListeners(AuditingEntityListener.class) // createdAt, createdBy 등 Auditing 자동 처리
@@ -81,10 +84,10 @@ public class QualitativeEvaluation {
     /* 임시저장 — NO_INPUT or DRAFT → DRAFT (level 1·2 공용, evaluationLevel은 생성 시 고정) */
     public void saveDraft(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("이미 제출된 평가는 수정할 수 없습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
         }
         if (this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("이미 확정된 평가는 수정할 수 없습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
         this.evaluatorId = evaluatorId;  // 로그인한 평가자 ID 세팅
         this.evalItems = evalItems;
@@ -97,10 +100,10 @@ public class QualitativeEvaluation {
     /* score·grade는 batch NLP 분석 후 applyAnalysisResult()로 세팅 */
     public void submit(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("이미 제출된 평가입니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
         }
         if (evalComment == null || evalComment.length() < 20) {
-            throw new IllegalArgumentException("평가 코멘트는 최소 20자 이상이어야 합니다.");
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
         this.evalItems = evalItems;
@@ -112,7 +115,7 @@ public class QualitativeEvaluation {
     /* batch NLP 분석 결과 반영 — SUBMITTED 상태에서만 허용 */
     public void applyAnalysisResult(Double score, Grade grade) {
         if (this.status != QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("제출된 평가에만 분석 결과를 반영할 수 있습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_SUBMITTED);
         }
         this.score = score;
         this.grade = grade;
@@ -122,10 +125,10 @@ public class QualitativeEvaluation {
     /* 2차 완료 여부 체크는 서비스에서 수행 */
     public void confirmFinal(Long evaluatorId, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("이미 확정된 평가입니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
         if (evalComment == null || evalComment.length() < 20) {
-            throw new IllegalArgumentException("평가 코멘트는 최소 20자 이상이어야 합니다.");
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
         this.evalComment = evalComment;

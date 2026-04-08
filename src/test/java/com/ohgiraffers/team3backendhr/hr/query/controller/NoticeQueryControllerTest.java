@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -162,7 +164,7 @@ class NoticeQueryControllerTest {
     @DisplayName("공지 상세 조회 — 존재하지 않으면 404")
     void getNoticeDetail_notFound() throws Exception {
         given(noticeQueryService.getNoticeDetail(9999L))
-                .willThrow(new IllegalArgumentException("공지를 찾을 수 없습니다."));
+                .willThrow(new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
 
         mockMvc.perform(get("/api/v1/hr/notices/9999")
                         .with(user(workerUser())))
