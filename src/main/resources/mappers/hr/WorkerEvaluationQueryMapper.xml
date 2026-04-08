@@ -3,15 +3,18 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.WorkerEvaluationQueryMapper">
 
-    <!-- HR-EVAL-007: 현재 진행 중인 기간 + level 3 정성 평가 상태 -->
+    <!-- HR-EVAL-007: 현재 진행 중인 기간 + level 3 정성 평가 상태
+         - 기간 없음: 0행 반환 → mapper null → 서비스에서 EVAL_PERIOD_NOT_IN_PROGRESS
+         - 기간 있음 + 평가 레코드 없음: COALESCE로 'NO_INPUT' 반환 (null 혼용 방지)
+         - IN_PROGRESS 기간 2개 이상 존재 시 임의 선택됨 (DB UNIQUE 제약 추가 필요) -->
     <select id="findCurrentEvalStatus"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse">
         SELECT
-            ep.eval_period_id   AS evalPeriodId,
-            ep.eval_year        AS evalYear,
-            ep.eval_sequence    AS evalSequence,
-            ep.eval_type        AS evalType,
-            qe.status           AS qualStatus
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            ep.eval_type                    AS evalType,
+            COALESCE(qe.status, 'NO_INPUT') AS qualStatus
         FROM evaluation_period ep
         LEFT JOIN qualitative_evaluation qe
             ON qe.evaluation_period_id = ep.eval_period_id
@@ -71,8 +74,11 @@
             qe.evaluation_level     AS evaluationLevel,
             qe.eval_comment         AS evalComment,
             qe.input_method         AS inputMethod,
-            qe.status
+            qe.status,
+            ep.eval_year            AS evalYear,
+            ep.eval_sequence        AS evalSequence
         FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
         WHERE qe.evaluatee_id = #{employeeId}
           AND qe.evaluation_period_id = #{periodId}
           AND qe.status IN ('SUBMITTED', 'CONFIRMED')
@@ -94,7 +100,7 @@
             qe.confirmed_at                 AS confirmedAt,
             CASE
                 WHEN qe.confirmed_at IS NOT NULL
-                     AND qe.confirmed_at >= NOW() - INTERVAL 7 DAY
+                     AND qe.confirmed_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY
                 THEN TRUE
                 ELSE FALSE
             END AS appealable

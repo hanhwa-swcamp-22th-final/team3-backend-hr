@@ -14,4 +14,6 @@ public class WorkerFeedbackItem {
     private String evalComment;
     private String inputMethod;
     private String status;
+    private Integer evalYear;
+    private Integer evalSequence;
 }

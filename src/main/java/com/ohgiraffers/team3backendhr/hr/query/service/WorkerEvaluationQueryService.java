@@ -57,11 +57,13 @@ public class WorkerEvaluationQueryService {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<WorkerFeedbackItem> items = mapper.findFeedbackItems(employeeId, resolvedPeriodId);
 
-        // period 정보는 mapper에서 가져온 items에 없으므로 별도 조회 없이 resolvedPeriodId만 세팅
-        // (evalYear, evalSequence는 프론트가 periodId로 관리 — 필요시 join 확장)
         WorkerFeedbackResponse response = new WorkerFeedbackResponse();
         response.setEvalPeriodId(resolvedPeriodId);
         response.setFeedbackItems(items);
+        if (!items.isEmpty()) {
+            response.setEvalYear(items.get(0).getEvalYear());
+            response.setEvalSequence(items.get(0).getEvalSequence());
+        }
         return response;
     }
 
