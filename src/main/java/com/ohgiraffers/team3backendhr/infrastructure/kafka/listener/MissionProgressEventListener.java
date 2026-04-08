@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.service.MissionProgressCommandService;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionType;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.MissionProgressEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.MissionKafkaTopics;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;

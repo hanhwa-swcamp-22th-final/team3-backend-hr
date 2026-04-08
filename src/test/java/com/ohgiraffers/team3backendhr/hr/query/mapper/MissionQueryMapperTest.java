@@ -1,11 +1,11 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionProgress;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionTemplate;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionType;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.UpgradeToTier;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionProgress;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionTemplate;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.UpgradeToTier;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionProgressRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionTemplateRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse;

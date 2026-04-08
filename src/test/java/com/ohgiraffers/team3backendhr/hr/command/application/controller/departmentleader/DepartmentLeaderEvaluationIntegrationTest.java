@@ -5,10 +5,10 @@ import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserD
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualEvalStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.QualitativeEvaluation;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

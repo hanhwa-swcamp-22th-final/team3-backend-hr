@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionHistory;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

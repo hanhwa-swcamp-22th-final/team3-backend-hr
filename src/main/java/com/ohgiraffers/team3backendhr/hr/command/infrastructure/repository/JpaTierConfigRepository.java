@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.TierConfig;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

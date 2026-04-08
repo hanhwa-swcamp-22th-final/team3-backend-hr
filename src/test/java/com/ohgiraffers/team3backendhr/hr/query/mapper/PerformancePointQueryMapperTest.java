@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PerformancePoint;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PointType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PerformancePoint;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PointType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PerformancePointRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointHistoryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse;

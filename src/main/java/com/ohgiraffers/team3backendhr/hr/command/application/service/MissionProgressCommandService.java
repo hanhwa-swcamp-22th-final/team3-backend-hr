@@ -1,11 +1,11 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionProgress;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionTemplate;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionType;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PerformancePoint;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PointType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionProgress;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionTemplate;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PerformancePoint;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PointType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionProgressRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionTemplateRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PerformancePointRepository;

@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

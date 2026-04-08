@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.Notice;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

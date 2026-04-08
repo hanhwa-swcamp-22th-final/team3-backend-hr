@@ -1,9 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionTemplate;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.MissionType;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.UpgradeToTier;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionTemplate;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.UpgradeToTier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
