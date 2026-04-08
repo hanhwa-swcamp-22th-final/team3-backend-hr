@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.MissionQueryMapper">
+
+    <sql id="missionColumns">
+        mp.mission_progress_id  AS missionProgressId,
+        mt.mission_template_id  AS missionTemplateId,
+        mt.mission_name         AS missionName,
+        mt.mission_type         AS missionType,
+        mt.upgrade_to_tier      AS upgradeToTier,
+        mp.current_value        AS currentValue,
+        mt.condition_value      AS conditionValue,
+        LEAST(FLOOR(
+            CASE WHEN mt.condition_value = 0 THEN 100
+                 ELSE mp.current_value * 100 / mt.condition_value
+            END
+        ), 100)                 AS progressRate,
+        mp.status               AS status,
+        mt.reward_point         AS rewardPoint,
+        mp.completed_at         AS completedAt
+    </sql>
+
+    <select id="findAllByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse">
+        SELECT
+        <include refid="missionColumns"/>
+        FROM mission_progress mp
+                 JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
+        WHERE mp.employee_id = #{employeeId}
+        <if test="status != null and status != ''">
+            AND mp.status = #{status}
+        </if>
+        ORDER BY mp.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="findUpgradeByEmployeeId"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse">
+        SELECT
+        <include refid="missionColumns"/>
+        FROM mission_progress mp
+                 JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
+        WHERE mp.employee_id = #{employeeId}
+          AND mt.is_active = true
+        ORDER BY
+            FIELD(mt.upgrade_to_tier, 'B', 'A', 'S'),
+            mp.status DESC,
+            mp.created_at DESC
+    </select>
+
+</mapper>
