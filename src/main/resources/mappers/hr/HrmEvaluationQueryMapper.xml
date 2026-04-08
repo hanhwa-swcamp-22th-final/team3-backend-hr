@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.HrmEvaluationQueryMapper">
+
+    <!-- 편향 보정 이력 조회 -->
+    <select id="findBiasReport"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem">
+        SELECT
+            bc.bias_correction_id           AS biasCorrectionId,
+            bc.evaluator_id                 AS evaluatorId,
+            e.employee_name                 AS evaluatorName,
+            bc.qualitative_evaluation_id    AS qualitativeEvaluationId,
+            bc.bias_type                    AS biasType,
+            bc.evaluator_avg                AS evaluatorAvg,
+            bc.company_avg                  AS companyAvg,
+            bc.alpha_bias                   AS alphaBias,
+            bc.original_score               AS originalScore,
+            bc.corrected_score              AS correctedScore,
+            bc.detected_at                  AS detectedAt
+        FROM bias_correction bc
+        JOIN employee e ON e.employee_id = bc.evaluator_id
+        ORDER BY bc.detected_at DESC
+    </select>
+
+    <!-- 어뷰징 감지 목록 조회 -->
+    <select id="findAntiGamingFlags"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem">
+        SELECT
+            af.flag_id                  AS flagId,
+            af.employee_id              AS employeeId,
+            e.employee_name             AS employeeName,
+            af.production_speed_rank    AS productionSpeedRank,
+            af.safety_keyword_rank      AS safetyKeywordRank,
+            af.penalty_coefficient      AS penaltyCoefficient,
+            af.target_year              AS targetYear,
+            af.target_period            AS targetPeriod,
+            af.is_active                AS isActive
+        FROM anti_gaming_flag af
+        JOIN employee e ON e.employee_id = af.employee_id
+        ORDER BY af.target_year DESC, af.target_period DESC
+    </select>
+
+</mapper>
