@@ -17,6 +17,7 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationNormalizedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationSubmittedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeKeywordRuleEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeSentenceAnalysisEvent;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 
 @Service
 @RequiredArgsConstructor
@@ -96,6 +98,15 @@ public class QualitativeEvaluationCommandService {
             .orElseThrow(() -> new IllegalArgumentException("Evaluation record was not found."));
         eval.applyAnalysisResult(rawScore.doubleValue());
         replaceEvaluationComments(event);
+    }
+
+    public void applyNormalizedResult(QualitativeEvaluationNormalizedEvent event) {
+        BigDecimal sQual = requireValue(event.getSQual(), "sQual");
+        String gradeValue = requireValue(event.getGrade(), "grade");
+
+        QualitativeEvaluation eval = repository.findById(event.getQualitativeEvaluationId())
+            .orElseThrow(() -> new IllegalArgumentException("Evaluation record was not found."));
+        eval.applyNormalizationResult(sQual.doubleValue(), Grade.valueOf(gradeValue));
     }
 
     public void confirmFinal(Long evaluatorId, Long evaluateeId, QualitativeEvaluationConfirmRequest request) {
