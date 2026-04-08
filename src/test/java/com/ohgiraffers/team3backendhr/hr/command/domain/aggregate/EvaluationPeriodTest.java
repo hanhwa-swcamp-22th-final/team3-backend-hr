@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
@@ -40,7 +41,7 @@ class EvaluationPeriodTest {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.CONFIRMED);
 
         assertThatThrownBy(period::close)
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("진행 중인 평가 기간만 마감할 수 있습니다.");
     }
 
@@ -60,7 +61,7 @@ class EvaluationPeriodTest {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
 
         assertThatThrownBy(period::confirm)
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("마감된 평가 기간만 확정할 수 있습니다.");
     }
 

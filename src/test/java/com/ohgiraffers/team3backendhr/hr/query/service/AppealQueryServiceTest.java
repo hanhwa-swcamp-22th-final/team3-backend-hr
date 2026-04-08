@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse;
@@ -81,7 +83,7 @@ class AppealQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getAppeal(1L, worker))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     @Test
@@ -94,7 +96,7 @@ class AppealQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getAppeal(999L, hrm))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     /* ── getAppeals ────────────────────────────────────────────────── */

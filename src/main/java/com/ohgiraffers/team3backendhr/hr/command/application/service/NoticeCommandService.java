@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
@@ -40,7 +42,7 @@ public class NoticeCommandService {
         if (request.isImportant()
                 && request.getImportantEndAt() != null
                 && request.getPublishStartAt().isAfter(request.getImportantEndAt())) {
-            throw new IllegalArgumentException("예약 게시 시각은 중요 공지 종료일보다 이전이어야 합니다.");
+            throw new BusinessException(ErrorCode.INVALID_SCHEDULE_TIME);
         }
         saveNotice(
                 NoticeStatus.RESERVATION,
@@ -58,7 +60,7 @@ public class NoticeCommandService {
     public Long draftNotice(NoticeDraftRequest request, Long employeeId) {
         if (request.getNoticeId() != null) {
             Notice notice = noticeRepository.findById(request.getNoticeId())
-                    .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
             notice.updateDraft(
                     request.getNoticeTitle(),
                     request.getNoticeContent(),
@@ -80,10 +82,10 @@ public class NoticeCommandService {
 
     public void updateNotice(Long noticeId, NoticeUpdateRequest request) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
         if (request.getNoticeStatus() == NoticeStatus.RESERVATION
                 && request.getPublishStartAt() == null) {
-            throw new IllegalArgumentException("예약 게시 시각은 필수입니다.");
+            throw new BusinessException(ErrorCode.SCHEDULE_TIME_REQUIRED);
         }
         notice.update(
                 request.getNoticeTitle(),
@@ -98,7 +100,7 @@ public class NoticeCommandService {
     /* 조회수 증가 — POSTING 상태인 공지만 증가 (임시저장·예약 상태는 무시) */
     public void incrementViews(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
         if (notice.getNoticeStatus() == NoticeStatus.POSTING) {
             notice.incrementViews();
         }
@@ -107,7 +109,7 @@ public class NoticeCommandService {
     /* Soft Delete — is_deleted = 1, deleted_at = now() */
     public void deleteNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
-                .orElseThrow(() -> new IllegalArgumentException("공지를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
         notice.softDelete();
     }
 

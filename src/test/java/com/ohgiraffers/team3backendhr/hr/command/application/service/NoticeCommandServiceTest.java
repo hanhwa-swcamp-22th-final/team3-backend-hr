@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
@@ -114,7 +116,7 @@ class NoticeCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> noticeCommandService.scheduleNotice(request, 99L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessageContaining("중요 공지 종료일보다 이전이어야 합니다");
         }
 
@@ -295,7 +297,7 @@ class NoticeCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> noticeCommandService.updateNotice(9999L, request))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("공지를 찾을 수 없습니다.");
         }
     }
@@ -333,7 +335,7 @@ class NoticeCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> noticeCommandService.deleteNotice(9999L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("공지를 찾을 수 없습니다.");
         }
     }

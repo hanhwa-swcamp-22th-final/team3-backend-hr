@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notificationrecipient.NotificationRecipient;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NotificationRecipientRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +18,14 @@ public class NotificationCommandService {
     public void hide(Long notificationId, Long employeeId) {
         NotificationRecipient recipient = notificationRecipientRepository
                 .findByNotificationIdAndEmployeeId(notificationId, employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("알림 수신 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
         recipient.hide();
     }
 
     public void acknowledge(Long notificationId, Long employeeId) {
         NotificationRecipient recipient = notificationRecipientRepository
                 .findByNotificationIdAndEmployeeId(notificationId, employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("알림 수신 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND));
         recipient.acknowledge();
     }
 }
