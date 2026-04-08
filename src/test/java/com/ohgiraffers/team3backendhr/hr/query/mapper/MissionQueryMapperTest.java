@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +38,9 @@ class MissionQueryMapperTest {
     @Autowired
     private MissionProgressRepository missionProgressRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private final TimeBasedIdGenerator idGenerator = new TimeBasedIdGenerator();
     private final Long employeeId = 500L;
 
@@ -47,6 +51,13 @@ class MissionQueryMapperTest {
 
     @BeforeEach
     void setUp() {
+        // 미션 쿼리가 employee 테이블 JOIN + 티어 필터를 사용하므로 테스트용 사원 삽입.
+        // C티어 사원 → upgrade_to_tier='B' 인 IN_PROGRESS 미션이 조회되어야 함
+        jdbcTemplate.update(
+                "INSERT IGNORE INTO employee(employee_id, employee_code, employee_password, employee_role, employee_tier) " +
+                "VALUES (?, 'TEST-500', 'pw', 'WORKER', 'C')",
+                employeeId);
+
         // 템플릿 A — B티어 달성 목표, conditionValue=10
         templateAId = idGenerator.generate();
         missionTemplateRepository.saveAndFlush(MissionTemplate.builder()
