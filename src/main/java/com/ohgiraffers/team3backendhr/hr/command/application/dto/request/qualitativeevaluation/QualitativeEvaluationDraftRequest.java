@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.InputMethod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

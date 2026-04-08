@@ -2,10 +2,10 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionHistory;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.TierConfig;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;

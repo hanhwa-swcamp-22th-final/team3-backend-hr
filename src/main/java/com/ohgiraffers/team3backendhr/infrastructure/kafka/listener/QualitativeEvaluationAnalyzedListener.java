@@ -1,7 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QualitativeKafkaTopics;
 import lombok.RequiredArgsConstructor;

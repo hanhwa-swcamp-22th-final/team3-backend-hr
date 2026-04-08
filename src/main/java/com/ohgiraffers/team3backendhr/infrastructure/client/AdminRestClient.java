@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
