@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
@@ -60,5 +61,14 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
         adminRestClient.updateEmployeeTier(employeeId, newTier);
+    }
+
+    @Override
+    public List<DomainKeywordRuleResponse> getActiveDomainKeywordRules() {
+        AdminApiResponse<List<DomainKeywordRuleResponse>> response = adminFeignApi.getDomainKeywordRules();
+        if (response == null || response.getData() == null) {
+            return List.of();
+        }
+        return response.getData();
     }
 }

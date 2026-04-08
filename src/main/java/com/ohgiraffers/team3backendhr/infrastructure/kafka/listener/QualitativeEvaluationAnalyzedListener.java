@@ -1,10 +1,8 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QualitativeKafkaTopics;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,30 +23,27 @@ public class QualitativeEvaluationAnalyzedListener {
     )
     public void listen(QualitativeEvaluationAnalyzedEvent event) {
         log.info(
-            "Received qualitative analyzed event. evaluationId={}, status={}, sQual={}, tier={}",
+            "Received qualitative analyzed event. evaluationId={}, status={}, rawScore={}, sQual={}, tier={}, sentenceCount={}",
             event.getQualitativeEvaluationId(),
             event.getAnalysisStatus(),
+            event.getRawScore(),
             event.getSQual(),
-            event.getNormalizedTier()
+            event.getNormalizedTier(),
+            event.getSentenceAnalyses() == null ? 0 : event.getSentenceAnalyses().size()
         );
 
-        BigDecimal score = event.getSQual();
-        String normalizedTier = event.getNormalizedTier();
-        if (score == null || normalizedTier == null || normalizedTier.isBlank()) {
+        if (event.getRawScore() == null) {
             log.warn(
-                "Skipping qualitative analyzed event without finalized batch result. evaluationId={}, status={}, sQual={}, tier={}",
+                "Skipping qualitative analyzed event without raw score. evaluationId={}, status={}, rawScore={}, sQual={}, tier={}",
                 event.getQualitativeEvaluationId(),
                 event.getAnalysisStatus(),
-                score,
-                normalizedTier
+                event.getRawScore(),
+                event.getSQual(),
+                event.getNormalizedTier()
             );
             return;
         }
 
-        qualitativeEvaluationCommandService.applyAnalysisResult(
-            event.getQualitativeEvaluationId(),
-            score.doubleValue(),
-            Grade.valueOf(normalizedTier)
-        );
+        qualitativeEvaluationCommandService.applyAnalyzedResult(event);
     }
 }
