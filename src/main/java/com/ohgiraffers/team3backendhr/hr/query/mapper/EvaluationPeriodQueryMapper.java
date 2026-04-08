@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

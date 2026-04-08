@@ -38,7 +38,7 @@ out/
 
 ### Claude ###
 .claude
-
+CLAUDE.md
 
 ### Application Secrets ###
 src/main/resources/application-db.yml
@@ -46,4 +46,3 @@ src/main/resources/application-secret.yml
 
 ### Docs ###
 docs/
-

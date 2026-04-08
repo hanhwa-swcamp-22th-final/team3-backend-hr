@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.EvalType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

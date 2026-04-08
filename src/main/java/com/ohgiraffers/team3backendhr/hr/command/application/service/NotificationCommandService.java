@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NotificationRecipient;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notificationrecipient.NotificationRecipient;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NotificationRecipientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

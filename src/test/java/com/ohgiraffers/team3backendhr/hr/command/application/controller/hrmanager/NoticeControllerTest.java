@@ -7,7 +7,7 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeP
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

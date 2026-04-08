@@ -1,10 +1,10 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTarget;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeTargetRole;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.Notice;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.noticetarget.NoticeTarget;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.noticetarget.NoticeTargetRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
