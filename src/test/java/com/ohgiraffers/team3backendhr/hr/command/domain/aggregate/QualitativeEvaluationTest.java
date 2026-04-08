@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
@@ -69,8 +70,8 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.saveDraft(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 제출된 평가는 수정할 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 제출된 평가입니다.");
     }
 
     @Test
@@ -81,8 +82,8 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.saveDraft(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 확정된 평가는 수정할 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 확정된 평가입니다.");
     }
 
     /* ── submit (평가 제출, level 1·2 공용) ────────────────────────────────── */
@@ -126,7 +127,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "짧은 코멘트", InputMethod.TEXT))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -138,7 +139,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", null, InputMethod.TEXT))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -150,7 +151,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 제출된 평가입니다.");
     }
 
@@ -162,7 +163,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.submit(EVALUATOR_ID, "{}", "이번 분기 설비 대응 역량이 크게 향상되었습니다.", InputMethod.TEXT))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 제출된 평가입니다.");
     }
 
@@ -191,7 +192,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.applyAnalysisResult(88.0, Grade.A))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("제출된 평가에만 분석 결과를 반영할 수 있습니다.");
     }
 
@@ -221,7 +222,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.confirmFinal(EVALUATOR_ID, "짧은 코멘트", InputMethod.TEXT))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -233,7 +234,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.confirmFinal(EVALUATOR_ID, null, InputMethod.TEXT))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -245,7 +246,7 @@ class QualitativeEvaluationTest {
 
         // when & then
         assertThatThrownBy(() -> eval.confirmFinal(EVALUATOR_ID, "전반적으로 우수한 성과를 보여준 직원입니다. 다음 분기도 기대합니다.", InputMethod.TEXT))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 확정된 평가입니다.");
     }
 }

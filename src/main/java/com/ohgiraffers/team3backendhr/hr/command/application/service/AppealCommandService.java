@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealRegisterRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
@@ -35,13 +37,13 @@ public class AppealCommandService {
     public void register(Long appealEmployeeId, AppealRegisterRequest request) {
         QualitativeEvaluation eval = qualitativeEvaluationRepository
                 .findById(request.getQualitativeEvaluationId())
-                .orElseThrow(() -> new IllegalArgumentException("평가를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
 
         if (eval.getStatus() != QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("확정된 평가에 대해서만 이의신청할 수 있습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_CONFIRMED);
         }
         if (eval.getConfirmedAt() == null || eval.getConfirmedAt().plusDays(7).isBefore(LocalDateTime.now())) {
-            throw new IllegalStateException("결과 통보 후 7일이 지나 이의신청할 수 없습니다.");
+            throw new BusinessException(ErrorCode.APPEAL_EXPIRED);
         }
 
         Long appealId = idGenerator.generate();
@@ -88,7 +90,7 @@ public class AppealCommandService {
         if (request.getModifiedScore() != null) {
             QualitativeEvaluation eval = qualitativeEvaluationRepository
                     .findById(appeal.getQualitativeEvaluationId())
-                    .orElseThrow(() -> new IllegalArgumentException("평가를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
 
             scoreLogRepository.save(ScoreModificationLog.builder()
                     .scoreModificationLogId(idGenerator.generate())
@@ -114,12 +116,12 @@ public class AppealCommandService {
 
     private EvaluationAppeal findAppeal(Long appealId) {
         return appealRepository.findById(appealId)
-                .orElseThrow(() -> new IllegalArgumentException("이의신청을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.APPEAL_NOT_FOUND));
     }
 
     private void validateOwner(EvaluationAppeal appeal, Long requesterId, String message) {
         if (!appeal.getAppealEmployeeId().equals(requesterId)) {
-            throw new IllegalStateException(message);
+            throw new BusinessException(ErrorCode.ACCESS_DENIED, message);
         }
     }
 }

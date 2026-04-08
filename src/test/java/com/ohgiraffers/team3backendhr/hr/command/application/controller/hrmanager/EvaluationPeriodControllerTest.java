@@ -18,6 +18,8 @@ import java.time.LocalDate;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -65,7 +67,7 @@ class EvaluationPeriodControllerTest {
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 3, 31)
         );
-        doThrow(new IllegalStateException("이미 진행 중인 평가 기간이 있습니다."))
+        doThrow(new BusinessException(ErrorCode.EVAL_PERIOD_ALREADY_IN_PROGRESS))
                 .when(service).create(any());
 
         mockMvc.perform(post("/api/v1/hr/evaluation-periods")

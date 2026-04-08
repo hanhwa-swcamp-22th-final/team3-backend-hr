@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
@@ -73,7 +75,7 @@ public class QualitativeEvaluationCommandService {
 
     public void applyAnalysisResult(Long evaluationId, Double score, Grade grade) {
         QualitativeEvaluation eval = repository.findById(evaluationId)
-            .orElseThrow(() -> new IllegalArgumentException("평가 레코드를 찾을 수 없습니다."));
+            .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
         eval.applyAnalysisResult(score, grade);
     }
 
@@ -87,21 +89,21 @@ public class QualitativeEvaluationCommandService {
     private void validateLevel2Submitted(Long evaluateeId, Long evaluationPeriodId) {
         QualitativeEvaluation level2 = findByLevel(evaluateeId, evaluationPeriodId, 2L);
         if (level2.getStatus() != QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_LEVEL2_NOT_SUBMITTED);
         }
     }
 
     private void validateLevel1Submitted(Long evaluateeId, Long evaluationPeriodId) {
         QualitativeEvaluation level1 = findByLevel(evaluateeId, evaluationPeriodId, 1L);
         if (level1.getStatus() != QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_LEVEL1_NOT_SUBMITTED);
         }
     }
 
     private QualitativeEvaluation findByLevel(Long evaluateeId, Long evaluationPeriodId, Long level) {
         return repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 evaluateeId, evaluationPeriodId, level)
-            .orElseThrow(() -> new IllegalArgumentException("평가 레코드를 찾을 수 없습니다."));
+            .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
     }
 
     private void publishSubmittedEventAfterCommit(QualitativeEvaluation evaluation) {

@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notificationrecipient.NotificationRecipient;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NotificationRecipientRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +58,7 @@ class NotificationCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> notificationCommandService.hide(9999L, 99L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("알림 수신 정보를 찾을 수 없습니다.");
         }
     }
@@ -96,7 +97,7 @@ class NotificationCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> notificationCommandService.acknowledge(9999L, 99L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("알림 수신 정보를 찾을 수 없습니다.");
         }
     }

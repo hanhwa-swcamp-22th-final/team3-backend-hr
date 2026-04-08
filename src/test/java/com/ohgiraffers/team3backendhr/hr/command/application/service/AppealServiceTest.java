@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealRegisterRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
@@ -103,7 +105,7 @@ class AppealServiceTest {
         given(qualitativeEvaluationRepository.findById(10L)).willReturn(Optional.of(eval));
 
         assertThatThrownBy(() -> service.register(100L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("확정된 평가에 대해서만 이의신청할 수 있습니다.");
     }
 
@@ -118,7 +120,7 @@ class AppealServiceTest {
                 .willReturn(Optional.of(buildConfirmedEval(LocalDateTime.now().minusDays(8))));
 
         assertThatThrownBy(() -> service.register(100L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("결과 통보 후 7일이 지나 이의신청할 수 없습니다.");
     }
 
@@ -146,7 +148,7 @@ class AppealServiceTest {
                 AppealType.MISSING_ITEMS, "수정된 제목입니다", "수정된 내용입니다. 20자 이상 작성합니다.");
 
         assertThatThrownBy(() -> service.update(1L, 999L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("본인의 이의신청만 수정할 수 있습니다.");
     }
 
@@ -168,7 +170,7 @@ class AppealServiceTest {
         given(appealRepository.findById(1L)).willReturn(Optional.of(appeal));
 
         assertThatThrownBy(() -> service.cancel(1L, 999L))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("본인의 이의신청만 취소할 수 있습니다.");
     }
 

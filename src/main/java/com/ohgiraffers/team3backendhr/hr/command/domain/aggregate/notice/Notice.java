@@ -11,6 +11,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "notice")
 @EntityListeners(AuditingEntityListener.class)
@@ -89,7 +92,7 @@ public class Notice {
     public void updateDraft(String title, String content,
                             boolean important, LocalDateTime importantEndAt) {
         if (this.noticeStatus != NoticeStatus.TEMPORARY) {
-            throw new IllegalStateException("임시 저장 상태인 공지만 재저장할 수 있습니다.");
+            throw new BusinessException(ErrorCode.NOTICE_INVALID_STATUS);
         }
         if (title != null) this.noticeTitle = title;
         if (content != null) this.noticeContent = content;
