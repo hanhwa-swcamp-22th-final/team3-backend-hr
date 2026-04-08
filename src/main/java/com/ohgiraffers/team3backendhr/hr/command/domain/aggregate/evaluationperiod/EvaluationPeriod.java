@@ -11,6 +11,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "evaluation_period")
 @EntityListeners(AuditingEntityListener.class)
@@ -67,7 +70,7 @@ public class EvaluationPeriod {
     /* 상태 전이: IN_PROGRESS → CLOSING */
     public void close() {
         if (this.status != EvalPeriodStatus.IN_PROGRESS) {
-            throw new IllegalStateException("진행 중인 평가 기간만 마감할 수 있습니다.");
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_CANNOT_CLOSE);
         }
         this.status = EvalPeriodStatus.CLOSING;
     }
@@ -75,14 +78,14 @@ public class EvaluationPeriod {
     /* 상태 전이: CLOSING → CONFIRMED */
     public void confirm() {
         if (this.status != EvalPeriodStatus.CLOSING) {
-            throw new IllegalStateException("마감된 평가 기간만 확정할 수 있습니다.");
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_CANNOT_CONFIRM);
         }
         this.status = EvalPeriodStatus.CONFIRMED;
     }
 
     public void update(LocalDate startDate, LocalDate endDate, Long algorithmVersionId) {
         if (this.status == EvalPeriodStatus.CONFIRMED) {
-            throw new IllegalStateException("확정된 평가 기간은 수정할 수 없습니다.");
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_ALREADY_CONFIRMED);
         }
         if (startDate != null) this.startDate = startDate;
         if (endDate != null) this.endDate = endDate;

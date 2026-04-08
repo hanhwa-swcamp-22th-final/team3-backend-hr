@@ -11,6 +11,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "promotion_history")
 @EntityListeners(AuditingEntityListener.class)
@@ -69,7 +72,7 @@ public class PromotionHistory {
     /* 상태 전이: UNDER_REVIEW → CONFIRMATION_OF_PROMOTION */
     public void confirm() {
         if (this.tierPromoStatus != PromotionStatus.UNDER_REVIEW) {
-            throw new IllegalStateException("심사 중인 승급 후보만 확정할 수 있습니다.");
+            throw new BusinessException(ErrorCode.PROMOTION_NOT_UNDER_REVIEW);
         }
         this.tierPromoStatus = PromotionStatus.CONFIRMATION_OF_PROMOTION;
         this.tierReviewedAt = LocalDateTime.now();
@@ -78,7 +81,7 @@ public class PromotionHistory {
     /* 상태 전이: CONFIRMATION_OF_PROMOTION → TIER_APPLIED */
     public void applyTier() {
         if (this.tierPromoStatus != PromotionStatus.CONFIRMATION_OF_PROMOTION) {
-            throw new IllegalStateException("승급 확정된 이력만 티어에 반영할 수 있습니다.");
+            throw new BusinessException(ErrorCode.PROMOTION_NOT_CONFIRMED);
         }
         this.tierPromoStatus = PromotionStatus.TIER_APPLIED;
     }
@@ -86,7 +89,7 @@ public class PromotionHistory {
     /* 상태 전이: UNDER_REVIEW → SUSPENSION */
     public void suspend() {
         if (this.tierPromoStatus != PromotionStatus.UNDER_REVIEW) {
-            throw new IllegalStateException("심사 중인 승급 후보만 보류할 수 있습니다.");
+            throw new BusinessException(ErrorCode.PROMOTION_NOT_UNDER_REVIEW);
         }
         this.tierPromoStatus = PromotionStatus.SUSPENSION;
         this.tierReviewedAt = LocalDateTime.now();

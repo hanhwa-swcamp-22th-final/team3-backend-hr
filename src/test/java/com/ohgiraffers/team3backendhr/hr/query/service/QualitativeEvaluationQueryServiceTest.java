@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse;
@@ -71,7 +73,7 @@ class QualitativeEvaluationQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getTlTargets(200L, null))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("현재 진행 중인 평가 기간이 없습니다.");
     }
 
@@ -151,7 +153,7 @@ class QualitativeEvaluationQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getEvaluations(null, null, null, 1, 10))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("현재 진행 중인 평가 기간이 없습니다.");
     }
 
@@ -180,7 +182,7 @@ class QualitativeEvaluationQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getEvaluationDetail(99L))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     /* ── getEvaluationGradeSummary (HRM) ─────────────────────────────── */
@@ -210,7 +212,7 @@ class QualitativeEvaluationQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getTlEvaluationDetail(200L, 99L))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BusinessException.class);
     }
 
     /* ── getDlEvaluationDetail (DL) ───────────────────────────────────── */
@@ -240,8 +242,8 @@ class QualitativeEvaluationQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.getDlEvaluationDetail(200L, 999L, 5L))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("접근 권한이 없습니다");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 
     /* ── getEvaluationGradeSummary (HRM) ─────────────────────────────── */

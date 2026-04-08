@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
@@ -162,7 +164,7 @@ class NoticeControllerTest {
         NoticeUpdateRequest request = new NoticeUpdateRequest(
                 NoticeStatus.POSTING, false, "제목", "내용", null, null
         );
-        doThrow(new IllegalArgumentException("공지를 찾을 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.NOTICE_NOT_FOUND))
                 .when(noticeCommandService).updateNotice(any(), any());
 
         mockMvc.perform(put("/api/v1/hr/notices/9999")
@@ -188,7 +190,7 @@ class NoticeControllerTest {
     @Test
     @DisplayName("공지 삭제 — 존재하지 않으면 404")
     void deleteNotice_notFound() throws Exception {
-        doThrow(new IllegalArgumentException("공지를 찾을 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.NOTICE_NOT_FOUND))
                 .when(noticeCommandService).deleteNotice(any());
 
         mockMvc.perform(delete("/api/v1/hr/notices/9999")

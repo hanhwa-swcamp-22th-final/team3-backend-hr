@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
@@ -71,7 +73,7 @@ class NoticeQueryServiceTest {
 
         // when & then
         assertThatThrownBy(() -> noticeQueryService.getNoticeDetail(9999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("공지를 찾을 수 없습니다.");
     }
 

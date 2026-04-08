@@ -10,6 +10,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "evaluation_appeal")
 @EntityListeners(AuditingEntityListener.class)
@@ -86,7 +89,7 @@ public class EvaluationAppeal {
     /* 수정 — RECEIVING 상태에서만 가능 */
     public void update(AppealType appealType, String title, String content) {
         if (this.status != AppealStatus.RECEIVING) {
-            throw new IllegalStateException("접수 중인 이의신청만 수정할 수 있습니다.");
+            throw new BusinessException(ErrorCode.APPEAL_NOT_RECEIVABLE);
         }
         validateTitle(title);
         validateContent(content);
@@ -98,14 +101,14 @@ public class EvaluationAppeal {
     /* 취소 가능 여부 검증 — COMPLETED이면 불가 (삭제는 서비스에서 처리) */
     public void cancel() {
         if (this.status == AppealStatus.COMPLETED) {
-            throw new IllegalStateException("완료된 이의신청은 취소할 수 없습니다.");
+            throw new BusinessException(ErrorCode.APPEAL_ALREADY_COMPLETED);
         }
     }
 
     /* 검토 시작 — RECEIVING → REVIEWING */
     public void startReview(Long reviewerId) {
         if (this.status != AppealStatus.RECEIVING) {
-            throw new IllegalStateException("이미 검토 중인 이의신청입니다.");
+            throw new BusinessException(ErrorCode.APPEAL_ALREADY_REVIEWING);
         }
         this.status = AppealStatus.REVIEWING;
         this.reviewerId = reviewerId;
@@ -136,19 +139,19 @@ public class EvaluationAppeal {
 
     private void validateReviewing() {
         if (this.status != AppealStatus.REVIEWING) {
-            throw new IllegalStateException("검토 중인 이의신청만 처리할 수 있습니다.");
+            throw new BusinessException(ErrorCode.APPEAL_NOT_REVIEWING);
         }
     }
 
     private void validateTitle(String title) {
         if (title == null || title.length() < 5 || title.length() > 100) {
-            throw new IllegalArgumentException("제목은 5자 이상 100자 이하여야 합니다.");
+            throw new BusinessException(ErrorCode.INVALID_TITLE_LENGTH);
         }
     }
 
     private void validateContent(String content) {
         if (content == null || content.length() < 20 || content.length() > 2000) {
-            throw new IllegalArgumentException("내용은 20자 이상 2000자 이하여야 합니다.");
+            throw new BusinessException(ErrorCode.INVALID_CONTENT_LENGTH);
         }
     }
 }

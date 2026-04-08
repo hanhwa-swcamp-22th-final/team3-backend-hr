@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse;
@@ -41,7 +43,7 @@ public class QualitativeEvaluationQueryService {
     public EvaluationDetailResponse getTlEvaluationDetail(Long tlId, Long evalId) {
         EvaluationDetailResponse detail = mapper.findTlEvaluationDetail(evalId, tlId);
         if (detail == null) {
-            throw new IllegalArgumentException("평가를 찾을 수 없습니다: " + evalId);
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_FOUND);
         }
         return detail;
     }
@@ -51,7 +53,7 @@ public class QualitativeEvaluationQueryService {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(dlId, evaluateeId, resolvedPeriodId);
         if (detail == null) {
-            throw new IllegalArgumentException("평가 정보를 찾을 수 없거나 접근 권한이 없습니다.");
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_FOUND);
         }
         return detail;
     }
@@ -60,7 +62,7 @@ public class QualitativeEvaluationQueryService {
     public EvaluationDetailResponse getEvaluationDetail(Long evalId) {
         EvaluationDetailResponse detail = mapper.findEvaluationDetail(evalId);
         if (detail == null) {
-            throw new IllegalArgumentException("평가를 찾을 수 없습니다: " + evalId);
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_FOUND);
         }
         return detail;
     }
@@ -86,7 +88,7 @@ public class QualitativeEvaluationQueryService {
         if (periodId != null) return periodId;
         Long currentId = mapper.findCurrentPeriodId();
         if (currentId == null) {
-            throw new IllegalStateException("현재 진행 중인 평가 기간이 없습니다.");
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }
         return currentId;
     }

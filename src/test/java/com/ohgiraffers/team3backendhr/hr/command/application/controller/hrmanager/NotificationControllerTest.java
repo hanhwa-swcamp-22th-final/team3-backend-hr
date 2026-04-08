@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -50,7 +52,7 @@ class NotificationControllerTest {
     @Test
     @DisplayName("알림 숨김 — 존재하지 않으면 404")
     void hide_notFound() throws Exception {
-        doThrow(new IllegalArgumentException("알림 수신 정보를 찾을 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND))
                 .when(notificationCommandService).hide(any(), any());
 
         mockMvc.perform(patch("/api/v1/hr/notifications/9999/hide")
@@ -74,7 +76,7 @@ class NotificationControllerTest {
     @Test
     @DisplayName("알림 읽음 처리 — 존재하지 않으면 404")
     void acknowledge_notFound() throws Exception {
-        doThrow(new IllegalArgumentException("알림 수신 정보를 찾을 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND))
                 .when(notificationCommandService).acknowledge(any(), any());
 
         mockMvc.perform(post("/api/v1/hr/notifications/9999/ack")

@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
@@ -84,7 +85,7 @@ class PromotionCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> promotionCommandService.confirmPromotion(9999L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("승급 이력을 찾을 수 없습니다.");
         }
 
@@ -97,8 +98,8 @@ class PromotionCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> promotionCommandService.confirmPromotion(1000L))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("심사 중인 승급 후보만 확정할 수 있습니다.");
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
         }
     }
 
@@ -173,7 +174,7 @@ class PromotionCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> promotionCommandService.suspendPromotion(9999L))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(BusinessException.class)
                     .hasMessage("승급 이력을 찾을 수 없습니다.");
         }
 
@@ -186,8 +187,8 @@ class PromotionCommandServiceTest {
 
             // when & then
             assertThatThrownBy(() -> promotionCommandService.suspendPromotion(1000L))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessage("심사 중인 승급 후보만 보류할 수 있습니다.");
+                    .isInstanceOf(BusinessException.class)
+                    .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
         }
     }
 }

@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
@@ -24,7 +26,7 @@ public class PromotionCommandService {
      * 티어 반영은 applyTierForConfirmed() 에서 일괄 처리한다. */
     public void confirmPromotion(Long tierPromotionId) {
         PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId)
-                .orElseThrow(() -> new IllegalArgumentException("승급 이력을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
         history.confirm();
     }
 
@@ -34,7 +36,7 @@ public class PromotionCommandService {
         promotionHistoryRepository.findByTierPromoStatus(PromotionStatus.CONFIRMATION_OF_PROMOTION)
                 .forEach(history -> {
                     TierConfig targetTierConfig = tierConfigRepository.findById(history.getTargetTierConfigId())
-                            .orElseThrow(() -> new IllegalArgumentException("승급 목표 티어 설정을 찾을 수 없습니다."));
+                            .orElseThrow(() -> new BusinessException(ErrorCode.TIER_CONFIG_NOT_FOUND));
                     Grade newTier = targetTierConfig.getTierConfigTier();
                     adminClient.updateEmployeeTier(history.getEmployeeId(), newTier);
                     history.applyTier();
@@ -43,7 +45,7 @@ public class PromotionCommandService {
 
     public void suspendPromotion(Long tierPromotionId) {
         PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId)
-                .orElseThrow(() -> new IllegalArgumentException("승급 이력을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PROMOTION_NOT_FOUND));
         history.suspend();
     }
 }

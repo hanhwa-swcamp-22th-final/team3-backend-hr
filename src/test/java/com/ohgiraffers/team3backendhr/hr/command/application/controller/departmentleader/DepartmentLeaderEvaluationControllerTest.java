@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -82,7 +84,7 @@ class DepartmentLeaderEvaluationControllerTest {
         QualitativeEvaluationDraftRequest request = new QualitativeEvaluationDraftRequest(
                 5L, null, null, InputMethod.TEXT);
 
-        doThrow(new IllegalStateException("이미 제출된 평가는 수정할 수 없습니다."))
+        doThrow(new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED))
                 .when(service).saveDraftForDL(any(), any(), any());
 
         mockMvc.perform(post("/api/v1/hr/department-leader/evaluations/101/draft")
