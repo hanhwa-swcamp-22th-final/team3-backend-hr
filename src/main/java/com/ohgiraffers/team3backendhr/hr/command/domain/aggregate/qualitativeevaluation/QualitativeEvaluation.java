@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation;
 
 
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;

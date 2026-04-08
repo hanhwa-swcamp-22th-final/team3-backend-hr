@@ -1,7 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
