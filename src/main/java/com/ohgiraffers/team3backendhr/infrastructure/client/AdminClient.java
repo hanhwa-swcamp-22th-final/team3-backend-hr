@@ -13,7 +13,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddReq
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
-
 import java.util.List;
 
 public interface AdminClient {
@@ -32,10 +31,10 @@ public interface AdminClient {
     /* HR-067: 티어 차트(이력) 조회 */
     List<TierChartPointResponse> getTierChart(Long employeeId);
 
-    /* TL KPI용: 팀장의 팀원 ID 목록 조회 */
+    /* TL KPI용 팀원 대상 ID 목록 조회 */
     List<Long> getTeamMemberIds(Long leaderId);
 
-    /* HR-063: 승급 확정 시 Admin 서비스에 사원 현재 티어 갱신 요청 */
+    /* HR-063: 승급 확정 후 Admin 서비스에 사원 현재 티어 갱신 요청 */
     void updateEmployeeTier(Long employeeId, Grade newTier);
 
     /* HR-073: 조직도 트리 조회 */
