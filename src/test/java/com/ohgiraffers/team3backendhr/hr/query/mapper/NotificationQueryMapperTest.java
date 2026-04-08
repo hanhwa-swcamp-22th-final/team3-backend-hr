@@ -1,9 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notification;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NotificationRecipient;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NotificationType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.Notification;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notificationrecipient.NotificationRecipient;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NotificationRecipientRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NotificationRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NotificationResponse;

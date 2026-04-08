@@ -1,10 +1,10 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionHistory;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PromotionStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.TierConfig;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.TierConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 

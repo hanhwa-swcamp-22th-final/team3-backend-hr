@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client.dto;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Grade;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

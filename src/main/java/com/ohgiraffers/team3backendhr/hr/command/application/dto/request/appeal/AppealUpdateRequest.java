@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.AppealType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

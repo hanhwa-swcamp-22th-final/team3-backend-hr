@@ -1,8 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PerformancePoint;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.PointType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PerformancePoint;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PointType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

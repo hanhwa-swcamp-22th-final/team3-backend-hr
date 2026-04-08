@@ -5,8 +5,8 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeD
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.Notice;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.Notice;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

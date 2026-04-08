@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notificationrecipient.NotificationRecipient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
