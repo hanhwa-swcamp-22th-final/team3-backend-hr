@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 public class PerformancePoint {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "performance_point_id")
     private Long performancePointId;
 

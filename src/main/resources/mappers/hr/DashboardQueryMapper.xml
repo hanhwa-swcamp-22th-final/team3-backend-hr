@@ -44,6 +44,24 @@
         LIMIT #{size} OFFSET #{offset}
     </select>
 
+    <select id="findHrmKpiDetailsAll"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem">
+        SELECT
+            qe.evaluatee_id     AS employeeId,
+            e.employee_name     AS employeeName,
+            e.employee_tier     AS employeeTier,
+            qe.score            AS qualitativeScore,
+            qe.grade,
+            qe.status           AS evalStatus
+        FROM qualitative_evaluation qe
+        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
+        WHERE ep.eval_year     = #{year}
+          AND ep.eval_sequence = #{quarter}
+          AND qe.evaluation_level = 3
+        ORDER BY qe.score DESC
+    </select>
+
     <select id="countHrmKpiDetails" resultType="long">
         SELECT COUNT(*)
         FROM qualitative_evaluation qe

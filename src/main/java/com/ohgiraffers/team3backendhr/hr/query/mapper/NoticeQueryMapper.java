@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.query.mapper;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -24,4 +25,6 @@ public interface NoticeQueryMapper {
     NoticeDetailResponse findById(@Param("noticeId") Long noticeId);
 
     NoticePinnedResponse findPinned();
+
+    Attachment findAttachmentById(@Param("attachmentId") Long attachmentId);
 }

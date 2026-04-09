@@ -5,7 +5,10 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDeta
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.service.DashboardQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.KpiReportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -21,6 +26,7 @@ import java.util.List;
 public class HrmDashboardQueryController {
 
     private final DashboardQueryService dashboardQueryService;
+    private final KpiReportService kpiReportService;
 
     /* HR-001: KPI 요약 조회 */
     @GetMapping("/summary")
@@ -51,5 +57,26 @@ public class HrmDashboardQueryController {
             @RequestParam int year) {
         return ResponseEntity.ok(ApiResponse.success(
                 dashboardQueryService.getHrmKpiTrends(year)));
+    }
+
+    /**
+     * HR-004: KPI 보고서 다운로드 (엑셀)
+     * 개선: 파일명 한글 깨짐 방지 (RFC 5987 인코딩 적용)
+     */
+    @GetMapping("/report/download")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<byte[]> downloadKpiReport(
+            @RequestParam int year,
+            @RequestParam int quarter) {
+        
+        byte[] excelBytes = kpiReportService.generateHrmKpiExcel(year, quarter);
+        
+        String fileName = "전사_KPI_보고서_" + year + "_Q" + quarter + ".xlsx";
+        String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(excelBytes);
     }
 }

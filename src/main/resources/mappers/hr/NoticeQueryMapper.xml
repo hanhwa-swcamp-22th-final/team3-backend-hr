@@ -46,22 +46,43 @@
         <include refid="noticeWhere"/>
     </select>
 
-    <select id="findById"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse">
+    <resultMap id="noticeDetailMap" type="com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse">
+        <id property="noticeId" column="noticeId"/>
+        <result property="noticeTitle" column="noticeTitle"/>
+        <result property="noticeContent" column="noticeContent"/>
+        <result property="authorId" column="authorId"/>
+        <result property="noticeStatus" column="noticeStatus"/>
+        <result property="isImportant" column="isImportant"/>
+        <result property="noticeViews" column="noticeViews"/>
+        <result property="createdAt" column="createdAt"/>
+        <result property="publishStartAt" column="publishStartAt"/>
+        <result property="importantEndAt" column="importantEndAt"/>
+        <collection property="attachments" ofType="com.ohgiraffers.team3backendhr.hr.query.dto.AttachmentResponse">
+            <id property="attachmentId" column="attachmentId"/>
+            <result property="fileName" column="fileName"/>
+            <result property="fileSize" column="fileSize"/>
+        </collection>
+    </resultMap>
+
+    <select id="findById" resultMap="noticeDetailMap">
         SELECT
-            notice_id        AS noticeId,
-            notice_title     AS noticeTitle,
-            notice_content   AS noticeContent,
-            employee_id      AS authorId,
-            notice_status    AS noticeStatus,
-            is_important     AS isImportant,
-            notice_views     AS noticeViews,
-            created_at       AS createdAt,
-            publish_start_at AS publishStartAt,
-            important_end_at AS importantEndAt
-        FROM notice
-        WHERE notice_id = #{noticeId}
-          AND is_deleted = 0
+            n.notice_id        AS noticeId,
+            n.notice_title     AS noticeTitle,
+            n.notice_content   AS noticeContent,
+            n.employee_id      AS authorId,
+            n.notice_status    AS noticeStatus,
+            n.is_important     AS isImportant,
+            n.notice_views     AS noticeViews,
+            n.created_at       AS createdAt,
+            n.publish_start_at AS publishStartAt,
+            n.important_end_at AS importantEndAt,
+            a.attachment_id    AS attachmentId,
+            a.file_name        AS fileName,
+            a.file_size        AS fileSize
+        FROM notice n
+        LEFT JOIN attachment a ON n.file_group_id = a.file_group_id AND a.is_deleted = 0
+        WHERE n.notice_id = #{noticeId}
+          AND n.is_deleted = 0
     </select>
 
     <select id="findPinned"
@@ -79,6 +100,20 @@
           AND (important_end_at IS NULL OR important_end_at > NOW())
         ORDER BY created_at DESC
         LIMIT 1
+    </select>
+
+    <select id="findAttachmentById" resultType="com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment">
+        SELECT
+            attachment_id               AS attachmentId,
+            file_group_id               AS fileGroupId,
+            file_name                   AS fileName,
+            file_path                   AS filePath,
+            file_size                   AS fileSize,
+            file_type                   AS fileType,
+            file_attachment_uploaded_at AS fileAttachmentUploadedAt
+        FROM attachment
+        WHERE attachment_id = #{attachmentId}
+          AND is_deleted = 0
     </select>
 
 </mapper>

@@ -57,4 +57,16 @@ public class Attachment {
     @LastModifiedBy
     @Column(name = "updated_by")
     private Long updatedBy;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Integer isDeleted = 0;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void softDelete() {
+        this.isDeleted = 1;
+        this.deletedAt = LocalDateTime.now();
+    }
 }

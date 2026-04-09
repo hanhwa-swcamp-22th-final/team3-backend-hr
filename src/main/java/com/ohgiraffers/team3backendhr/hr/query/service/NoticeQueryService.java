@@ -6,6 +6,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.NoticeQueryMapper;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,15 @@ public class NoticeQueryService {
             throw new BusinessException(ErrorCode.NOTICE_NOT_FOUND);
         }
         return response;
+    }
+
+    /* 첨부파일 상세 정보 조회 (Query 전용) */
+    public Attachment getAttachmentDetail(Long attachmentId) {
+        Attachment attachment = noticeQueryMapper.findAttachmentById(attachmentId);
+        if (attachment == null) {
+            throw new BusinessException(ErrorCode.ATTACHMENT_NOT_FOUND);
+        }
+        return attachment;
     }
 
     public NoticePinnedResponse getPinnedNotice() {

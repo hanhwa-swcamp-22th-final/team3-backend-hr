@@ -7,14 +7,24 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeD
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticePublishRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeScheduleRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.FileType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.ReferenceType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.NoticeRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileDetail;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +32,9 @@ import java.time.LocalDateTime;
 public class NoticeCommandService {
 
     private final NoticeRepository noticeRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final AttachmentFileGroupRepository attachmentFileGroupRepository;
+    private final FileStorage fileStorage;
     private final IdGenerator idGenerator;
 
     /* 즉시 게시 — status: POSTING */
@@ -35,6 +48,44 @@ public class NoticeCommandService {
                 null,
                 request.getImportantEndAt()
         );
+    }
+
+    /**
+     * HR-018: 첨부파일 업로드
+     * - @Transactional 적용으로 DB 작업 원자성 보장
+     * - 확장자 기반 FileType 자동 판별 로직 추가
+     */
+    public void uploadAttachments(Long noticeId, List<MultipartFile> files) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
+
+        Long fileGroupId = notice.getFileGroupId();
+        if (fileGroupId == null) {
+            fileGroupId = idGenerator.generate();
+            AttachmentFileGroup group = AttachmentFileGroup.builder()
+                    .fileGroupId(fileGroupId)
+                    .referenceId(noticeId)
+                    .referenceType(ReferenceType.NOTICE)
+                    .build();
+            attachmentFileGroupRepository.save(group);
+            notice.setFileGroupId(fileGroupId);
+        }
+
+        for (MultipartFile file : files) {
+            // 인프라 계층(FileStorage)에 업로드 위임
+            FileDetail detail = fileStorage.upload(file, "notices");
+
+            Attachment attachment = Attachment.builder()
+                    .attachmentId(idGenerator.generate())
+                    .fileGroupId(fileGroupId)
+                    .fileName(detail.getFileName())
+                    .filePath(detail.getFilePath())
+                    .fileSize(detail.getFileSize())
+                    .fileType(FileType.fromExtension(detail.getFileName())) // 개선: 확장자 기반 판별
+                    .fileAttachmentUploadedAt(LocalDateTime.now())
+                    .build();
+            Attachment saved = attachmentRepository.save(attachment);
+        }
     }
 
     /* 예약 게시 — status: RESERVATION, publishStartAt 필수 */
@@ -52,11 +103,10 @@ public class NoticeCommandService {
                 request.isImportant(),
                 request.getPublishStartAt(),
                 request.getImportantEndAt()
-        );
-    }
+            );
+        }
 
-    /* 임시 저장 — noticeId 있으면 기존 TEMPORARY 공지 재저장, 없으면 신규 생성.
-     * 생성된(또는 기존) noticeId 반환 — 프론트에서 재저장 시 사용 */
+    /* 임시 저장 */
     public Long draftNotice(NoticeDraftRequest request, Long employeeId) {
         if (request.getNoticeId() != null) {
             Notice notice = noticeRepository.findById(request.getNoticeId())
@@ -97,7 +147,7 @@ public class NoticeCommandService {
         );
     }
 
-    /* 조회수 증가 — POSTING 상태인 공지만 증가 (임시저장·예약 상태는 무시) */
+    /* 조회수 증가 */
     public void incrementViews(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
@@ -106,11 +156,16 @@ public class NoticeCommandService {
         }
     }
 
-    /* Soft Delete — is_deleted = 1, deleted_at = now() */
+    /* Soft Delete */
     public void deleteNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOTICE_NOT_FOUND));
         notice.softDelete();
+
+        // 연관된 첨부파일 Soft Delete 처리
+        if (notice.getFileGroupId() != null) {
+            attachmentRepository.deleteByFileGroupId(notice.getFileGroupId());
+        }
     }
 
     private Long saveNotice(NoticeStatus status, Long employeeId,

@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/hr/notices")
@@ -67,5 +70,17 @@ public class NoticeController {
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long noticeId) {
         noticeCommandService.deleteNotice(noticeId);
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    /**
+     * HR-018: 공지사항 첨부파일 업로드
+     */
+    @PostMapping("/{noticeId}/attachments")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Void>> uploadAttachments(
+            @PathVariable Long noticeId,
+            @RequestParam("files") List<MultipartFile> files) {
+        noticeCommandService.uploadAttachments(noticeId, files);
+        return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 }

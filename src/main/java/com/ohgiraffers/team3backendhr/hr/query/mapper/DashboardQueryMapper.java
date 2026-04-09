@@ -20,13 +20,16 @@ public interface DashboardQueryMapper {
     HrmKpiSummaryResponse findHrmKpiSummary(@Param("year") int year, @Param("quarter") int quarter);
 
     /* HR-002: HRM 사원별 KPI 상세 목록 */
-    List<HrmKpiDetailItem> findHrmKpiDetails(
-            @Param("year") int year,
-            @Param("quarter") int quarter,
-            @Param("size") int size,
-            @Param("offset") int offset);
+    List<HrmKpiDetailItem> findHrmKpiDetails(@Param("year") int year,
+                                             @Param("quarter") int quarter,
+                                             @Param("size") int size,
+                                             @Param("offset") int offset);
 
-    long countHrmKpiDetails(@Param("year") int year, @Param("quarter") int quarter);
+    List<HrmKpiDetailItem> findHrmKpiDetailsAll(@Param("year") int year,
+                                                @Param("quarter") int quarter);
+
+    long countHrmKpiDetails(@Param("year") int year,
+                            @Param("quarter") int quarter);
 
     /* HR-003: HRM KPI 추이 (연도별 분기 목록) */
     List<HrmKpiTrendItem> findHrmKpiTrends(@Param("year") int year);

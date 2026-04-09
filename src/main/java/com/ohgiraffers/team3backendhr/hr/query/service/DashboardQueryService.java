@@ -32,6 +32,10 @@ public class DashboardQueryService {
         return mapper.findHrmKpiDetails(year, quarter, size, page * size);
     }
 
+    public List<HrmKpiDetailItem> getHrmKpiDetailsAll(int year, int quarter) {
+        return mapper.findHrmKpiDetailsAll(year, quarter);
+    }
+
     /* HR-003 */
     public List<HrmKpiTrendItem> getHrmKpiTrends(int year) {
         return mapper.findHrmKpiTrends(year);

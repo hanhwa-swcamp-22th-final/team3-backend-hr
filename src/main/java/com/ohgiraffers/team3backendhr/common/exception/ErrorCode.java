@@ -52,6 +52,7 @@ public enum ErrorCode {
 
     /* 공지 (Notice) */
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND_006", "공지를 찾을 수 없습니다."),
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND_007", "첨부파일을 찾을 수 없습니다."),
     NOTICE_INVALID_STATUS(HttpStatus.BAD_REQUEST, "CONFLICT_021", "임시 저장 상태인 공지만 재저장할 수 있습니다."),
     INVALID_SCHEDULE_TIME(HttpStatus.BAD_REQUEST, "BAD_REQUEST_006", "예약 게시 시각은 중요 공지 종료일보다 이전이어야 합니다."),
     SCHEDULE_TIME_REQUIRED(HttpStatus.BAD_REQUEST, "BAD_REQUEST_007", "예약 게시 시각은 필수입니다."),
