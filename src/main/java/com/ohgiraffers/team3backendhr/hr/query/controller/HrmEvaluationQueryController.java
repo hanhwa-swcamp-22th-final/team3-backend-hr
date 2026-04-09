@@ -6,8 +6,11 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationGradeSummaryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationListResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.quantitativeevaluation.QuantitativeEvaluationDetailResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.quantitativeevaluation.QuantitativeEvaluationListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.HrmEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.QuantitativeEvaluationQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +29,7 @@ public class HrmEvaluationQueryController {
 
     private final QualitativeEvaluationQueryService qualService;
     private final HrmEvaluationQueryService hrmService;
+    private final QuantitativeEvaluationQueryService quantService;
 
     /* HRM — 평가 목록 조회 (periodId·grade·status 필터, 페이징) */
     @GetMapping
@@ -68,5 +72,25 @@ public class HrmEvaluationQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<List<AntiGamingFlagItem>>> getAntiGamingFlags() {
         return ResponseEntity.ok(ApiResponse.success(hrmService.getAntiGamingFlags()));
+    }
+
+    /* HRM — 정량 평가 목록 조회 (periodId·status 필터, 페이징) */
+    @GetMapping("/quantitative")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<QuantitativeEvaluationListResponse>> getQuantitativeList(
+            @RequestParam(required = false) Long periodId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                quantService.getList(periodId, status, page, size)));
+    }
+
+    /* HRM — 정량 평가 상세 조회 */
+    @GetMapping("/quantitative/{evaluationId}")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<QuantitativeEvaluationDetailResponse>> getQuantitativeDetail(
+            @PathVariable Long evaluationId) {
+        return ResponseEntity.ok(ApiResponse.success(quantService.getDetail(evaluationId)));
     }
 }
