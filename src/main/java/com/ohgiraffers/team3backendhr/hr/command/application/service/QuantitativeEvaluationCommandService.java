@@ -1,12 +1,14 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
-import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QuantitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEvaluationCalculatedEvent;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,29 +18,40 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class QuantitativeEvaluationCommandService {
 
-    private final QuantitativeEvaluationRepository repository;
+    private static final long SYSTEM_ACTOR_ID = 0L;
+
+    private final QuantitativeEvaluationRepository quantitativeEvaluationRepository;
     private final IdGenerator idGenerator;
 
-    /** 배치 계산 결과 반영 — 기존 레코드 있으면 UPDATE, 없으면 INSERT */
-    public void applyBatchResult(Long employeeId, Long evalPeriodId, Long equipmentId, QuantEvalScores scores) {
-        QuantitativeEvaluation eval = repository.findByEmployeeIdAndEvalPeriodId(employeeId, evalPeriodId)
-                .orElseGet(() -> QuantitativeEvaluation.builder()
-                        .quantitativeEvaluationId(idGenerator.generate())
-                        .employeeId(employeeId)
-                        .evalPeriodId(evalPeriodId)
-                        .equipmentId(equipmentId)
-                        .status(QuantEvalStatus.TEMPORARY)
-                        .build());
+    public void applyCalculatedResult(QuantitativeEvaluationCalculatedEvent event) {
+        LocalDateTime occurredAt = event.getCalculatedAt() != null ? event.getCalculatedAt() : LocalDateTime.now();
+        List<QuantitativeEvaluation> evaluations = new ArrayList<>();
 
-        eval.applyBatchResult(scores);
-        repository.save(eval);
+        event.getEquipmentResults().forEach(result -> {
+            QuantitativeEvaluation evaluation = quantitativeEvaluationRepository
+                .findByEmployeeIdAndEvaluationPeriodIdAndEquipmentId(
+                    event.getEmployeeId(),
+                    event.getEvaluationPeriodId(),
+                    result.getEquipmentId()
+                )
+                .orElseGet(() -> QuantitativeEvaluation.create(
+                    idGenerator.generate(),
+                    event.getEmployeeId(),
+                    event.getEvaluationPeriodId(),
+                    result.getEquipmentId()
+                ));
+
+            evaluation.applyCalculatedResult(result, occurredAt, SYSTEM_ACTOR_ID);
+            evaluations.add(evaluation);
+        });
+
+        quantitativeEvaluationRepository.saveAll(evaluations);
     }
 
     /** HRM 최종 확정 */
     public void confirm(Long quantitativeEvaluationId) {
-        QuantitativeEvaluation eval = repository.findById(quantitativeEvaluationId)
+        QuantitativeEvaluation eval = quantitativeEvaluationRepository.findById(quantitativeEvaluationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
         eval.confirm();
-        repository.save(eval);
     }
 }

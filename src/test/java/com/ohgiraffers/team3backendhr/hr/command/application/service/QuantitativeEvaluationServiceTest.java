@@ -2,24 +2,28 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
-import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QuantitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEvaluationCalculatedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.mockito.ArgumentCaptor;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
@@ -30,73 +34,76 @@ class QuantitativeEvaluationServiceTest {
     private QuantitativeEvaluationCommandService service;
 
     @Mock
-    private QuantitativeEvaluationRepository repository;
+    private QuantitativeEvaluationRepository quantitativeEvaluationRepository;
 
     @Mock
     private IdGenerator idGenerator;
 
-    private QuantitativeEvaluation buildEval(QuantEvalStatus status) {
-        return QuantitativeEvaluation.builder()
-                .quantitativeEvaluationId(1L)
-                .employeeId(100L)
-                .evalPeriodId(10L)
+    private QuantitativeEquipmentResultEvent buildResult() {
+        return QuantitativeEquipmentResultEvent.builder()
                 .equipmentId(5L)
-                .status(status)
+                .uphScore(BigDecimal.valueOf(90.0))
+                .tScore(BigDecimal.valueOf(91.0))
                 .build();
     }
 
-    private QuantEvalScores buildScores() {
-        return QuantEvalScores.builder()
-                .uphScore(90.0).yieldScore(85.0).leadTimeScore(88.0)
-                .actualError(0.02).sQuant(87.5).tScore(91.0).materialShielding(true)
+    private QuantitativeEvaluationCalculatedEvent buildEvent() {
+        return QuantitativeEvaluationCalculatedEvent.builder()
+                .employeeId(100L)
+                .evaluationPeriodId(10L)
+                .calculatedAt(LocalDateTime.now())
+                .equipmentResults(List.of(buildResult()))
                 .build();
     }
 
     @Test
     @DisplayName("배치 결과 수신 시 기존 레코드가 있으면 점수를 업데이트한다")
-    void applyBatchResult_update() {
-        QuantitativeEvaluation existing = buildEval(QuantEvalStatus.TEMPORARY);
-        given(repository.findByEmployeeIdAndEvalPeriodId(100L, 10L)).willReturn(Optional.of(existing));
+    void applyCalculatedResult_update() {
+        QuantitativeEvaluation existing = QuantitativeEvaluation.create(1L, 100L, 10L, 5L);
+        given(quantitativeEvaluationRepository
+                .findByEmployeeIdAndEvaluationPeriodIdAndEquipmentId(100L, 10L, 5L))
+                .willReturn(Optional.of(existing));
 
-        service.applyBatchResult(100L, 10L, 5L, buildScores());
+        service.applyCalculatedResult(buildEvent());
 
-        assertThat(existing.getUphScore()).isEqualTo(90.0);
-        assertThat(existing.getTScore()).isEqualTo(91.0);
-        verify(repository).save(existing);
+        assertThat(existing.getUphScore()).isEqualByComparingTo(BigDecimal.valueOf(90.0));
+        assertThat(existing.getTScore()).isEqualByComparingTo(BigDecimal.valueOf(91.0));
+        verify(quantitativeEvaluationRepository).saveAll(anyList());
     }
 
     @Test
     @DisplayName("배치 결과 수신 시 기존 레코드가 없으면 새로 INSERT하고 점수가 세팅된다")
-    void applyBatchResult_insert() {
-        given(repository.findByEmployeeIdAndEvalPeriodId(100L, 10L)).willReturn(Optional.empty());
-        given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
+    void applyCalculatedResult_insert() {
+        given(quantitativeEvaluationRepository
+                .findByEmployeeIdAndEvaluationPeriodIdAndEquipmentId(100L, 10L, 5L))
+                .willReturn(Optional.empty());
+        given(idGenerator.generate()).willReturn(999L);
 
-        service.applyBatchResult(100L, 10L, 5L, buildScores());
+        service.applyCalculatedResult(buildEvent());
 
-        ArgumentCaptor<QuantitativeEvaluation> captor = ArgumentCaptor.forClass(QuantitativeEvaluation.class);
-        verify(repository).save(captor.capture());
-        QuantitativeEvaluation saved = captor.getValue();
-        assertThat(saved.getUphScore()).isEqualTo(90.0);
-        assertThat(saved.getTScore()).isEqualTo(91.0);
+        ArgumentCaptor<List<QuantitativeEvaluation>> captor = ArgumentCaptor.forClass(List.class);
+        verify(quantitativeEvaluationRepository).saveAll(captor.capture());
+        QuantitativeEvaluation saved = captor.getValue().get(0);
+        assertThat(saved.getUphScore()).isEqualByComparingTo(BigDecimal.valueOf(90.0));
         assertThat(saved.getStatus()).isEqualTo(QuantEvalStatus.TEMPORARY);
     }
 
     @Test
     @DisplayName("confirm() 호출 시 TEMPORARY → CONFIRMED 전이된다")
     void confirm_success() {
-        QuantitativeEvaluation eval = buildEval(QuantEvalStatus.TEMPORARY);
-        given(repository.findById(1L)).willReturn(Optional.of(eval));
+        QuantitativeEvaluation eval = QuantitativeEvaluation.create(1L, 100L, 10L, 5L);
+        eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
+        given(quantitativeEvaluationRepository.findById(1L)).willReturn(Optional.of(eval));
 
         service.confirm(1L);
 
         assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
-        verify(repository).save(eval);
     }
 
     @Test
     @DisplayName("confirm() 호출 시 평가를 찾지 못하면 예외가 발생한다")
     void confirm_fail_notFound() {
-        given(repository.findById(999L)).willReturn(Optional.empty());
+        given(quantitativeEvaluationRepository.findById(999L)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.confirm(999L))
                 .isInstanceOf(BusinessException.class)
@@ -106,8 +113,10 @@ class QuantitativeEvaluationServiceTest {
     @Test
     @DisplayName("이미 CONFIRMED 상태에서 confirm() 호출 시 예외가 발생한다")
     void confirm_fail_alreadyConfirmed() {
-        QuantitativeEvaluation eval = buildEval(QuantEvalStatus.CONFIRMED);
-        given(repository.findById(1L)).willReturn(Optional.of(eval));
+        QuantitativeEvaluation eval = QuantitativeEvaluation.create(1L, 100L, 10L, 5L);
+        eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
+        eval.confirm();
+        given(quantitativeEvaluationRepository.findById(1L)).willReturn(Optional.of(eval));
 
         assertThatThrownBy(() -> service.confirm(1L))
                 .isInstanceOf(BusinessException.class)

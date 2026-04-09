@@ -2,23 +2,23 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativee
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
-import jakarta.persistence.*;
-import lombok.*;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "quantitative_evaluation")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
 public class QuantitativeEvaluation {
 
     @Id
@@ -29,64 +29,78 @@ public class QuantitativeEvaluation {
     private Long employeeId;
 
     @Column(name = "eval_period_id", nullable = false)
-    private Long evalPeriodId;
+    private Long evaluationPeriodId;
 
     @Column(name = "equipment_id", nullable = false)
     private Long equipmentId;
 
     @Column(name = "uph_score")
-    private Double uphScore;
+    private BigDecimal uphScore;
 
     @Column(name = "yield_score")
-    private Double yieldScore;
+    private BigDecimal yieldScore;
 
     @Column(name = "lead_time_score")
-    private Double leadTimeScore;
+    private BigDecimal leadTimeScore;
 
     @Column(name = "actual_error")
-    private Double actualError;
+    private BigDecimal actualError;
 
     @Column(name = "s_quant")
-    private Double sQuant;
+    private BigDecimal sQuant;
 
     @Column(name = "t_score")
-    private Double tScore;
+    private BigDecimal tScore;
 
     @Column(name = "material_shielding")
-    private Boolean materialShielding;
+    private Integer materialShielding;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private QuantEvalStatus status;
 
-    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @CreatedBy
     @Column(name = "created_by", updatable = false)
     private Long createdBy;
 
-    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @LastModifiedBy
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    /** 배치 계산 결과 반영 — CONFIRMED 상태에서는 불가 */
-    public void applyBatchResult(QuantEvalScores scores) {
-        if (this.status == QuantEvalStatus.CONFIRMED) {
-            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
+    public static QuantitativeEvaluation create(
+        Long quantitativeEvaluationId,
+        Long employeeId,
+        Long evaluationPeriodId,
+        Long equipmentId
+    ) {
+        QuantitativeEvaluation evaluation = new QuantitativeEvaluation();
+        evaluation.quantitativeEvaluationId = quantitativeEvaluationId;
+        evaluation.employeeId = employeeId;
+        evaluation.evaluationPeriodId = evaluationPeriodId;
+        evaluation.equipmentId = equipmentId;
+        return evaluation;
+    }
+
+    public void applyCalculatedResult(QuantitativeEquipmentResultEvent result, LocalDateTime occurredAt, Long actorId) {
+        if (this.createdAt == null) {
+            this.createdAt = occurredAt;
+            this.createdBy = actorId;
         }
-        this.uphScore = scores.getUphScore();
-        this.yieldScore = scores.getYieldScore();
-        this.leadTimeScore = scores.getLeadTimeScore();
-        this.actualError = scores.getActualError();
-        this.sQuant = scores.getSQuant();
-        this.tScore = scores.getTScore();
-        this.materialShielding = scores.getMaterialShielding();
+
+        this.uphScore = result.getUphScore();
+        this.yieldScore = result.getYieldScore();
+        this.leadTimeScore = result.getLeadTimeScore();
+        this.actualError = result.getActualError();
+        this.sQuant = result.getSQuant();
+        this.tScore = result.getTScore();
+        this.materialShielding = result.getMaterialShielding();
+        this.status = QuantEvalStatus.TEMPORARY;
+        this.updatedAt = occurredAt;
+        this.updatedBy = actorId;
     }
 
     /** HRM 최종 확정 — TEMPORARY → CONFIRMED */
