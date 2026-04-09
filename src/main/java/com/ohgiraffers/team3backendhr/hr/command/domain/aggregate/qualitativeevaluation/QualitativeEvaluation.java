@@ -19,7 +19,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 @Entity
 @Table(name = "qualitative_evaluation")
 @EntityListeners(AuditingEntityListener.class)
@@ -91,10 +92,10 @@ public class QualitativeEvaluation {
 
     public void saveDraft(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("Submitted evaluations cannot be modified.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
         }
         if (this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("Confirmed evaluations cannot be modified.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
         this.evaluatorId = evaluatorId;
         this.evalItems = evalItems;
@@ -105,10 +106,10 @@ public class QualitativeEvaluation {
 
     public void submit(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("The evaluation has already been submitted.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
         }
         if (evalComment == null || evalComment.length() < 20) {
-            throw new IllegalArgumentException("Evaluation comments must be at least 20 characters long.");
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
         this.evalItems = evalItems;
@@ -119,7 +120,7 @@ public class QualitativeEvaluation {
 
     public void applyAnalysisResult(Double rawScore) {
         if (this.status != QualEvalStatus.SUBMITTED) {
-            throw new IllegalStateException("Analysis results can only be applied to submitted evaluations.");
+            throw new BusinessException(ErrorCode.EVALUATION_NOT_SUBMITTED);
         }
         this.score = rawScore;
     }
@@ -131,10 +132,10 @@ public class QualitativeEvaluation {
 
     public void confirmFinal(Long evaluatorId, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.CONFIRMED) {
-            throw new IllegalStateException("The evaluation has already been confirmed.");
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
         if (evalComment == null || evalComment.length() < 20) {
-            throw new IllegalArgumentException("Evaluation comments must be at least 20 characters long.");
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
         this.evalComment = evalComment;

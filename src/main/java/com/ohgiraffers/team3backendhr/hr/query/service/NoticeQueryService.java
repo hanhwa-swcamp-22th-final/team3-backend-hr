@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
@@ -25,7 +27,7 @@ public class NoticeQueryService {
     public NoticeDetailResponse getNoticeDetail(Long noticeId) {
         NoticeDetailResponse response = noticeQueryMapper.findById(noticeId);
         if (response == null) {
-            throw new IllegalArgumentException("공지를 찾을 수 없습니다.");
+            throw new BusinessException(ErrorCode.NOTICE_NOT_FOUND);
         }
         return response;
     }

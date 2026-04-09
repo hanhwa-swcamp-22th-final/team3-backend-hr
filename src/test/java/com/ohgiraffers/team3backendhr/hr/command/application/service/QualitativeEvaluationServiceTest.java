@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
@@ -90,8 +91,8 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.saveDraft(200L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("평가 레코드를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 
     @Test
@@ -107,8 +108,8 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.saveDraft(200L, 101L, request))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("이미 제출된 평가는 수정할 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("이미 제출된 평가입니다.");
     }
 
     /* ── submit ──────────────────────────────────────────────────────────── */
@@ -176,7 +177,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.saveDraftForDL(300L, 101L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다.");
     }
 
@@ -195,8 +196,8 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.saveDraftForDL(300L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("평가 레코드를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 
     /* ── submitForDL (2차) ───────────────────────────────────────────────── */
@@ -243,7 +244,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.submitForDL(300L, 101L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다.");
     }
 
@@ -262,8 +263,8 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.submitForDL(300L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("평가 레코드를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 
     @Test
@@ -278,8 +279,8 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.submit(200L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("평가 레코드를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 
     /* ── createRecordsForPeriod ──────────────────────────────────────────── */
@@ -356,7 +357,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.confirmFinal(400L, 101L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다.");
     }
 
@@ -388,7 +389,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.confirmFinal(400L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -405,7 +406,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.submit(200L, 101L, request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 코멘트는 최소 20자 이상이어야 합니다.");
     }
 
@@ -434,7 +435,7 @@ class QualitativeEvaluationServiceTest {
 
         // when & then
         assertThatThrownBy(() -> service.applyAnalysisResult(999L, 88.0, Grade.A))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("평가 레코드를 찾을 수 없습니다.");
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("평가를 찾을 수 없습니다.");
     }
 }

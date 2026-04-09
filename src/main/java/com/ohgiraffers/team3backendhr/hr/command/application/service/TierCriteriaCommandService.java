@@ -2,6 +2,8 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.TierConfig;
@@ -43,13 +45,13 @@ public class TierCriteriaCommandService {
                     weightDistributionJson, new TypeReference<>() {});
             int sum = weights.values().stream().mapToInt(Integer::intValue).sum();
             if (sum != 100) {
-                throw new IllegalArgumentException(
+                throw new BusinessException(ErrorCode.INVALID_WEIGHT_SUM,
                         "가중치 합계는 100%이어야 합니다. 현재 합계: " + sum);
             }
-        } catch (IllegalArgumentException e) {
+        } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
-            throw new IllegalArgumentException("가중치 분포 JSON 형식이 올바르지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_WEIGHT_FORMAT);
         }
     }
 }

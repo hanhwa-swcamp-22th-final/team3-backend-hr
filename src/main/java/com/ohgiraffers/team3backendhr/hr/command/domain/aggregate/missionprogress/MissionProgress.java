@@ -11,6 +11,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+
 @Entity
 @Table(name = "mission_progress")
 @EntityListeners(AuditingEntityListener.class)
@@ -61,7 +64,7 @@ public class MissionProgress {
     /* 진행값 갱신 — conditionValue 이상이면 자동으로 COMPLETED 전이 */
     public void updateProgress(BigDecimal newValue, BigDecimal conditionValue) {
         if (this.status == MissionStatus.COMPLETED) {
-            throw new IllegalStateException("이미 완료된 미션입니다.");
+            throw new BusinessException(ErrorCode.MISSION_ALREADY_COMPLETED);
         }
         this.currentValue = newValue;
         if (newValue.compareTo(conditionValue) >= 0) {

@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
@@ -75,7 +77,7 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
 
         assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("종료일은 시작일보다 이후여야 합니다.");
     }
 
@@ -89,7 +91,7 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("이미 진행 중인 평가 기간이 있습니다.");
     }
 
@@ -104,7 +106,7 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 1, EvalType.QUALITATIVE)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다.");
     }
 
@@ -121,7 +123,7 @@ class EvaluationPeriodServiceTest {
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1))).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
     }
 
@@ -140,7 +142,7 @@ class EvaluationPeriodServiceTest {
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1), 1L)).willReturn(true);
 
         assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
     }
 
@@ -161,7 +163,7 @@ class EvaluationPeriodServiceTest {
         given(repository.findById(any())).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.close(999L))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("평가 기간을 찾을 수 없습니다.");
     }
 
@@ -189,7 +191,7 @@ class EvaluationPeriodServiceTest {
         );
 
         assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("종료일은 시작일보다 이후여야 합니다.");
     }
 
@@ -206,7 +208,7 @@ class EvaluationPeriodServiceTest {
         );
 
         assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(IllegalStateException.class)
+                .isInstanceOf(BusinessException.class)
                 .hasMessage("확정된 평가 기간은 수정할 수 없습니다.");
     }
 
