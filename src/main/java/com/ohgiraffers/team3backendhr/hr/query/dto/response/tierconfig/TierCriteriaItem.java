@@ -1,35 +1,19 @@
-package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria;
+package com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class TierCriteriaSaveRequest {
+public class TierCriteriaItem {
 
-    @NotBlank
-    private final String tier;                          // S | A | B | C
-
-    @NotNull
+    private final Long tierConfigId;
+    private final String tier;
     private final Integer tierConfigPromotionPoint;
-
-    @NotNull
     private final Double equipmentResponseTargetScore;
-
-    @NotNull
     private final Double technicalTransferTargetScore;
-
-    @NotNull
     private final Double innovationProposalTargetScore;
-
-    @NotNull
     private final Double safetyComplianceTargetScore;
-
-    @NotNull
     private final Double qualityManagementTargetScore;
-
-    @NotNull
     private final Double productivityTargetScore;
 }

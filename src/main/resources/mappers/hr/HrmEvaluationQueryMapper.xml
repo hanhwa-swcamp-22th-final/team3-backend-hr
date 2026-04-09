@@ -41,4 +41,29 @@
         ORDER BY af.target_year DESC, af.target_period DESC
     </select>
 
+
+    <!-- Grade별 최신 평가 기준 조회 -->
+    <select id="findLatestCriteria"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem">
+        SELECT
+            t1.tier_config_id                   AS tierConfigId,
+            t1.tier_config_tier                 AS tier,
+            t1.tier_config_promotion_point      AS tierConfigPromotionPoint,
+            t1.equipment_response_target_score  AS equipmentResponseTargetScore,
+            t1.technical_transfer_target_score  AS technicalTransferTargetScore,
+            t1.innovation_proposal_target_score AS innovationProposalTargetScore,
+            t1.safety_compliance_target_score   AS safetyComplianceTargetScore,
+            t1.quality_management_target_score  AS qualityManagementTargetScore,
+            t1.productivity_target_score        AS productivityTargetScore
+        FROM tier_config t1
+        WHERE t1.tier_config_id = (
+            SELECT t2.tier_config_id
+            FROM tier_config t2
+            WHERE t2.tier_config_tier = t1.tier_config_tier
+            ORDER BY t2.created_at DESC, t2.tier_config_id DESC
+            LIMIT 1
+        )
+        ORDER BY t1.tier_config_tier
+    </select>
+
 </mapper>

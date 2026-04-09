@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
@@ -14,4 +15,7 @@ public interface HrmEvaluationQueryMapper {
 
     /* 어뷰징 감지 목록 조회 */
     List<AntiGamingFlagItem> findAntiGamingFlags();
+
+    /* Grade별 최신 평가 기준 조회 */
+    List<TierCriteriaItem> findLatestCriteria();
 }

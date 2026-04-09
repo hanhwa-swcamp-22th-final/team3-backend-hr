@@ -47,6 +47,9 @@ class HrmEvaluationQueryControllerTest {
     private HrmEvaluationQueryService hrmService;
 
     @MockitoBean
+    private com.ohgiraffers.team3backendhr.hr.query.service.QuantitativeEvaluationQueryService quantService;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean

@@ -52,6 +52,9 @@ class WorkerQueryControllerTest {
     private PerformancePointQueryService performancePointQueryService;
 
     @MockitoBean
+    private com.ohgiraffers.team3backendhr.hr.query.service.WorkerEvaluationQueryService workerEvaluationQueryService;
+
+    @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
 
     @MockitoBean
