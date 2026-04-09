@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -26,4 +27,6 @@ public interface AdminClient {
     void updateEmployeeTier(Long employeeId, Grade newTier);
 
     List<DomainKeywordRuleResponse> getActiveDomainKeywordRules();
+
+    AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId);
 }

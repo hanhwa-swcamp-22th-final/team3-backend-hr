@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -70,5 +71,12 @@ public class AdminFeignClient implements AdminClient {
             return List.of();
         }
         return response.getData();
+    }
+
+    @Override
+    public AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId) {
+        AdminApiResponse<AlgorithmVersionSnapshotResponse> response =
+            adminFeignApi.getAlgorithmVersionDetail(algorithmVersionId);
+        return response == null ? null : response.getData();
     }
 }

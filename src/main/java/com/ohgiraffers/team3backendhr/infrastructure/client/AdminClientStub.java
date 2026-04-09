@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -87,6 +88,23 @@ public class AdminClientStub implements AdminClient {
             keywordRule("teamwork", new BigDecimal("7.0"), new BigDecimal("1.4")),
             keywordRule("problem solving", new BigDecimal("8.0"), new BigDecimal("1.4"))
         );
+    }
+
+    @Override
+    public AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId) {
+        AlgorithmVersionSnapshotResponse response = new AlgorithmVersionSnapshotResponse();
+        response.setAlgorithmVersionId(algorithmVersionId);
+        response.setVersionNo("stub-v1");
+        response.setImplementationKey("quantitative-stub");
+        response.setDescription("Stub algorithm snapshot for local HR tests.");
+        response.setIsActive(Boolean.TRUE);
+        response.setParameters(
+            "{\"environment\":{\"tempWeight\":0.4,\"humidityWeight\":0.3,\"particleWeight\":0.3},\"lotDefectThreshold\":0.6,\"monthly\":{\"environmentCorrection\":0.0,\"materialCorrection\":0.0}}"
+        );
+        response.setReferenceValues(
+            "{\"targetUph\":100.0,\"targetYieldRate\":95.0,\"targetLeadTimeSec\":60.0}"
+        );
+        return response;
     }
 
     private WorkerResponse worker(Long id, String code, String name) {

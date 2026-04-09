@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -115,5 +116,17 @@ public class AdminRestClient implements AdminClient {
         );
         AdminApiResponse<List<DomainKeywordRuleResponse>> body = response.getBody();
         return body != null && body.getData() != null ? body.getData() : List.of();
+    }
+
+    @Override
+    public AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId) {
+        ResponseEntity<AdminApiResponse<AlgorithmVersionSnapshotResponse>> response = restTemplate.exchange(
+            adminBaseUrl + "/api/v1/algorithm-version/" + algorithmVersionId,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {}
+        );
+        AdminApiResponse<AlgorithmVersionSnapshotResponse> body = response.getBody();
+        return body != null ? body.getData() : null;
     }
 }
