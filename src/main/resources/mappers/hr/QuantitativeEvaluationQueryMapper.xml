@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.QuantitativeEvaluationQueryMapper">
+
+    <!-- HRM 정량 평가 목록 조회 (periodId·status 필터, 페이징) -->
+    <select id="findList"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.quantitativeevaluation.QuantitativeEvaluationSummaryItem">
+        SELECT
+            qn.quantitative_evaluation_id   AS quantitativeEvaluationId,
+            qn.employee_id                  AS employeeId,
+            e.employee_name                 AS employeeName,
+            qn.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            qn.t_score                      AS tScore,
+            qn.status
+        FROM quantitative_evaluation qn
+        JOIN employee e ON e.employee_id = qn.employee_id
+        JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
+        <where>
+            <if test="periodId != null">
+                AND qn.eval_period_id = #{periodId}
+            </if>
+            <if test="status != null">
+                AND qn.status = #{status}
+            </if>
+        </where>
+        ORDER BY ep.eval_year DESC, ep.eval_sequence DESC, e.employee_name ASC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*)
+        FROM quantitative_evaluation qn
+        <where>
+            <if test="periodId != null">
+                AND qn.eval_period_id = #{periodId}
+            </if>
+            <if test="status != null">
+                AND qn.status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- HRM 정량 평가 상세 조회 -->
+    <select id="findById"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.quantitativeevaluation.QuantitativeEvaluationDetailResponse">
+        SELECT
+            qn.quantitative_evaluation_id   AS quantitativeEvaluationId,
+            qn.employee_id                  AS employeeId,
+            e.employee_name                 AS employeeName,
+            qn.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            qn.equipment_id                 AS equipmentId,
+            qn.uph_score                    AS uphScore,
+            qn.yield_score                  AS yieldScore,
+            qn.lead_time_score              AS leadTimeScore,
+            qn.actual_error                 AS actualError,
+            qn.s_quant                      AS sQuant,
+            qn.t_score                      AS tScore,
+            qn.material_shielding           AS materialShielding,
+            qn.status
+        FROM quantitative_evaluation qn
+        JOIN employee e ON e.employee_id = qn.employee_id
+        JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
+        WHERE qn.quantitative_evaluation_id = #{evaluationId}
+    </select>
+
+</mapper>

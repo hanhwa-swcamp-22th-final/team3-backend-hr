@@ -8,8 +8,11 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualita
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
+import java.math.BigDecimal;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.QualitativeEvaluationEventPublisher;
@@ -44,6 +47,9 @@ class QualitativeEvaluationServiceTest {
 
     @Mock
     private QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
+
+    @Mock
+    private EvaluationCommentRepository evaluationCommentRepository;
 
     @InjectMocks
     private QualitativeEvaluationCommandService service;
@@ -413,28 +419,33 @@ class QualitativeEvaluationServiceTest {
     /* ── applyAnalysisResult (batch NLP 분석 결과 반영) ─────────────────────── */
 
     @Test
-    @DisplayName("batch 분석 결과 반영 성공 — score·grade가 세팅된다")
+    @DisplayName("batch 분석 결과 반영 성공 — score가 세팅된다")
     void applyAnalysisResult_success() {
         // given
         QualitativeEvaluation eval = buildEval(QualEvalStatus.SUBMITTED);
+        QualitativeEvaluationAnalyzedEvent event = new QualitativeEvaluationAnalyzedEvent();
+        event.setQualitativeEvaluationId(1L);
+        event.setRawScore(BigDecimal.valueOf(88.0));
         given(repository.findById(1L)).willReturn(Optional.of(eval));
 
         // when
-        service.applyAnalysisResult(1L, 88.0, Grade.A);
+        service.applyAnalyzedResult(event);
 
         // then
         assertThat(eval.getScore()).isEqualTo(88.0);
-        assertThat(eval.getGrade()).isEqualTo(Grade.A);
     }
 
     @Test
     @DisplayName("batch 분석 결과 반영 — 평가 레코드 없으면 예외")
     void applyAnalysisResult_fail_notFound() {
         // given
+        QualitativeEvaluationAnalyzedEvent event = new QualitativeEvaluationAnalyzedEvent();
+        event.setQualitativeEvaluationId(999L);
+        event.setRawScore(BigDecimal.valueOf(88.0));
         given(repository.findById(999L)).willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> service.applyAnalysisResult(999L, 88.0, Grade.A))
+        assertThatThrownBy(() -> service.applyAnalyzedResult(event))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("평가를 찾을 수 없습니다.");
     }

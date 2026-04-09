@@ -1,8 +1,12 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
@@ -51,8 +55,9 @@ public class QuantitativeEvaluation {
     @Column(name = "material_shielding")
     private Integer materialShielding;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private QuantEvalStatus status;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -93,8 +98,16 @@ public class QuantitativeEvaluation {
         this.sQuant = result.getSQuant();
         this.tScore = result.getTScore();
         this.materialShielding = result.getMaterialShielding();
-        this.status = result.getStatus();
+        this.status = QuantEvalStatus.TEMPORARY;
         this.updatedAt = occurredAt;
         this.updatedBy = actorId;
+    }
+
+    /** HRM 최종 확정 — TEMPORARY → CONFIRMED */
+    public void confirm() {
+        if (this.status == QuantEvalStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
+        }
+        this.status = QuantEvalStatus.CONFIRMED;
     }
 }

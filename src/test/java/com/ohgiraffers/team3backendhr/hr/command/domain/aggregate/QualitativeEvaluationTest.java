@@ -170,17 +170,16 @@ class QualitativeEvaluationTest {
     /* ── applyAnalysisResult (batch NLP 분석 결과 반영) ─────────────────────── */
 
     @Test
-    @DisplayName("SUBMITTED 상태에서 batch 분석 결과 반영 시 score·grade가 세팅된다")
+    @DisplayName("SUBMITTED 상태에서 batch 분석 결과 반영 시 score가 세팅된다")
     void applyAnalysisResult_success() {
         // given
         QualitativeEvaluation eval = buildEval(QualEvalStatus.SUBMITTED, 1L);
 
         // when
-        eval.applyAnalysisResult(88.0, Grade.A);
+        eval.applyAnalysisResult(88.0);
 
         // then
         assertThat(eval.getScore()).isEqualTo(88.0);
-        assertThat(eval.getGrade()).isEqualTo(Grade.A);
         assertThat(eval.getStatus()).isEqualTo(QualEvalStatus.SUBMITTED); // 상태는 유지
     }
 
@@ -191,7 +190,7 @@ class QualitativeEvaluationTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.NO_INPUT, 1L);
 
         // when & then
-        assertThatThrownBy(() -> eval.applyAnalysisResult(88.0, Grade.A))
+        assertThatThrownBy(() -> eval.applyAnalysisResult(88.0))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("제출된 평가에만 분석 결과를 반영할 수 있습니다.");
     }

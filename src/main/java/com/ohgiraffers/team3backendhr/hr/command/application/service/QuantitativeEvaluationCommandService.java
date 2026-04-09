@@ -1,5 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QuantitativeEvaluationRepository;
@@ -44,5 +46,12 @@ public class QuantitativeEvaluationCommandService {
         });
 
         quantitativeEvaluationRepository.saveAll(evaluations);
+    }
+
+    /** HRM 최종 확정 */
+    public void confirm(Long quantitativeEvaluationId) {
+        QuantitativeEvaluation eval = quantitativeEvaluationRepository.findById(quantitativeEvaluationId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
+        eval.confirm();
     }
 }
