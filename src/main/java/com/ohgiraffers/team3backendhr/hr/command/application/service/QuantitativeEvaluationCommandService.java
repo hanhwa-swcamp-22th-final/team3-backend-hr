@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QuantitativeEvaluationRepository;
@@ -19,10 +20,7 @@ public class QuantitativeEvaluationCommandService {
     private final IdGenerator idGenerator;
 
     /** 배치 계산 결과 반영 — 기존 레코드 있으면 UPDATE, 없으면 INSERT */
-    public void applyBatchResult(Long employeeId, Long evalPeriodId, Long equipmentId,
-                                  Double uphScore, Double yieldScore, Double leadTimeScore,
-                                  Double actualError, Double sQuant, Double tScore,
-                                  Boolean materialShielding) {
+    public void applyBatchResult(Long employeeId, Long evalPeriodId, Long equipmentId, QuantEvalScores scores) {
         QuantitativeEvaluation eval = repository.findByEmployeeIdAndEvalPeriodId(employeeId, evalPeriodId)
                 .orElseGet(() -> QuantitativeEvaluation.builder()
                         .quantitativeEvaluationId(idGenerator.generate())
@@ -32,7 +30,7 @@ public class QuantitativeEvaluationCommandService {
                         .status(QuantEvalStatus.TEMPORARY)
                         .build());
 
-        eval.applyBatchResult(uphScore, yieldScore, leadTimeScore, actualError, sQuant, tScore, materialShielding);
+        eval.applyBatchResult(scores);
         repository.save(eval);
     }
 

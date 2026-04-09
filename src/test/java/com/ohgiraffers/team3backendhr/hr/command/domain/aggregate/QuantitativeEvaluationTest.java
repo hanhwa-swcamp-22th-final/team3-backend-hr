@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,10 @@ class QuantitativeEvaluationTest {
     void applyBatchResult_success() {
         QuantitativeEvaluation eval = buildEvaluation(QuantEvalStatus.TEMPORARY);
 
-        eval.applyBatchResult(90.0, 85.0, 88.0, 0.02, 87.5, 91.0, true);
+        eval.applyBatchResult(QuantEvalScores.builder()
+                .uphScore(90.0).yieldScore(85.0).leadTimeScore(88.0)
+                .actualError(0.02).sQuant(87.5).tScore(91.0).materialShielding(true)
+                .build());
 
         assertThat(eval.getUphScore()).isEqualTo(90.0);
         assertThat(eval.getYieldScore()).isEqualTo(85.0);
@@ -64,7 +68,10 @@ class QuantitativeEvaluationTest {
     void applyBatchResult_fail_alreadyConfirmed() {
         QuantitativeEvaluation eval = buildEvaluation(QuantEvalStatus.CONFIRMED);
 
-        assertThatThrownBy(() -> eval.applyBatchResult(90.0, 85.0, 88.0, 0.02, 87.5, 91.0, true))
+        assertThatThrownBy(() -> eval.applyBatchResult(QuantEvalScores.builder()
+                .uphScore(90.0).yieldScore(85.0).leadTimeScore(88.0)
+                .actualError(0.02).sQuant(87.5).tScore(91.0).materialShielding(true)
+                .build()))
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(ErrorCode.EVALUATION_ALREADY_CONFIRMED.getMessage());
     }

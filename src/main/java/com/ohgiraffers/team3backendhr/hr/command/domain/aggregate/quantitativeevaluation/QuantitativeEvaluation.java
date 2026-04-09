@@ -76,19 +76,17 @@ public class QuantitativeEvaluation {
     private Long updatedBy;
 
     /** 배치 계산 결과 반영 — CONFIRMED 상태에서는 불가 */
-    public void applyBatchResult(Double uphScore, Double yieldScore, Double leadTimeScore,
-                                  Double actualError, Double sQuant, Double tScore,
-                                  Boolean materialShielding) {
+    public void applyBatchResult(QuantEvalScores scores) {
         if (this.status == QuantEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
-        this.uphScore = uphScore;
-        this.yieldScore = yieldScore;
-        this.leadTimeScore = leadTimeScore;
-        this.actualError = actualError;
-        this.sQuant = sQuant;
-        this.tScore = tScore;
-        this.materialShielding = materialShielding;
+        this.uphScore = scores.getUphScore();
+        this.yieldScore = scores.getYieldScore();
+        this.leadTimeScore = scores.getLeadTimeScore();
+        this.actualError = scores.getActualError();
+        this.sQuant = scores.getSQuant();
+        this.tScore = scores.getTScore();
+        this.materialShielding = scores.getMaterialShielding();
     }
 
     /** HRM 최종 확정 — TEMPORARY → CONFIRMED */

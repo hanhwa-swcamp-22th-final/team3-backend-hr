@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -43,13 +45,20 @@ class QuantitativeEvaluationServiceTest {
                 .build();
     }
 
+    private QuantEvalScores buildScores() {
+        return QuantEvalScores.builder()
+                .uphScore(90.0).yieldScore(85.0).leadTimeScore(88.0)
+                .actualError(0.02).sQuant(87.5).tScore(91.0).materialShielding(true)
+                .build();
+    }
+
     @Test
     @DisplayName("배치 결과 수신 시 기존 레코드가 있으면 점수를 업데이트한다")
     void applyBatchResult_update() {
         QuantitativeEvaluation existing = buildEval(QuantEvalStatus.TEMPORARY);
         given(repository.findByEmployeeIdAndEvalPeriodId(100L, 10L)).willReturn(Optional.of(existing));
 
-        service.applyBatchResult(100L, 10L, 5L, 90.0, 85.0, 88.0, 0.02, 87.5, 91.0, true);
+        service.applyBatchResult(100L, 10L, 5L, buildScores());
 
         assertThat(existing.getUphScore()).isEqualTo(90.0);
         assertThat(existing.getTScore()).isEqualTo(91.0);
@@ -57,14 +66,19 @@ class QuantitativeEvaluationServiceTest {
     }
 
     @Test
-    @DisplayName("배치 결과 수신 시 기존 레코드가 없으면 새로 INSERT한다")
+    @DisplayName("배치 결과 수신 시 기존 레코드가 없으면 새로 INSERT하고 점수가 세팅된다")
     void applyBatchResult_insert() {
         given(repository.findByEmployeeIdAndEvalPeriodId(100L, 10L)).willReturn(Optional.empty());
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
-        service.applyBatchResult(100L, 10L, 5L, 90.0, 85.0, 88.0, 0.02, 87.5, 91.0, true);
+        service.applyBatchResult(100L, 10L, 5L, buildScores());
 
-        verify(repository).save(any(QuantitativeEvaluation.class));
+        ArgumentCaptor<QuantitativeEvaluation> captor = ArgumentCaptor.forClass(QuantitativeEvaluation.class);
+        verify(repository).save(captor.capture());
+        QuantitativeEvaluation saved = captor.getValue();
+        assertThat(saved.getUphScore()).isEqualTo(90.0);
+        assertThat(saved.getTScore()).isEqualTo(91.0);
+        assertThat(saved.getStatus()).isEqualTo(QuantEvalStatus.TEMPORARY);
     }
 
     @Test

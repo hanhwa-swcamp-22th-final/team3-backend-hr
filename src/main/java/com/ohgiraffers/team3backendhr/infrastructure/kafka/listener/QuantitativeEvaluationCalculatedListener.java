@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.service.QuantitativeEvaluationCommandService;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalScores;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEvaluationCalculatedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QuantitativeKafkaTopics;
 import lombok.RequiredArgsConstructor;
@@ -28,17 +29,16 @@ public class QuantitativeEvaluationCalculatedListener {
             return;
         }
 
-        service.applyBatchResult(
-                event.getEmployeeId(),
-                event.getEvalPeriodId(),
-                event.getEquipmentId(),
-                event.getUphScore(),
-                event.getYieldScore(),
-                event.getLeadTimeScore(),
-                event.getActualError(),
-                event.getSQuant(),
-                event.getTScore(),
-                event.getMaterialShielding()
-        );
+        QuantEvalScores scores = QuantEvalScores.builder()
+                .uphScore(event.getUphScore())
+                .yieldScore(event.getYieldScore())
+                .leadTimeScore(event.getLeadTimeScore())
+                .actualError(event.getActualError())
+                .sQuant(event.getSQuant())
+                .tScore(event.getTScore())
+                .materialShielding(event.getMaterialShielding())
+                .build();
+
+        service.applyBatchResult(event.getEmployeeId(), event.getEvalPeriodId(), event.getEquipmentId(), scores);
     }
 }
