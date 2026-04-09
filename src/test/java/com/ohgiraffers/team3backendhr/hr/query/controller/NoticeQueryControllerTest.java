@@ -149,7 +149,7 @@ class NoticeQueryControllerTest {
     void getNoticeDetail_success() throws Exception {
         NoticeDetailResponse response = new NoticeDetailResponse(
                 1L, "제목", "내용", 99L, "POSTING", 0, 5L,
-                LocalDateTime.of(2026, 4, 1, 9, 0), null, null);
+                LocalDateTime.of(2026, 4, 1, 9, 0), null, null, null);
         given(noticeQueryService.getNoticeDetail(1L)).willReturn(response);
 
         mockMvc.perform(get("/api/v1/hr/notices/1")

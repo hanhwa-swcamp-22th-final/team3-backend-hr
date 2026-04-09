@@ -78,6 +78,9 @@ public class Notice {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "file_group_id")
+    private Long fileGroupId;
+
     public void update(String title, String content, NoticeStatus status,
                        boolean important, LocalDateTime publishStartAt, LocalDateTime importantEndAt) {
         this.noticeTitle = title;
@@ -86,6 +89,10 @@ public class Notice {
         this.isImportant = important ? 1 : 0;
         this.publishStartAt = publishStartAt;
         this.importantEndAt = importantEndAt;
+    }
+
+    public void setFileGroupId(Long fileGroupId) {
+        this.fileGroupId = fileGroupId;
     }
 
     /* 임시 저장 재저장 — TEMPORARY 상태에서만 호출, 제목·내용 null 허용 */

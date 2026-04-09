@@ -3,15 +3,23 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.NoticeQueryService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -24,8 +32,6 @@ public class NoticeQueryController {
 
     /**
      * HR-012: 공지 목록 조회
-     * - HRM: status 파라미터로 게시중·예약·임시 모두 조회 가능
-     * - Worker/TL/DL: notice_status = POSTING 강제, isImportant 필터만 허용
      */
     @GetMapping
     public ResponseEntity<ApiResponse<List<NoticeListResponse>>> getNotices(
@@ -47,7 +53,6 @@ public class NoticeQueryController {
 
     /**
      * HR-017: 상단 고정 공지 단건 조회
-     * is_important = 1 AND POSTING AND importantEndAt > NOW() 조건 중 최신 1건
      */
     @GetMapping("/pinned")
     public ResponseEntity<ApiResponse<NoticePinnedResponse>> getPinnedNotice() {
@@ -62,5 +67,27 @@ public class NoticeQueryController {
             @PathVariable Long noticeId) {
         noticeCommandService.incrementViews(noticeId);
         return ResponseEntity.ok(ApiResponse.success(noticeQueryService.getNoticeDetail(noticeId)));
+    }
+
+    /**
+     * HR-019: 공지사항 첨부파일 다운로드
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/attachments/{attachmentId}")
+    public ResponseEntity<Resource> downloadAttachment(@PathVariable Long attachmentId) throws UnsupportedEncodingException {
+        Attachment attachment = noticeQueryService.getAttachmentDetail(attachmentId);
+
+        Resource resource = new FileSystemResource(attachment.getFilePath());
+        if (!resource.exists()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        String encodedFileName = URLEncoder.encode(attachment.getFileName(), StandardCharsets.UTF_8.toString())
+                .replaceAll("\\+", "%20");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + encodedFileName + "\"")
+                .body(resource);
     }
 }

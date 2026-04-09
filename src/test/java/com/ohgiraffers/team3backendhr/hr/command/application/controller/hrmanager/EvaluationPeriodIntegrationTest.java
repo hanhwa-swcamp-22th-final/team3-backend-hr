@@ -63,6 +63,8 @@ class EvaluationPeriodIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
     }
 
     @AfterEach
@@ -98,6 +100,7 @@ class EvaluationPeriodIntegrationTest {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
                 1L, 2026, 1, EvalType.QUALITATIVE,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
+        long beforeCount = qualitativeEvaluationRepository.count();
 
         // when
         mockMvc.perform(post("/api/v1/hr/evaluation-periods")
@@ -109,7 +112,7 @@ class EvaluationPeriodIntegrationTest {
 
         // then
         assertThat(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).isTrue();
-        assertThat(qualitativeEvaluationRepository.findAll()).hasSize(3); // WORKER 1명 × level 3
+        assertThat(qualitativeEvaluationRepository.count()).isEqualTo(beforeCount + 3); // WORKER 1명 × level 3
     }
 
     @Test

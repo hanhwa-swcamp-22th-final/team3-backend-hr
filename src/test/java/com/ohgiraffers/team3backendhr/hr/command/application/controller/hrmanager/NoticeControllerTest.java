@@ -8,6 +8,7 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeS
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.NoticeUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;
+import com.ohgiraffers.team3backendhr.hr.query.service.NoticeQueryService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,9 @@ class NoticeControllerTest {
 
     @MockitoBean
     private NoticeCommandService noticeCommandService;
+
+    @MockitoBean
+    private NoticeQueryService noticeQueryService;
 
     private EmployeeUserDetails hrmUser() {
         return new EmployeeUserDetails(99L, "EMP-HRM", "password",

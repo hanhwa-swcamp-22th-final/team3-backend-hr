@@ -1,0 +1,82 @@
+package com.ohgiraffers.team3backendhr.infrastructure.storage;
+
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Set;
+import java.util.UUID;
+
+@Component
+public class LocalFileStorage implements FileStorage {
+
+    @Value("${file.upload-dir:./uploads}")
+    private String uploadDir;
+
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+            "pdf", "jpg", "jpeg", "png", "gif",
+            "xlsx", "xls",
+            "txt", "mp4", "wav", "mp3"
+    );
+
+    @Override
+    public FileDetail upload(MultipartFile file, String directory) {
+        if (file.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "파일이 비어있습니다.");
+        }
+
+        // 1. 확장자 추출 및 검증
+        String originalFileName = file.getOriginalFilename();
+        String extension = "";
+        if (originalFileName != null && originalFileName.contains(".")) {
+            extension = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
+        }
+
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "허용되지 않는 파일 형식입니다: " + extension);
+        }
+
+        try {
+            // 2. 저장 경로 생성 (예: ./uploads/notices)
+            Path root = Paths.get(uploadDir, directory);
+            if (!Files.exists(root)) {
+                Files.createDirectories(root);
+            }
+
+            // 3. 파일명 중복 방지 (UUID 사용) - extension에 점(.) 포함하여 다시 추출
+            String dotExtension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                dotExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+            String savedFileName = UUID.randomUUID().toString() + dotExtension;
+            Path targetPath = root.resolve(savedFileName);
+
+            // 4. 파일 저장
+            Files.copy(file.getInputStream(), targetPath);
+
+            return new FileDetail(
+                    originalFileName,
+                    targetPath.toString(),
+                    file.getSize()
+            );
+
+        } catch (IOException e) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "파일 저장 중 오류가 발생했습니다.");
+        }
+    }
+
+    @Override
+    public void delete(String filePath) {
+        try {
+            Files.deleteIfExists(Paths.get(filePath));
+        } catch (IOException e) {
+            // 삭제 실패는 로그만 남기고 무시하거나 예외 처리
+        }
+    }
+}
