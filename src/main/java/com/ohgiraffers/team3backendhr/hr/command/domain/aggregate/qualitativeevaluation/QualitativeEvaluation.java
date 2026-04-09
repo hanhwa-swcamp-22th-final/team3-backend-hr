@@ -1,26 +1,32 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation;
 
-
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
-
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
-
 @Entity
 @Table(name = "qualitative_evaluation")
-@EntityListeners(AuditingEntityListener.class) // createdAt, createdBy 등 Auditing 자동 처리
+@EntityListeners(AuditingEntityListener.class)
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA는 기본 생성자 필요, PROTECTED로 외부 직접 생성 방지
-@AllArgsConstructor(access = AccessLevel.PRIVATE)  // @Builder가 내부적으로 사용하는 전체 생성자 (외부 직접 생성 방지)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class QualitativeEvaluation {
 
@@ -29,37 +35,40 @@ public class QualitativeEvaluation {
     private Long qualitativeEvaluationId;
 
     @Column(name = "evaluatee_id", nullable = false)
-    private Long evaluateeId;           // 피평가자 ID
+    private Long evaluateeId;
 
     @Column(name = "evaluator_id")
-    private Long evaluatorId;           // 평가자 ID — 생성 시 null, 실제 평가 시 로그인한 사람 ID로 세팅
+    private Long evaluatorId;
 
     @Column(name = "evaluation_period_id", nullable = false)
     private Long evaluationPeriodId;
 
     @Column(name = "evaluation_level")
-    private Long evaluationLevel;       // 평가 차수: 1=TL(1차), 2=DL(2차), 3=HRM(최종)
+    private Long evaluationLevel;
 
     @Column(name = "eval_items", columnDefinition = "JSON")
-    private String evalItems;           // 카테고리별 점수 JSON (예: {"TECHNICAL_COMPETENCE": 90})
+    private String evalItems;
 
     @Column(name = "eval_comment", length = 2000)
-    private String evalComment;         // 평가 코멘트 (최소 20자, 최대 2000자)
+    private String evalComment;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "grade")
-    private Grade grade;                // S / A / B / C — score 기반으로 서비스에서 자동 산출, 생성 시 null
+    private Grade grade;
 
     @Column(name = "score")
-    private Double score;               // batch NLP 분석 결과로 세팅되는 점수 (0~100)
+    private Double score;
+
+    @Column(name = "s_qual")
+    private Double sQual;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "input_method")
-    private InputMethod inputMethod;    // TEXT / VOICE_STT — 생성 시 null, 실제 입력 시 세팅
+    private InputMethod inputMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    @Builder.Default                    // @Builder 사용 시 기본값 적용을 위해 필요
+    @Builder.Default
     private QualEvalStatus status = QualEvalStatus.NO_INPUT;
 
     @Column(name = "confirmed_at")
@@ -81,7 +90,6 @@ public class QualitativeEvaluation {
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    /* 임시저장 — NO_INPUT or DRAFT → DRAFT (level 1·2 공용, evaluationLevel은 생성 시 고정) */
     public void saveDraft(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
@@ -89,15 +97,13 @@ public class QualitativeEvaluation {
         if (this.status == QualEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
-        this.evaluatorId = evaluatorId;  // 로그인한 평가자 ID 세팅
+        this.evaluatorId = evaluatorId;
         this.evalItems = evalItems;
         this.evalComment = evalComment;
         this.inputMethod = inputMethod;
         this.status = QualEvalStatus.DRAFT;
     }
 
-    /* 평가 제출 — NO_INPUT or DRAFT → SUBMITTED (level 1·2 공용) */
-    /* score·grade는 batch NLP 분석 후 applyAnalysisResult()로 세팅 */
     public void submit(Long evaluatorId, String evalItems, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
@@ -112,17 +118,18 @@ public class QualitativeEvaluation {
         this.status = QualEvalStatus.SUBMITTED;
     }
 
-    /* batch NLP 분석 결과 반영 — SUBMITTED 상태에서만 허용 */
-    public void applyAnalysisResult(Double score, Grade grade) {
+    public void applyAnalysisResult(Double rawScore) {
         if (this.status != QualEvalStatus.SUBMITTED) {
             throw new BusinessException(ErrorCode.EVALUATION_NOT_SUBMITTED);
         }
-        this.score = score;
+        this.score = rawScore;
+    }
+
+    public void applyNormalizationResult(Double sQual, Grade grade) {
+        this.sQual = sQual;
         this.grade = grade;
     }
 
-    /* HRM 최종 확정 — NO_INPUT → CONFIRMED (level 3 전용) */
-    /* 2차 완료 여부 체크는 서비스에서 수행 */
     public void confirmFinal(Long evaluatorId, String evalComment, InputMethod inputMethod) {
         if (this.status == QualEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);

@@ -1,8 +1,11 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgEmployeeResponse;
@@ -26,10 +29,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * Admin 서비스 HTTP 클라이언트.
- * application.yml 의 feign.admin.url 이 설정된 경우 생성된다.
- */
 @Slf4j
 @Component("adminRestClient")
 @ConditionalOnProperty(prefix = "feign.admin", name = "url")
@@ -59,48 +58,48 @@ public class AdminRestClient implements AdminClient {
     @Override
     public EmployeeProfileResponse getWorkerProfile(Long employeeId) {
         return restTemplate.getForObject(
-                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/profile",
-                EmployeeProfileResponse.class
+            adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/profile",
+            EmployeeProfileResponse.class
         );
     }
 
     @Override
     public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
         return restTemplate.exchange(
-                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/skills",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<EmployeeSkillResponse>>() {}
+            adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/skills",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<EmployeeSkillResponse>>() {}
         ).getBody();
     }
 
     @Override
     public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
         return restTemplate.exchange(
-                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-milestones",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<TierMilestoneResponse>>() {}
+            adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-milestones",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<TierMilestoneResponse>>() {}
         ).getBody();
     }
 
     @Override
     public List<TierChartPointResponse> getTierChart(Long employeeId) {
         return restTemplate.exchange(
-                adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-chart",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<TierChartPointResponse>>() {}
+            adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-chart",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<TierChartPointResponse>>() {}
         ).getBody();
     }
 
     @Override
     public List<Long> getTeamMemberIds(Long leaderId) {
         return restTemplate.exchange(
-                adminBaseUrl + "/api/v1/admin/employees/" + leaderId + "/team-members",
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<Long>>() {}
+            adminBaseUrl + "/api/v1/admin/employees/" + leaderId + "/team-members",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<Long>>() {}
         ).getBody();
     }
 
@@ -108,43 +107,72 @@ public class AdminRestClient implements AdminClient {
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
         String url = adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier";
         RequestEntity<TierUpdateRequest> request = RequestEntity
-                .patch(URI.create(url))
-                .body(new TierUpdateRequest(newTier));
+            .patch(URI.create(url))
+            .body(new TierUpdateRequest(newTier));
         restTemplate.exchange(request, Void.class);
-        log.info("[AdminRestClient] 티어 업데이트 완료 - employeeId={}, newTier={}", employeeId, newTier);
+        log.info("[AdminRestClient] Tier updated. employeeId={}, newTier={}", employeeId, newTier);
+    }
+
+    @Override
+    public List<DomainKeywordRuleResponse> getActiveDomainKeywordRules() {
+        ResponseEntity<AdminApiResponse<List<DomainKeywordRuleResponse>>> response = restTemplate.exchange(
+            adminBaseUrl + "/api/v1/domain-keyword",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {}
+        );
+        AdminApiResponse<List<DomainKeywordRuleResponse>> body = response.getBody();
+        return body != null && body.getData() != null ? body.getData() : List.of();
+    }
+
+    @Override
+    public AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId) {
+        ResponseEntity<AdminApiResponse<AlgorithmVersionSnapshotResponse>> response = restTemplate.exchange(
+            adminBaseUrl + "/api/v1/algorithm-version/" + algorithmVersionId,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {}
+        );
+        AdminApiResponse<AlgorithmVersionSnapshotResponse> body = response.getBody();
+        return body != null ? body.getData() : null;
     }
 
     @Override
     public OrgUnitTreeResponse getOrgTree() {
         return restTemplate.getForObject(
-                adminBaseUrl + "/api/v1/admin/org/units",
-                OrgUnitTreeResponse.class
+            adminBaseUrl + "/api/v1/admin/org/units",
+            OrgUnitTreeResponse.class
         );
     }
 
     @Override
     public List<OrgEmployeeResponse> getEmployees(Long departmentId, Long teamId, String keyword, int page, int size) {
         String url = adminBaseUrl + "/api/v1/admin/org/employees?page=" + page + "&size=" + size
-                + (departmentId != null ? "&departmentId=" + departmentId : "")
-                + (teamId != null ? "&teamId=" + teamId : "")
-                + (keyword != null ? "&keyword=" + keyword : "");
-        return restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<OrgEmployeeResponse>>() {}).getBody();
+            + (departmentId != null ? "&departmentId=" + departmentId : "")
+            + (teamId != null ? "&teamId=" + teamId : "")
+            + (keyword != null ? "&keyword=" + keyword : "");
+        return restTemplate.exchange(
+            url,
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<List<OrgEmployeeResponse>>() {}
+        ).getBody();
     }
 
     @Override
     public OrgTeamMembersResponse getTeamMembers(Long teamId) {
         return restTemplate.getForObject(
-                adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
-                OrgTeamMembersResponse.class
+            adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
+            OrgTeamMembersResponse.class
         );
     }
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
         return restTemplate.postForObject(
-                adminBaseUrl + "/api/v1/admin/org/departments",
-                request, Long.class
+            adminBaseUrl + "/api/v1/admin/org/departments",
+            request,
+            Long.class
         );
     }
 
@@ -162,8 +190,9 @@ public class AdminRestClient implements AdminClient {
     @Override
     public Long createTeam(Long departmentId, TeamCreateRequest request) {
         return restTemplate.postForObject(
-                adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId + "/teams",
-                request, Long.class
+            adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId + "/teams",
+            request,
+            Long.class
         );
     }
 
@@ -181,16 +210,17 @@ public class AdminRestClient implements AdminClient {
     @Override
     public DepartmentDetailResponse getDepartmentDetail(Long departmentId) {
         return restTemplate.getForObject(
-                adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId,
-                DepartmentDetailResponse.class
+            adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId,
+            DepartmentDetailResponse.class
         );
     }
 
     @Override
     public void addTeamMembers(Long teamId, TeamMemberAddRequest request) {
         restTemplate.postForObject(
-                adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
-                request, Void.class
+            adminBaseUrl + "/api/v1/admin/org/teams/" + teamId + "/members",
+            request,
+            Void.class
         );
     }
 
