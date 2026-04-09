@@ -1,9 +1,6 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
-<<<<<<< feature/auth
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.*;
-=======
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
@@ -19,7 +16,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddReq
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
->>>>>>> main
 import com.ohgiraffers.team3backendhr.infrastructure.client.feign.AdminFeignApi;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -76,10 +72,6 @@ public class AdminFeignClient implements AdminClient {
     }
 
     @Override
-<<<<<<< feature/auth
-    public OrgUnitTreeResponse getOrgTree() {
-        return null;
-=======
     public List<DomainKeywordRuleResponse> getActiveDomainKeywordRules() {
         AdminApiResponse<List<DomainKeywordRuleResponse>> response = adminFeignApi.getDomainKeywordRules();
         if (response == null || response.getData() == null) {
@@ -98,107 +90,60 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public OrgUnitTreeResponse getOrgTree() {
         return adminRestClient.getOrgTree();
->>>>>>> main
     }
 
     @Override
     public List<OrgEmployeeResponse> getEmployees(Long departmentId, Long teamId, String keyword, int page, int size) {
-<<<<<<< feature/auth
-        return List.of();
-=======
         return adminRestClient.getEmployees(departmentId, teamId, keyword, page, size);
->>>>>>> main
     }
 
     @Override
     public OrgTeamMembersResponse getTeamMembers(Long teamId) {
-<<<<<<< feature/auth
-        return null;
-=======
         return adminRestClient.getTeamMembers(teamId);
->>>>>>> main
     }
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
-<<<<<<< feature/auth
-        return 0L;
-=======
         return adminRestClient.createDepartment(request);
->>>>>>> main
     }
 
     @Override
     public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
-<<<<<<< feature/auth
-        return 0L;
-=======
         return adminRestClient.updateDepartment(departmentId, request);
->>>>>>> main
     }
 
     @Override
     public void deleteDepartment(Long departmentId) {
-<<<<<<< feature/auth
-
-=======
         adminRestClient.deleteDepartment(departmentId);
->>>>>>> main
     }
 
     @Override
     public Long createTeam(Long departmentId, TeamCreateRequest request) {
-<<<<<<< feature/auth
-        return 0L;
-=======
         return adminRestClient.createTeam(departmentId, request);
->>>>>>> main
     }
 
     @Override
     public Long updateTeam(Long teamId, TeamCreateRequest request) {
-<<<<<<< feature/auth
-        return 0L;
-=======
         return adminRestClient.updateTeam(teamId, request);
->>>>>>> main
     }
 
     @Override
     public void deleteTeam(Long teamId) {
-<<<<<<< feature/auth
-
-=======
         adminRestClient.deleteTeam(teamId);
->>>>>>> main
     }
 
     @Override
     public DepartmentDetailResponse getDepartmentDetail(Long departmentId) {
-<<<<<<< feature/auth
-        return null;
-=======
         return adminRestClient.getDepartmentDetail(departmentId);
->>>>>>> main
     }
 
     @Override
     public void addTeamMembers(Long teamId, TeamMemberAddRequest request) {
-<<<<<<< feature/auth
-
-=======
         adminRestClient.addTeamMembers(teamId, request);
->>>>>>> main
     }
 
     @Override
     public void removeTeamMember(Long teamId, Long employeeId) {
-<<<<<<< feature/auth
-
-    }
-}
-=======
         adminRestClient.removeTeamMember(teamId, employeeId);
     }
 }
->>>>>>> main
