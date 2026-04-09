@@ -3,7 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.query.service;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TierCriteriaItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.HrmEvaluationQueryMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

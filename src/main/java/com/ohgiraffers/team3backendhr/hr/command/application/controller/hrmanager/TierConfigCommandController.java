@@ -3,7 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.TierCriteriaCommandService;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TierCriteriaItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import com.ohgiraffers.team3backendhr.hr.query.service.HrmEvaluationQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

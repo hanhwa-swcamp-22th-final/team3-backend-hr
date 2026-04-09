@@ -44,7 +44,7 @@
 
     <!-- Grade별 최신 평가 기준 조회 -->
     <select id="findLatestCriteria"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TierCriteriaItem">
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem">
         SELECT
             t1.tier_config_id                   AS tierConfigId,
             t1.tier_config_tier                 AS tier,

@@ -1,4 +1,4 @@
-package com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation;
+package com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
