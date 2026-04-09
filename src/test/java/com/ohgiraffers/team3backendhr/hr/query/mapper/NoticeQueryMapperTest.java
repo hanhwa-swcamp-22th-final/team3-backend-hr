@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.Notice;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notice.NoticeStatus;

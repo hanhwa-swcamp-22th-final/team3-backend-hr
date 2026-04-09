@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;

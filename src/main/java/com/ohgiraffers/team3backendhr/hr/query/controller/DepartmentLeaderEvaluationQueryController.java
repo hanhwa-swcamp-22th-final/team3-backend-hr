@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;

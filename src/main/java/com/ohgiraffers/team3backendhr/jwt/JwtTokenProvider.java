@@ -44,18 +44,28 @@ public class JwtTokenProvider {
         }
     }
 
-    public String getEmployeeCodeFromJWT(String token) {
-        Claims claims = Jwts.parser()
+    public Claims getClaimsFromJWT(String token) {
+        return Jwts.parser()
             .verifyWith(secretKey)
             .build()
             .parseSignedClaims(token)
             .getPayload();
+    }
 
+    public Long getEmployeeIdFromJWT(String token) {
+        return Long.valueOf(getClaimsFromJWT(token).getSubject());
+    }
+
+    public String getEmployeeCodeFromJWT(String token) {
+        Claims claims = getClaimsFromJWT(token);
         String employeeCode = claims.get("employeeCode", String.class);
         if (employeeCode != null && !employeeCode.isBlank()) {
             return employeeCode;
         }
-
         return claims.getSubject();
+    }
+
+    public String getRoleFromJWT(String token) {
+        return getClaimsFromJWT(token).get("role", String.class);
     }
 }

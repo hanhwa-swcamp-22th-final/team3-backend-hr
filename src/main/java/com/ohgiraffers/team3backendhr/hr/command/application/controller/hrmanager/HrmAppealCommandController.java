@@ -2,7 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.AppealCommandService;
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

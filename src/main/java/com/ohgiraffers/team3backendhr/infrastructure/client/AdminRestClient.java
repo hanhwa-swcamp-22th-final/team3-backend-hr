@@ -1,6 +1,10 @@
 package com.ohgiraffers.team3backendhr.infrastructure.client;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
+<<<<<<< feature/auth
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.*;
+
+=======
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
@@ -17,6 +21,7 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointRe
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
+>>>>>>> main
 import java.net.URI;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
