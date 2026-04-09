@@ -4,41 +4,41 @@ import com.ohgiraffers.team3backendhr.hr.command.application.service.Quantitativ
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEvaluationCalculatedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QuantitativeKafkaTopics;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class QuantitativeEvaluationCalculatedListener {
 
-    private static final Logger log = LoggerFactory.getLogger(QuantitativeEvaluationCalculatedListener.class);
-
-    private final QuantitativeEvaluationCommandService quantitativeEvaluationCommandService;
+    private final QuantitativeEvaluationCommandService service;
 
     @KafkaListener(
-        topics = QuantitativeKafkaTopics.QUANTITATIVE_EVALUATION_CALCULATED,
-        containerFactory = "quantitativeCalculatedKafkaListenerContainerFactory"
+            topics = QuantitativeKafkaTopics.QUANTITATIVE_EVALUATION_CALCULATED,
+            containerFactory = "quantitativeCalculatedKafkaListenerContainerFactory"
     )
     public void listen(QuantitativeEvaluationCalculatedEvent event) {
-        log.info(
-            "Received quantitative calculated event. employeeId={}, evaluationPeriodId={}, equipmentCount={}, periodType={}",
-            event.getEmployeeId(),
-            event.getEvaluationPeriodId(),
-            event.getEquipmentResults() == null ? 0 : event.getEquipmentResults().size(),
-            event.getPeriodType()
-        );
+        log.info("Received quantitative calculated event. employeeId={}, periodId={}, equipmentId={}",
+                event.getEmployeeId(), event.getEvalPeriodId(), event.getEquipmentId());
 
-        if (event.getEquipmentResults() == null || event.getEquipmentResults().isEmpty()) {
-            log.warn(
-                "Skipping empty quantitative calculated event. employeeId={}, evaluationPeriodId={}",
-                event.getEmployeeId(),
-                event.getEvaluationPeriodId()
-            );
+        if (event.getEmployeeId() == null || event.getEvalPeriodId() == null) {
+            log.warn("Skipping quantitative event - missing required fields. event={}", event);
             return;
         }
 
-        quantitativeEvaluationCommandService.applyCalculatedResult(event);
+        service.applyBatchResult(
+                event.getEmployeeId(),
+                event.getEvalPeriodId(),
+                event.getEquipmentId(),
+                event.getUphScore(),
+                event.getYieldScore(),
+                event.getLeadTimeScore(),
+                event.getActualError(),
+                event.getSQuant(),
+                event.getTScore(),
+                event.getMaterialShielding()
+        );
     }
 }

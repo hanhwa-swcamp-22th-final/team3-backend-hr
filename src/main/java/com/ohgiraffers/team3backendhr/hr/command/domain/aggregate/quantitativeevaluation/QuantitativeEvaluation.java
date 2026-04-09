@@ -1,20 +1,24 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation;
 
-import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.math.BigDecimal;
+import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import jakarta.persistence.*;
+import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "quantitative_evaluation")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class QuantitativeEvaluation {
 
     @Id
@@ -25,76 +29,73 @@ public class QuantitativeEvaluation {
     private Long employeeId;
 
     @Column(name = "eval_period_id", nullable = false)
-    private Long evaluationPeriodId;
+    private Long evalPeriodId;
 
     @Column(name = "equipment_id", nullable = false)
     private Long equipmentId;
 
     @Column(name = "uph_score")
-    private BigDecimal uphScore;
+    private Double uphScore;
 
     @Column(name = "yield_score")
-    private BigDecimal yieldScore;
+    private Double yieldScore;
 
     @Column(name = "lead_time_score")
-    private BigDecimal leadTimeScore;
+    private Double leadTimeScore;
 
     @Column(name = "actual_error")
-    private BigDecimal actualError;
+    private Double actualError;
 
     @Column(name = "s_quant")
-    private BigDecimal sQuant;
+    private Double sQuant;
 
     @Column(name = "t_score")
-    private BigDecimal tScore;
+    private Double tScore;
 
     @Column(name = "material_shielding")
-    private Integer materialShielding;
+    private Boolean materialShielding;
 
-    @Column(name = "status")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private QuantEvalStatus status;
 
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @CreatedBy
     @Column(name = "created_by", updatable = false)
     private Long createdBy;
 
+    @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @LastModifiedBy
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    public static QuantitativeEvaluation create(
-        Long quantitativeEvaluationId,
-        Long employeeId,
-        Long evaluationPeriodId,
-        Long equipmentId
-    ) {
-        QuantitativeEvaluation evaluation = new QuantitativeEvaluation();
-        evaluation.quantitativeEvaluationId = quantitativeEvaluationId;
-        evaluation.employeeId = employeeId;
-        evaluation.evaluationPeriodId = evaluationPeriodId;
-        evaluation.equipmentId = equipmentId;
-        return evaluation;
+    /** 배치 계산 결과 반영 — CONFIRMED 상태에서는 불가 */
+    public void applyBatchResult(Double uphScore, Double yieldScore, Double leadTimeScore,
+                                  Double actualError, Double sQuant, Double tScore,
+                                  Boolean materialShielding) {
+        if (this.status == QuantEvalStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
+        }
+        this.uphScore = uphScore;
+        this.yieldScore = yieldScore;
+        this.leadTimeScore = leadTimeScore;
+        this.actualError = actualError;
+        this.sQuant = sQuant;
+        this.tScore = tScore;
+        this.materialShielding = materialShielding;
     }
 
-    public void applyCalculatedResult(QuantitativeEquipmentResultEvent result, LocalDateTime occurredAt, Long actorId) {
-        if (this.createdAt == null) {
-            this.createdAt = occurredAt;
-            this.createdBy = actorId;
+    /** HRM 최종 확정 — TEMPORARY → CONFIRMED */
+    public void confirm() {
+        if (this.status == QuantEvalStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
-
-        this.uphScore = result.getUphScore();
-        this.yieldScore = result.getYieldScore();
-        this.leadTimeScore = result.getLeadTimeScore();
-        this.actualError = result.getActualError();
-        this.sQuant = result.getSQuant();
-        this.tScore = result.getTScore();
-        this.materialShielding = result.getMaterialShielding();
-        this.status = result.getStatus();
-        this.updatedAt = occurredAt;
-        this.updatedBy = actorId;
+        this.status = QuantEvalStatus.CONFIRMED;
     }
 }

@@ -1,14 +1,15 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
-import java.util.Optional;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QuantitativeEvaluationRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface JpaQuantitativeEvaluationRepository extends JpaRepository<QuantitativeEvaluation, Long> {
+import java.util.Optional;
 
-    Optional<QuantitativeEvaluation> findByEmployeeIdAndEvaluationPeriodIdAndEquipmentId(
-        Long employeeId,
-        Long evaluationPeriodId,
-        Long equipmentId
-    );
+public interface JpaQuantitativeEvaluationRepository
+        extends JpaRepository<QuantitativeEvaluation, Long>, QuantitativeEvaluationRepository {
+
+    Optional<QuantitativeEvaluation> findByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
+
+    boolean existsByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
 }
