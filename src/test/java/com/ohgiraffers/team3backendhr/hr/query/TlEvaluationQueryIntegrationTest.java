@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import org.junit.jupiter.api.AfterEach;

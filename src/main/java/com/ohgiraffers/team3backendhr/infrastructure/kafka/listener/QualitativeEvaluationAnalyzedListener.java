@@ -1,7 +1,6 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.listener;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.support.QualitativeKafkaTopics;
 import lombok.RequiredArgsConstructor;
@@ -24,18 +23,27 @@ public class QualitativeEvaluationAnalyzedListener {
     )
     public void listen(QualitativeEvaluationAnalyzedEvent event) {
         log.info(
-            "Received qualitative analyzed event. evaluationId={}, status={}, sQual={}, tier={}",
+            "Received qualitative analyzed event. evaluationId={}, status={}, rawScore={}, sQual={}, tier={}, sentenceCount={}",
             event.getQualitativeEvaluationId(),
             event.getAnalysisStatus(),
+            event.getRawScore(),
             event.getSQual(),
-            event.getNormalizedTier()
+            event.getNormalizedTier(),
+            event.getSentenceAnalyses() == null ? 0 : event.getSentenceAnalyses().size()
         );
 
-        Grade grade = Grade.valueOf(event.getNormalizedTier());
-        qualitativeEvaluationCommandService.applyAnalysisResult(
-            event.getQualitativeEvaluationId(),
-            event.getSQual().doubleValue(),
-            grade
-        );
+        if (event.getRawScore() == null) {
+            log.warn(
+                "Skipping qualitative analyzed event without raw score. evaluationId={}, status={}, rawScore={}, sQual={}, tier={}",
+                event.getQualitativeEvaluationId(),
+                event.getAnalysisStatus(),
+                event.getRawScore(),
+                event.getSQual(),
+                event.getNormalizedTier()
+            );
+            return;
+        }
+
+        qualitativeEvaluationCommandService.applyAnalyzedResult(event);
     }
 }

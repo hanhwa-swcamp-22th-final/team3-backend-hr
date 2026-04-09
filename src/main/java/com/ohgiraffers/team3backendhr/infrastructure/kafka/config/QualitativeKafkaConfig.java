@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.config;
 
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationNormalizedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationSubmittedEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class QualitativeKafkaConfig {
         config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
         return new DefaultKafkaProducerFactory<>(config);
     }
 
@@ -54,7 +56,11 @@ public class QualitativeKafkaConfig {
 
         JsonDeserializer<QualitativeEvaluationAnalyzedEvent> deserializer =
             new JsonDeserializer<>(QualitativeEvaluationAnalyzedEvent.class);
-        deserializer.addTrustedPackages("com.ohgiraffers.team3backendhr.infrastructure.kafka.dto");
+        deserializer.ignoreTypeHeaders();
+        deserializer.addTrustedPackages(
+            "com.ohgiraffers.team3backendhr.infrastructure.kafka.dto",
+            "com.ohgiraffers.team3backendbatch.infrastructure.kafka.dto"
+        );
 
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
     }
@@ -65,6 +71,33 @@ public class QualitativeKafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, QualitativeEvaluationAnalyzedEvent> factory =
             new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(qualitativeAnalyzedConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, QualitativeEvaluationNormalizedEvent> qualitativeNormalizedConsumerFactory() {
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+
+        JsonDeserializer<QualitativeEvaluationNormalizedEvent> deserializer =
+            new JsonDeserializer<>(QualitativeEvaluationNormalizedEvent.class);
+        deserializer.ignoreTypeHeaders();
+        deserializer.addTrustedPackages(
+            "com.ohgiraffers.team3backendhr.infrastructure.kafka.dto",
+            "com.ohgiraffers.team3backendbatch.infrastructure.kafka.dto"
+        );
+
+        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, QualitativeEvaluationNormalizedEvent>
+    qualitativeNormalizedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, QualitativeEvaluationNormalizedEvent> factory =
+            new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(qualitativeNormalizedConsumerFactory());
         return factory;
     }
 }

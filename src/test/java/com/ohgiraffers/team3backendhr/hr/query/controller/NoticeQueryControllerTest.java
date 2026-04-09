@@ -1,7 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query.controller;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
-import com.ohgiraffers.team3backendhr.hr.query.controller.NoticeQueryController;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NoticeCommandService;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
