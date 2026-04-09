@@ -1,6 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
@@ -22,9 +21,6 @@ class HrmEvaluationQueryServiceTest {
 
     @Mock
     private HrmEvaluationQueryMapper mapper;
-
-    @Mock
-    private TierConfigRepository tierConfigRepository;
 
     @InjectMocks
     private HrmEvaluationQueryService service;
@@ -71,7 +67,7 @@ class HrmEvaluationQueryServiceTest {
     @DisplayName("평가 기준 조회 — 정상 반환")
     void getCriteria_returnsList() {
         // given
-        given(tierConfigRepository.findAll()).willReturn(List.of());
+        given(mapper.findLatestCriteria()).willReturn(List.of());
 
         // when
         List<TierCriteriaItem> result = service.getCriteria();
