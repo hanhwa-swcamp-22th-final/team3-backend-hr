@@ -1,26 +1,26 @@
 package com.ohgiraffers.team3backendhr.hr.query.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class KpiMemberDetailResponse {
 
     private Long employeeId;
-    private Integer year;
-    private Integer quarter;
-    private BigDecimal targetProduction;
-    private BigDecimal actualProduction;
-    private BigDecimal defectRate;
-    private BigDecimal eIdx;
-    private BigDecimal productionScore;
-    private BigDecimal eIdxScore;
-    private BigDecimal defectRateScore;
+    private String employeeName;
+    private int year;
+    private int quarter;
+    private Long equipmentId;
+    private BigDecimal uphScore;
+    private BigDecimal yieldScore;
+    private BigDecimal leadTimeScore;
+    private BigDecimal actualError;
+    private BigDecimal sQuant;
+    private BigDecimal tScore;
+    private String status;
 }

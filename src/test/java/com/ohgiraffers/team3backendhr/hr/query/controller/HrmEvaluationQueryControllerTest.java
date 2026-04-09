@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.HrmEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.QualitativeEvaluationQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.QuantitativeEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
 import com.ohgiraffers.team3backendhr.jwt.RestAuthenticationEntryPoint;
@@ -45,6 +46,9 @@ class HrmEvaluationQueryControllerTest {
 
     @MockitoBean
     private HrmEvaluationQueryService hrmService;
+
+    @MockitoBean
+    private QuantitativeEvaluationQueryService quantService;
 
     @MockitoBean
     private JwtTokenProvider jwtTokenProvider;
