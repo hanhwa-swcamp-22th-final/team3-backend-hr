@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.WorkerEvaluationQueryMapper">
+
+    <!-- HR-EVAL-007: 현재 진행 중인 기간 + level 3 정성 평가 상태
+         - 기간 없음: 0행 반환 → mapper null → 서비스에서 EVAL_PERIOD_NOT_IN_PROGRESS
+         - 기간 있음 + 평가 레코드 없음: COALESCE로 'NO_INPUT' 반환 (null 혼용 방지)
+         - IN_PROGRESS 기간 2개 이상 존재 시 임의 선택됨 (DB UNIQUE 제약 추가 필요) -->
+    <select id="findCurrentEvalStatus"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse">
+        SELECT
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            ep.eval_type                    AS evalType,
+            COALESCE(qe.status, 'NO_INPUT') AS qualStatus
+        FROM evaluation_period ep
+        LEFT JOIN qualitative_evaluation qe
+            ON qe.evaluation_period_id = ep.eval_period_id
+            AND qe.evaluatee_id = #{employeeId}
+            AND qe.evaluation_level = 3
+        WHERE ep.status = 'IN_PROGRESS'
+        LIMIT 1
+    </select>
+
+    <!-- HR-EVAL-008: 내 정량 평가 점수 -->
+    <select id="findQuantitative"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse">
+        SELECT
+            qn.quantitative_evaluation_id   AS quantitativeEvaluationId,
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            qn.uph_score                    AS uphScore,
+            qn.yield_score                  AS yieldScore,
+            qn.lead_time_score              AS leadTimeScore,
+            qn.actual_error                 AS actualError,
+            qn.s_quant                      AS sQuant,
+            qn.t_score                      AS tScore,
+            qn.material_shielding           AS materialShielding,
+            qn.status
+        FROM quantitative_evaluation qn
+        JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
+        WHERE qn.employee_id = #{employeeId}
+          AND qn.eval_period_id = #{periodId}
+        LIMIT 1
+    </select>
+
+    <!-- HR-EVAL-009: 내 정성 평가 (level 3 = HRM 최종 확정본) -->
+    <select id="findQualitative"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse">
+        SELECT
+            qe.qualitative_evaluation_id    AS qualitativeEvaluationId,
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            qe.grade,
+            qe.score,
+            qe.eval_items                   AS evalItems,
+            qe.status
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
+        WHERE qe.evaluatee_id = #{employeeId}
+          AND qe.evaluation_period_id = #{periodId}
+          AND qe.evaluation_level = 3
+        LIMIT 1
+    </select>
+
+    <!-- HR-EVAL-010: 분기별 피드백 코멘트 (TL/DL/HRM) -->
+    <select id="findFeedbackItems"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem">
+        SELECT
+            qe.evaluation_level     AS evaluationLevel,
+            qe.eval_comment         AS evalComment,
+            qe.input_method         AS inputMethod,
+            qe.status,
+            ep.eval_year            AS evalYear,
+            ep.eval_sequence        AS evalSequence
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
+        WHERE qe.evaluatee_id = #{employeeId}
+          AND qe.evaluation_period_id = #{periodId}
+          AND qe.status IN ('SUBMITTED', 'CONFIRMED')
+        ORDER BY qe.evaluation_level ASC
+    </select>
+
+    <!-- HR-EVAL-011: 평가 이력 목록 (level 3 확정본 기준, 이의신청 대상 선택용) -->
+    <select id="findEvalHistory"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryItem">
+        SELECT
+            qe.qualitative_evaluation_id    AS qualitativeEvaluationId,
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            ep.eval_type                    AS evalType,
+            qe.grade,
+            qe.score,
+            qe.status,
+            qe.confirmed_at                 AS confirmedAt,
+            CASE
+                WHEN qe.confirmed_at IS NOT NULL
+                     AND qe.confirmed_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY
+                THEN TRUE
+                ELSE FALSE
+            END AS appealable
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
+        WHERE qe.evaluatee_id = #{employeeId}
+          AND qe.evaluation_level = 3
+        ORDER BY ep.eval_year DESC, ep.eval_sequence DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countEvalHistory" resultType="long">
+        SELECT COUNT(*)
+        FROM qualitative_evaluation qe
+        WHERE qe.evaluatee_id = #{employeeId}
+          AND qe.evaluation_level = 3
+    </select>
+
+    <!-- 현재 IN_PROGRESS 기간 ID -->
+    <select id="findCurrentPeriodId" resultType="long">
+        SELECT eval_period_id
+        FROM evaluation_period
+        WHERE status = 'IN_PROGRESS'
+        LIMIT 1
+    </select>
+
+</mapper>

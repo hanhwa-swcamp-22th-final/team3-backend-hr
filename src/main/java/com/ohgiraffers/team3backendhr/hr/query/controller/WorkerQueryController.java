@@ -5,8 +5,14 @@ import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointHistoryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.MissionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.PerformancePointQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.WorkerEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -14,6 +20,7 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointRe
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +34,7 @@ public class WorkerQueryController {
     private final PerformancePointQueryService performancePointQueryService;
     private final MissionQueryService missionQueryService;
     private final WorkerProfileQueryService workerProfileQueryService;
+    private final WorkerEvaluationQueryService workerEvaluationQueryService;
 
     @GetMapping("/point-summary")
     public ResponseEntity<ApiResponse<PointSummaryResponse>> getPointSummary(
@@ -93,5 +101,55 @@ public class WorkerQueryController {
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(
                 workerProfileQueryService.getTierChart(userDetails.getEmployeeId())));
+    }
+
+    /* HR-EVAL-007: 현재 진행 중인 기간의 평가 완료 여부·분기 정보 */
+    @GetMapping("/evaluations/status")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerEvalStatusResponse>> getEvalStatus(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getEvalStatus(userDetails.getEmployeeId())));
+    }
+
+    /* HR-EVAL-008: 내 정량 평가 점수·항목별 상세 */
+    @GetMapping("/evaluations/quantitative")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerQuantitativeResponse>> getQuantitative(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long periodId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getQuantitative(userDetails.getEmployeeId(), periodId)));
+    }
+
+    /* HR-EVAL-009: 내 정성 평가 카테고리별 점수·AI 분석 */
+    @GetMapping("/evaluations/qualitative")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerQualitativeResponse>> getQualitative(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long periodId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getQualitative(userDetails.getEmployeeId(), periodId)));
+    }
+
+    /* HR-EVAL-010: 분기별 성장 피드백·코멘트 */
+    @GetMapping("/evaluations/feedback")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerFeedbackResponse>> getFeedback(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long periodId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getFeedback(userDetails.getEmployeeId(), periodId)));
+    }
+
+    /* HR-EVAL-011: 평가 이력 목록 — 이의신청 대상 선택용 */
+    @GetMapping("/evaluations/history")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerEvalHistoryResponse>> getEvalHistory(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getEvalHistory(userDetails.getEmployeeId(), page, size)));
     }
 }
