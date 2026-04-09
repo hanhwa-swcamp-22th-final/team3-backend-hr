@@ -35,8 +35,13 @@ public class HrmEvaluationQueryService {
                 .map(tc -> new TierCriteriaItem(
                         tc.getTierConfigId(),
                         tc.getTierConfigTier().name(),
-                        tc.getTierConfigWeightDistribution(),
-                        tc.getTierConfigPromotionPoint()))
+                        tc.getTierConfigPromotionPoint(),
+                        tc.getEquipmentResponseTargetScore(),
+                        tc.getTechnicalTransferTargetScore(),
+                        tc.getInnovationProposalTargetScore(),
+                        tc.getSafetyComplianceTargetScore(),
+                        tc.getQualityManagementTargetScore(),
+                        tc.getProductivityTargetScore()))
                 .toList();
     }
 }

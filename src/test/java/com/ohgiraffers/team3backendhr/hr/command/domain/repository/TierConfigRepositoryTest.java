@@ -32,8 +32,13 @@ class TierConfigRepositoryTest {
         tierConfig = TierConfig.builder()
                 .tierConfigId(tierConfigId)
                 .tierConfigTier(Grade.B)
-                .tierConfigWeightDistribution("{\"qualitative\":0.6,\"quantitative\":0.4}")
                 .tierConfigPromotionPoint(300)
+                .equipmentResponseTargetScore(80.0)
+                .technicalTransferTargetScore(75.0)
+                .innovationProposalTargetScore(70.0)
+                .safetyComplianceTargetScore(78.0)
+                .qualityManagementTargetScore(72.0)
+                .productivityTargetScore(68.0)
                 .build();
     }
 
