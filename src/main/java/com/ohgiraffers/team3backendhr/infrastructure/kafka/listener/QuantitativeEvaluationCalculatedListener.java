@@ -23,7 +23,7 @@ public class QuantitativeEvaluationCalculatedListener {
         log.info("Received quantitative calculated event. employeeId={}, periodId={}, equipmentId={}",
                 event.getEmployeeId(), event.getEvalPeriodId(), event.getEquipmentId());
 
-        if (event.getEmployeeId() == null || event.getEvalPeriodId() == null) {
+        if (event.getEmployeeId() == null || event.getEvalPeriodId() == null || event.getEquipmentId() == null) {
             log.warn("Skipping quantitative event - missing required fields. event={}", event);
             return;
         }

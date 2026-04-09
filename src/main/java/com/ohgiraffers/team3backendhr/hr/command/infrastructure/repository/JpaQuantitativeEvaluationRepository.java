@@ -10,6 +10,4 @@ public interface JpaQuantitativeEvaluationRepository
         extends JpaRepository<QuantitativeEvaluation, Long>, QuantitativeEvaluationRepository {
 
     Optional<QuantitativeEvaluation> findByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
-
-    boolean existsByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
 }

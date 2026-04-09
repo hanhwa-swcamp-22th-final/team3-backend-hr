@@ -88,4 +88,15 @@ class QuantitativeEvaluationServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining(ErrorCode.EVALUATION_NOT_FOUND.getMessage());
     }
+
+    @Test
+    @DisplayName("이미 CONFIRMED 상태에서 confirm() 호출 시 예외가 발생한다")
+    void confirm_fail_alreadyConfirmed() {
+        QuantitativeEvaluation eval = buildEval(QuantEvalStatus.CONFIRMED);
+        given(repository.findById(1L)).willReturn(Optional.of(eval));
+
+        assertThatThrownBy(() -> service.confirm(1L))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(ErrorCode.EVALUATION_ALREADY_CONFIRMED.getMessage());
+    }
 }

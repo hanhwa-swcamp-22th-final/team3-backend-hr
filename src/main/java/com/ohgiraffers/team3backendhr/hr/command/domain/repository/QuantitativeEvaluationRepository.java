@@ -11,6 +11,4 @@ public interface QuantitativeEvaluationRepository {
     Optional<QuantitativeEvaluation> findById(Long id);
 
     Optional<QuantitativeEvaluation> findByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
-
-    boolean existsByEmployeeIdAndEvalPeriodId(Long employeeId, Long evalPeriodId);
 }
