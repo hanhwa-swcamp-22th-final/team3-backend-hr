@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.config.security;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

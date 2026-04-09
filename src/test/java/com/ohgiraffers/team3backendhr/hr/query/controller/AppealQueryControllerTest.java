@@ -4,7 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailR
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.AppealQueryService;
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
 import com.ohgiraffers.team3backendhr.jwt.RestAuthenticationEntryPoint;

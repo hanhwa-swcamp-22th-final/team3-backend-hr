@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
 
-import com.ohgiraffers.team3backendhr.auth.command.application.dto.EmployeeUserDetails;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.NotificationCommandService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
