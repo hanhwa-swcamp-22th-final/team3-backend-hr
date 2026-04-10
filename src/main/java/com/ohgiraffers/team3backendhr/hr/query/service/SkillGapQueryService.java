@@ -25,7 +25,7 @@ public class SkillGapQueryService {
                 .map(s -> SkillItem.builder()
                         .skillId(s.getSkillId())
                         .skillName(s.getSkillName())
-                        .skillLevel(s.getSkillLevel())
+                        .skillScore(s.getSkillScore())
                         .build())
                 .toList();
 

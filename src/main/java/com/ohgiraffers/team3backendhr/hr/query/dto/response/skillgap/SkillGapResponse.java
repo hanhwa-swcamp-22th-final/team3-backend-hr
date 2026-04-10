@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.query.dto.response.skillgap;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -21,7 +22,7 @@ public class SkillGapResponse {
     public static class SkillItem {
         private Long skillId;
         private String skillName;
-        private String skillLevel;
+        private BigDecimal skillScore;
     }
 
     @Getter
