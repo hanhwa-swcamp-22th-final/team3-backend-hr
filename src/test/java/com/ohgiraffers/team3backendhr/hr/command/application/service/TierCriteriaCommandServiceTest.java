@@ -40,7 +40,7 @@ class TierCriteriaCommandServiceTest {
     }
 
     @Test
-    @DisplayName("평가 기준 저장 - 개별 점수 필드로 저장 성공")
+    @DisplayName("save criteria with individual score fields")
     void saveCriteria_success() {
         TierCriteriaSaveRequest req = new TierCriteriaSaveRequest(
             "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0
@@ -52,7 +52,7 @@ class TierCriteriaCommandServiceTest {
     }
 
     @Test
-    @DisplayName("평가 기준 저장 - 여러 등급 동시 저장")
+    @DisplayName("save criteria for multiple tiers")
     void saveCriteria_multipleGrades() {
         TierCriteriaSaveRequest reqS = new TierCriteriaSaveRequest(
             "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0
