@@ -5,8 +5,8 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluat
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +37,11 @@ public class EvaluationPeriodCommandController {
             service.update(id, request);
         }
         return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PostMapping("/snapshots/republish")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Integer>> republishSnapshots() {
+        return ResponseEntity.ok(ApiResponse.success(service.republishSnapshots()));
     }
 }
