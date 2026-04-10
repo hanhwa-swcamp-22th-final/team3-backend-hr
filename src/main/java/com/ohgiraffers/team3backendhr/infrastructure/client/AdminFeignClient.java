@@ -14,7 +14,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgUnitTreeRespo
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.feign.AdminFeignApi;
@@ -49,12 +48,6 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
         AdminApiResponse<List<EmployeeSkillResponse>> response = adminFeignApi.getWorkerSkills(employeeId);
-        return response != null && response.getData() != null ? response.getData() : List.of();
-    }
-
-    @Override
-    public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
-        AdminApiResponse<List<TierMilestoneResponse>> response = adminFeignApi.getTierMilestones(employeeId);
         return response != null && response.getData() != null ? response.getData() : List.of();
     }
 

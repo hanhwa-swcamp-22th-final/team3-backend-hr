@@ -13,7 +13,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgUnitTreeRespo
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import java.util.List;
@@ -45,10 +44,6 @@ public interface AdminFeignApi {
     /* 직원 보유 스킬 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/skills")
     AdminApiResponse<List<EmployeeSkillResponse>> getWorkerSkills(@PathVariable Long employeeId);
-
-    /* 티어 이력 */
-    @GetMapping("/api/v1/admin/employees/{employeeId}/tier-milestones")
-    AdminApiResponse<List<TierMilestoneResponse>> getTierMilestones(@PathVariable Long employeeId);
 
     /* 티어 차트 데이터 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/tier-chart")

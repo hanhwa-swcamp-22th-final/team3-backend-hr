@@ -14,7 +14,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgUnitTreeRespo
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import java.net.URI;
@@ -70,16 +69,6 @@ public class AdminRestClient implements AdminClient {
             HttpMethod.GET,
             null,
             new ParameterizedTypeReference<List<EmployeeSkillResponse>>() {}
-        ).getBody();
-    }
-
-    @Override
-    public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
-        return restTemplate.exchange(
-            adminBaseUrl + "/api/v1/admin/employees/" + employeeId + "/tier-milestones",
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<TierMilestoneResponse>>() {}
         ).getBody();
     }
 
