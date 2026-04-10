@@ -147,7 +147,7 @@ public class WorkerQueryController {
     @PreAuthorize("hasAuthority('WORKER')")
     public ResponseEntity<ApiResponse<WorkerEvalHistoryResponse>> getEvalHistory(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
                 workerEvaluationQueryService.getEvalHistory(userDetails.getEmployeeId(), page, size)));

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.PromotionQueryMapper">
+
+    <!-- 전체 심사 대상 수 -->
+    <select id="countTotal" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_history
+    </select>
+
+    <!-- 확정(CONFIRMATION_OF_PROMOTION, TIER_APPLIED) 수 -->
+    <select id="countConfirmed" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_history
+        WHERE tier_promo_status IN ('CONFIRMATION_OF_PROMOTION', 'TIER_APPLIED')
+    </select>
+
+    <!-- 후보 목록 (targetTier 필터, 페이징) -->
+    <select id="findCandidates"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateItem">
+        SELECT
+            ph.tier_promotion_id        AS tierPromotionId,
+            ph.employee_id              AS employeeId,
+            e.employee_name             AS employeeName,
+            tc_cur.tier_config_tier     AS currentTier,
+            tc_tgt.tier_config_tier     AS targetTier,
+            ph.tier_accumulated_point   AS tierAccumulatedPoint,
+            tc_tgt.tier_config_promotion_point AS targetPromotionPoint,
+            ph.tier_promo_status        AS tierPromoStatus,
+            ph.created_at               AS createdAt
+        FROM promotion_history ph
+        JOIN employee e          ON e.employee_id = ph.employee_id
+        JOIN tier_config tc_cur  ON tc_cur.tier_config_id = ph.current_tier_config_id
+        JOIN tier_config tc_tgt  ON tc_tgt.tier_config_id = ph.target_tier_config_id
+        <where>
+            <if test="targetTier != null">
+                AND tc_tgt.tier_config_tier = #{targetTier}
+            </if>
+        </where>
+        ORDER BY ph.created_at DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- 후보 수 (페이징용) -->
+    <select id="countCandidates" resultType="long">
+        SELECT COUNT(*)
+        FROM promotion_history ph
+        JOIN tier_config tc_tgt ON tc_tgt.tier_config_id = ph.target_tier_config_id
+        <where>
+            <if test="targetTier != null">
+                AND tc_tgt.tier_config_tier = #{targetTier}
+            </if>
+        </where>
+    </select>
+
+    <!-- 후보 상세 -->
+    <select id="findCandidateById"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateDetailResponse">
+        SELECT
+            ph.tier_promotion_id        AS tierPromotionId,
+            ph.employee_id              AS employeeId,
+            e.employee_name             AS employeeName,
+            e.employee_tier             AS employeeTier,
+            tc_cur.tier_config_tier     AS currentTier,
+            tc_tgt.tier_config_tier     AS targetTier,
+            ph.tier_accumulated_point   AS tierAccumulatedPoint,
+            tc_tgt.tier_config_promotion_point AS targetPromotionPoint,
+            ph.tier_promo_status        AS tierPromoStatus,
+            ph.tier_reviewed_at         AS tierReviewedAt,
+            ph.created_at               AS createdAt
+        FROM promotion_history ph
+        JOIN employee e          ON e.employee_id = ph.employee_id
+        JOIN tier_config tc_cur  ON tc_cur.tier_config_id = ph.current_tier_config_id
+        JOIN tier_config tc_tgt  ON tc_tgt.tier_config_id = ph.target_tier_config_id
+        WHERE ph.tier_promotion_id = #{candidateId}
+    </select>
+
+</mapper>

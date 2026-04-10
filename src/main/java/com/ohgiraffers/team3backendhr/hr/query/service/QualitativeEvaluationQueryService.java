@@ -76,7 +76,7 @@ public class QualitativeEvaluationQueryService {
     /* HRM — 평가 목록 조회 (periodId·grade·status 필터, 페이징) */
     public EvaluationListResponse getEvaluations(Long periodId, String grade, String status, int page, int size) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
-        int offset = (page - 1) * size;
+        int offset = page * size;
         List<EvaluationSummaryItem> content = mapper.findEvaluations(resolvedPeriodId, grade, status, size, offset);
         long totalCount = mapper.countEvaluations(resolvedPeriodId, grade, status);
         long totalPages = (long) Math.ceil((double) totalCount / size);

@@ -38,7 +38,7 @@ public class HrmEvaluationQueryController {
             @RequestParam(required = false) Long periodId,
             @RequestParam(required = false) String grade,
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
                 qualService.getEvaluations(periodId, grade, status, page, size)));
@@ -80,7 +80,7 @@ public class HrmEvaluationQueryController {
     public ResponseEntity<ApiResponse<QuantitativeEvaluationListResponse>> getQuantitativeList(
             @RequestParam(required = false) Long periodId,
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
                 quantService.getList(periodId, status, page, size)));
