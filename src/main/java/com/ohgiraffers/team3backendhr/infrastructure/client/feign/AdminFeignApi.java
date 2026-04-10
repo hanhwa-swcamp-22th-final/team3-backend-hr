@@ -38,23 +38,23 @@ public interface AdminFeignApi {
     @GetMapping("/api/v1/organization/employees")
     AdminApiResponse<List<WorkerResponse>> getWorkers();
 
-    /* 직원 프로필 */
+    /* 직원 프로필: Admin 구현 예정 계약 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/profile")
     AdminApiResponse<EmployeeProfileResponse> getWorkerProfile(@PathVariable Long employeeId);
 
-    /* 직원 보유 스킬 */
+    /* 직원 보유 스킬: Admin 구현 예정 계약 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/skills")
     AdminApiResponse<List<EmployeeSkillResponse>> getWorkerSkills(@PathVariable Long employeeId);
 
-    /* 티어 차트 데이터 */
+    /* 티어 차트 데이터: Admin 구현 예정 계약 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/tier-chart")
     AdminApiResponse<List<TierChartPointResponse>> getTierChart(@PathVariable Long employeeId);
 
-    /* 팀원 ID 목록 (TL용) */
+    /* 팀원 ID 목록 (TL용): Admin 구현 예정 계약 */
     @GetMapping("/api/v1/admin/employees/{leaderId}/team-members")
     AdminApiResponse<List<Long>> getTeamMemberIds(@PathVariable Long leaderId);
 
-    /* 티어 변경 */
+    /* 티어 변경: Admin 구현 예정 계약 */
     @PatchMapping("/api/v1/admin/employees/{employeeId}/tier")
     void updateEmployeeTier(@PathVariable Long employeeId, @RequestBody TierUpdateRequest request);
 
@@ -87,15 +87,13 @@ public interface AdminFeignApi {
     AdminApiResponse<OrgTeamMembersResponse> getTeamMembers(@PathVariable Long teamId);
 
     /* 부서 생성 */
-    @PostMapping("/api/v1/organization/department")
-    AdminApiResponse<Object> createDepartment(@RequestBody DepartmentCreateRequest request);
+    @PostMapping("/api/v1/admin/org/departments")
+    AdminApiResponse<Long> createDepartment(@RequestBody DepartmentCreateRequest request);
 
-    /* 부서 수정 (Admin은 body에 departmentId 포함, path variable 없음) */
-    @PutMapping("/api/v1/organization/department")
-    void updateDepartment(@RequestBody DepartmentUpdateRequest request);
+    @PutMapping("/api/v1/admin/org/departments/{departmentId}")
+    AdminApiResponse<Long> updateDepartment(@PathVariable Long departmentId, @RequestBody DepartmentCreateRequest request);
 
-    /* 부서 삭제 */
-    @DeleteMapping("/api/v1/organization/department/{departmentId}")
+    @DeleteMapping("/api/v1/admin/org/departments/{departmentId}")
     void deleteDepartment(@PathVariable Long departmentId);
 
     /* 팀 생성 */

@@ -104,16 +104,14 @@ public class AdminFeignClient implements AdminClient {
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
-        adminFeignApi.createDepartment(request);
-        return null; // Admin 응답에 생성된 ID가 포함되면 추후 반영
+        AdminApiResponse<Long> response = adminFeignApi.createDepartment(request);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
-        adminFeignApi.updateDepartment(
-            new DepartmentUpdateRequest(departmentId, request.getDepartmentName(), request.getTeamName())
-        );
-        return departmentId;
+        AdminApiResponse<Long> response = adminFeignApi.updateDepartment(departmentId, request);
+        return response != null ? response.getData() : departmentId;
     }
 
     @Override
