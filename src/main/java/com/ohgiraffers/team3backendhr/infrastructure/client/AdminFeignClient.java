@@ -15,14 +15,17 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateReques
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.feign.AdminFeignApi;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component("adminFeignClient")
 @Primary
 @RequiredArgsConstructor
@@ -30,120 +33,128 @@ import org.springframework.stereotype.Component;
 public class AdminFeignClient implements AdminClient {
 
     private final AdminFeignApi adminFeignApi;
-    private final AdminRestClient adminRestClient;
 
     @Override
     public List<WorkerResponse> getWorkers() {
         AdminApiResponse<List<WorkerResponse>> response = adminFeignApi.getWorkers();
-        if (response == null || response.getData() == null) {
-            return List.of();
-        }
-        return response.getData();
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public EmployeeProfileResponse getWorkerProfile(Long employeeId) {
-        return adminRestClient.getWorkerProfile(employeeId);
+        AdminApiResponse<EmployeeProfileResponse> response = adminFeignApi.getWorkerProfile(employeeId);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
-        return adminRestClient.getWorkerSkills(employeeId);
+        AdminApiResponse<List<EmployeeSkillResponse>> response = adminFeignApi.getWorkerSkills(employeeId);
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
-        return adminRestClient.getTierMilestones(employeeId);
+        AdminApiResponse<List<TierMilestoneResponse>> response = adminFeignApi.getTierMilestones(employeeId);
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public List<TierChartPointResponse> getTierChart(Long employeeId) {
-        return adminRestClient.getTierChart(employeeId);
+        AdminApiResponse<List<TierChartPointResponse>> response = adminFeignApi.getTierChart(employeeId);
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public List<Long> getTeamMemberIds(Long leaderId) {
-        return adminRestClient.getTeamMemberIds(leaderId);
+        AdminApiResponse<List<Long>> response = adminFeignApi.getTeamMemberIds(leaderId);
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
-        adminRestClient.updateEmployeeTier(employeeId, newTier);
+        adminFeignApi.updateEmployeeTier(employeeId, new TierUpdateRequest(newTier));
+        log.info("[AdminFeignClient] Tier updated. employeeId={}, newTier={}", employeeId, newTier);
     }
 
     @Override
     public List<DomainKeywordRuleResponse> getActiveDomainKeywordRules() {
         AdminApiResponse<List<DomainKeywordRuleResponse>> response = adminFeignApi.getDomainKeywordRules();
-        if (response == null || response.getData() == null) {
-            return List.of();
-        }
-        return response.getData();
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId) {
         AdminApiResponse<AlgorithmVersionSnapshotResponse> response =
             adminFeignApi.getAlgorithmVersionDetail(algorithmVersionId);
-        return response == null ? null : response.getData();
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public OrgUnitTreeResponse getOrgTree() {
-        return adminRestClient.getOrgTree();
+        AdminApiResponse<OrgUnitTreeResponse> response = adminFeignApi.getOrgTree();
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public List<OrgEmployeeResponse> getEmployees(Long departmentId, Long teamId, String keyword, int page, int size) {
-        return adminRestClient.getEmployees(departmentId, teamId, keyword, page, size);
+        AdminApiResponse<List<OrgEmployeeResponse>> response =
+            adminFeignApi.getEmployees(departmentId, teamId, keyword, page, size);
+        return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
     @Override
     public OrgTeamMembersResponse getTeamMembers(Long teamId) {
-        return adminRestClient.getTeamMembers(teamId);
+        AdminApiResponse<OrgTeamMembersResponse> response = adminFeignApi.getTeamMembers(teamId);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
-        return adminRestClient.createDepartment(request);
+        AdminApiResponse<Long> response = adminFeignApi.createDepartment(request);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
-        return adminRestClient.updateDepartment(departmentId, request);
+        adminFeignApi.updateDepartment(departmentId, request);
+        return departmentId;
     }
 
     @Override
     public void deleteDepartment(Long departmentId) {
-        adminRestClient.deleteDepartment(departmentId);
+        adminFeignApi.deleteDepartment(departmentId);
     }
 
     @Override
     public Long createTeam(Long departmentId, TeamCreateRequest request) {
-        return adminRestClient.createTeam(departmentId, request);
+        AdminApiResponse<Long> response = adminFeignApi.createTeam(departmentId, request);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public Long updateTeam(Long teamId, TeamCreateRequest request) {
-        return adminRestClient.updateTeam(teamId, request);
+        adminFeignApi.updateTeam(teamId, request);
+        return teamId;
     }
 
     @Override
     public void deleteTeam(Long teamId) {
-        adminRestClient.deleteTeam(teamId);
+        adminFeignApi.deleteTeam(teamId);
     }
 
     @Override
     public DepartmentDetailResponse getDepartmentDetail(Long departmentId) {
-        return adminRestClient.getDepartmentDetail(departmentId);
+        AdminApiResponse<DepartmentDetailResponse> response = adminFeignApi.getDepartmentDetail(departmentId);
+        return response != null ? response.getData() : null;
     }
 
     @Override
     public void addTeamMembers(Long teamId, TeamMemberAddRequest request) {
-        adminRestClient.addTeamMembers(teamId, request);
+        adminFeignApi.addTeamMembers(teamId, request);
     }
 
     @Override
     public void removeTeamMember(Long teamId, Long employeeId) {
-        adminRestClient.removeTeamMember(teamId, employeeId);
+        adminFeignApi.removeTeamMember(teamId, employeeId);
     }
 }
