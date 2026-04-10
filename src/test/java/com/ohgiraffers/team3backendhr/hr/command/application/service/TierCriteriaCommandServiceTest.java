@@ -3,14 +3,14 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.PromotionEventPublisher;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
@@ -25,18 +25,26 @@ class TierCriteriaCommandServiceTest {
     @Mock
     private IdGenerator idGenerator;
 
+    @Mock
+    private PromotionEventPublisher promotionEventPublisher;
+
     private TierCriteriaCommandService service;
 
     @BeforeEach
     void setUp() {
-        service = new TierCriteriaCommandService(tierConfigRepository, idGenerator);
+        service = new TierCriteriaCommandService(
+            tierConfigRepository,
+            idGenerator,
+            promotionEventPublisher
+        );
     }
 
     @Test
-    @DisplayName("í‰ê°€ ê¸°ì¤€ ì €ì¥ â€” ê°œë³„ ì ìˆ˜ í•„ë“œë¡œ ì €ì¥ ì„±ê³µ")
+    @DisplayName("Æò°¡ ±âÁØ ÀúÀå - °³º° Á¡¼ö ÇÊµå·Î ÀúÀå ¼º°ø")
     void saveCriteria_success() {
         TierCriteriaSaveRequest req = new TierCriteriaSaveRequest(
-                "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0);
+            "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0
+        );
 
         service.saveCriteria(List.of(req));
 
@@ -44,12 +52,14 @@ class TierCriteriaCommandServiceTest {
     }
 
     @Test
-    @DisplayName("í‰ê°€ ê¸°ì¤€ ì €ì¥ â€” ì—¬ëŸ¬ ë“±ê¸‰ ë™ì‹œ ì €ì¥")
+    @DisplayName("Æò°¡ ±âÁØ ÀúÀå - ¿©·¯ µî±Ş µ¿½Ã ÀúÀå")
     void saveCriteria_multipleGrades() {
         TierCriteriaSaveRequest reqS = new TierCriteriaSaveRequest(
-                "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0);
+            "S", 100, 90.0, 85.0, 80.0, 88.0, 82.0, 78.0
+        );
         TierCriteriaSaveRequest reqA = new TierCriteriaSaveRequest(
-                "A", 80, 80.0, 75.0, 70.0, 78.0, 72.0, 68.0);
+            "A", 80, 80.0, 75.0, 70.0, 78.0, 72.0, 68.0
+        );
 
         service.saveCriteria(List.of(reqS, reqA));
 

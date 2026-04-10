@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,7 +78,7 @@ class PromotionHistoryRepositoryTest {
                 .reviewerId(reviewerId)
                 .currentTierConfigId(currentTierConfigId)
                 .targetTierConfigId(targetTierConfigId)
-                .tierAccumulatedPoint(320)
+                .tierAccumulatedPoint(BigDecimal.valueOf(320))
                 .build();
     }
 

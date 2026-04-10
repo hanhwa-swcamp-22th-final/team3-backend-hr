@@ -88,7 +88,6 @@ class PromotionCommandIntegrationTest {
         promotionHistoryRepository.save(PromotionHistory.builder()
                 .tierPromotionId(tierPromotionId)
                 .employeeId(300L)
-                .reviewerId(HRM_EMPLOYEE_ID)
                 .currentTierConfigId(currentTierConfigId)
                 .targetTierConfigId(targetTierConfigId)
                 .build());
@@ -111,6 +110,7 @@ class PromotionCommandIntegrationTest {
         PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId).orElseThrow();
         assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.CONFIRMATION_OF_PROMOTION);
         assertThat(history.getTierReviewedAt()).isNotNull();
+        assertThat(history.getReviewerId()).isEqualTo(HRM_EMPLOYEE_ID);
     }
 
     @Test
@@ -125,5 +125,6 @@ class PromotionCommandIntegrationTest {
         PromotionHistory history = promotionHistoryRepository.findById(tierPromotionId).orElseThrow();
         assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.SUSPENSION);
         assertThat(history.getTierReviewedAt()).isNotNull();
+        assertThat(history.getReviewerId()).isEqualTo(HRM_EMPLOYEE_ID);
     }
 }
