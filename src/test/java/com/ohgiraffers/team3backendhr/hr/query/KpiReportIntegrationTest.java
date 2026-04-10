@@ -26,7 +26,7 @@ class KpiReportIntegrationTest {
     void downloadKpiReport_success() throws Exception {
         mockMvc.perform(get("/api/v1/hr/kpi/report/download")
                         .param("year", "2026")
-                        .param("quarter", "1"))
+                        .param("evalSequence", "1"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString("filename*=UTF-8''")))
                 .andExpect(content().contentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
@@ -38,7 +38,7 @@ class KpiReportIntegrationTest {
     void downloadKpiReport_forbidden() throws Exception {
         mockMvc.perform(get("/api/v1/hr/kpi/report/download")
                         .param("year", "2026")
-                        .param("quarter", "1"))
+                        .param("evalSequence", "1"))
                 .andExpect(status().isForbidden());
     }
 }

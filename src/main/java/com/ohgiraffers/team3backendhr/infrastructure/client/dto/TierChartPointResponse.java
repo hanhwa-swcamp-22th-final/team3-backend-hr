@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class TierChartPointResponse {
 
     private Integer year;
-    private Integer quarter;
+    private Integer evalSequence;
     private String tier;
     private BigDecimal totalScore;
 }

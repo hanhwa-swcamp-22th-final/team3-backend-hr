@@ -10,7 +10,7 @@ import lombok.Setter;
 public class HrmKpiTrendItem {
 
     private int year;
-    private int quarter;
+    private int evalSequence;
     private Double avgScore;
     private int sTierCount;
     private int aTierCount;

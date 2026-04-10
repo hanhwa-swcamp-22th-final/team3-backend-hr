@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DepartmentCreateRequest {
+    private Long parentDepartmentId;
     @NotBlank
     private String departmentName;
-    private String description;
-    private String colorCode;
+    private String teamName;
+    @NotBlank
+    private String depth;
 }

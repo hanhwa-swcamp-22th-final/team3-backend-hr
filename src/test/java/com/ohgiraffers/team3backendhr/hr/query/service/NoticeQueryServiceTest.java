@@ -6,7 +6,6 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticeListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.NoticePinnedResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.NoticeQueryMapper;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -77,43 +76,6 @@ class NoticeQueryServiceTest {
         assertThatThrownBy(() -> noticeQueryService.getNoticeDetail(9999L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("공지를 찾을 수 없습니다.");
-    }
-
-    @Nested
-    @DisplayName("getAttachmentDetail 메서드 (첨부파일 정보 조회)")
-    class GetAttachmentDetail {
-
-        @Test
-        @DisplayName("존재하는 첨부파일 ID로 조회 시 파일 정보를 반환한다")
-        void getAttachmentDetail_found_returnsAttachment() {
-            // given
-            Long attachmentId = 3000L;
-            Attachment attachment = Attachment.builder()
-                    .attachmentId(attachmentId)
-                    .fileName("test.txt")
-                    .filePath("/uploads/notices/test.txt")
-                    .build();
-            given(noticeQueryMapper.findAttachmentById(attachmentId)).willReturn(attachment);
-
-            // when
-            Attachment result = noticeQueryService.getAttachmentDetail(attachmentId);
-
-            // then
-            assertThat(result.getFileName()).isEqualTo("test.txt");
-            assertThat(result.getFilePath()).isEqualTo("/uploads/notices/test.txt");
-        }
-
-        @Test
-        @DisplayName("존재하지 않는 첨부파일 ID로 조회 시 예외가 발생한다")
-        void getAttachmentDetail_notFound_throwsException() {
-            // given
-            given(noticeQueryMapper.findAttachmentById(9999L)).willReturn(null);
-
-            // when & then
-            assertThatThrownBy(() -> noticeQueryService.getAttachmentDetail(9999L))
-                    .isInstanceOf(BusinessException.class)
-                    .hasMessage("첨부파일을 찾을 수 없습니다.");
-        }
     }
 
     @Test

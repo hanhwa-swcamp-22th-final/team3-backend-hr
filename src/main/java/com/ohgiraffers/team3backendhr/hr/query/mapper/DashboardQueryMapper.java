@@ -17,19 +17,19 @@ import java.util.List;
 public interface DashboardQueryMapper {
 
     /* HR-001: HRM 전사 KPI 요약 */
-    HrmKpiSummaryResponse findHrmKpiSummary(@Param("year") int year, @Param("quarter") int quarter);
+    HrmKpiSummaryResponse findHrmKpiSummary(@Param("year") int year, @Param("evalSequence") int evalSequence);
 
     /* HR-002: HRM 사원별 KPI 상세 목록 */
     List<HrmKpiDetailItem> findHrmKpiDetails(@Param("year") int year,
-                                             @Param("quarter") int quarter,
+                                             @Param("evalSequence") int evalSequence,
                                              @Param("size") int size,
                                              @Param("offset") int offset);
 
     List<HrmKpiDetailItem> findHrmKpiDetailsAll(@Param("year") int year,
-                                                @Param("quarter") int quarter);
+                                                @Param("evalSequence") int evalSequence);
 
     long countHrmKpiDetails(@Param("year") int year,
-                            @Param("quarter") int quarter);
+                            @Param("evalSequence") int evalSequence);
 
     /* HR-003: HRM KPI 추이 (연도별 분기 목록) */
     List<HrmKpiTrendItem> findHrmKpiTrends(@Param("year") int year);
