@@ -49,7 +49,7 @@ class PromotionQueryControllerTest {
     void getCandidates_success() throws Exception {
         PromotionCandidateItem item = new PromotionCandidateItem();
         item.setTierPromotionId(1L);
-        given(service.getCandidates(null, 1, 10))
+        given(service.getCandidates(null, 0, 10))
                 .willReturn(new PromotionCandidateListResponse(List.of(item), 1L, 1L));
 
         mockMvc.perform(get("/api/v1/hr/promotions/candidates"))

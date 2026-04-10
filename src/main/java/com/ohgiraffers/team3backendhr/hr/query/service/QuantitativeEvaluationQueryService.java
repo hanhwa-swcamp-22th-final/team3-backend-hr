@@ -20,7 +20,7 @@ public class QuantitativeEvaluationQueryService {
     private final QuantitativeEvaluationQueryMapper mapper;
 
     public QuantitativeEvaluationListResponse getList(Long periodId, String status, int page, int size) {
-        int offset = (page - 1) * size;
+        int offset = page * size;
         List<QuantitativeEvaluationSummaryItem> content = mapper.findList(periodId, status, size, offset);
         long totalCount = mapper.countList(periodId, status);
         long totalPages = (long) Math.ceil((double) totalCount / size);

@@ -60,7 +60,7 @@ class PromotionQueryServiceTest {
         given(mapper.findCandidates(null, 10, 0)).willReturn(List.of(item));
         given(mapper.countCandidates(null)).willReturn(1L);
 
-        PromotionCandidateListResponse result = service.getCandidates(null, 1, 10);
+        PromotionCandidateListResponse result = service.getCandidates(null, 0, 10);
 
         assertThat(result.getItems()).hasSize(1);
         assertThat(result.getTotalCount()).isEqualTo(1L);

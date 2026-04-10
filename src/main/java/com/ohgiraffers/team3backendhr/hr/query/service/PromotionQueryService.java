@@ -27,7 +27,7 @@ public class PromotionQueryService {
 
     /* 후보 목록 (targetTier 필터, 페이징) */
     public PromotionCandidateListResponse getCandidates(String targetTier, int page, int size) {
-        int offset = (page - 1) * size;
+        int offset = page * size;
         long totalCount = mapper.countCandidates(targetTier);
         long totalPages = totalCount == 0 ? 0 : (long) Math.ceil((double) totalCount / size);
         return new PromotionCandidateListResponse(

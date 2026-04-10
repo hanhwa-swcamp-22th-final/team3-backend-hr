@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.query.mapper;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateItem;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -16,7 +17,10 @@ public interface PromotionQueryMapper {
     long countConfirmed();
 
     /* 후보 목록 (targetTier 필터, 페이징) */
-    List<PromotionCandidateItem> findCandidates(String targetTier, int size, int offset);
+    List<PromotionCandidateItem> findCandidates(
+            @Param("targetTier") String targetTier,
+            @Param("size") int size,
+            @Param("offset") int offset);
 
     /* 후보 수 (페이징용) */
     long countCandidates(String targetTier);

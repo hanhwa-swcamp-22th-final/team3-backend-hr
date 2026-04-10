@@ -33,7 +33,7 @@ public class PromotionQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<PromotionCandidateListResponse>> getCandidates(
             @RequestParam(required = false) String targetTier,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(service.getCandidates(targetTier, page, size)));
     }
