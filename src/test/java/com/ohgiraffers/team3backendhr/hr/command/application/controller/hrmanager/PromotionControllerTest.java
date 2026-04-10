@@ -45,14 +45,14 @@ class PromotionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(promotionCommandService).confirmPromotion(1L);
+        verify(promotionCommandService).confirmPromotion(1L, 99L);
     }
 
     @Test
     @DisplayName("승급 확정 — 존재하지 않으면 404")
     void confirmPromotion_notFound() throws Exception {
         doThrow(new BusinessException(ErrorCode.PROMOTION_NOT_FOUND))
-                .when(promotionCommandService).confirmPromotion(any());
+                .when(promotionCommandService).confirmPromotion(any(), any());
 
         mockMvc.perform(post("/api/v1/hr/promotions/9999/confirm")
                         .with(csrf())
@@ -64,7 +64,7 @@ class PromotionControllerTest {
     @DisplayName("승급 확정 — 이미 처리된 상태면 400")
     void confirmPromotion_alreadyProcessed() throws Exception {
         doThrow(new BusinessException(ErrorCode.PROMOTION_NOT_UNDER_REVIEW))
-                .when(promotionCommandService).confirmPromotion(any());
+                .when(promotionCommandService).confirmPromotion(any(), any());
 
         mockMvc.perform(post("/api/v1/hr/promotions/1/confirm")
                         .with(csrf())
@@ -81,14 +81,14 @@ class PromotionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        verify(promotionCommandService).suspendPromotion(1L);
+        verify(promotionCommandService).suspendPromotion(1L, 99L);
     }
 
     @Test
     @DisplayName("승급 보류 — 이미 처리된 상태면 400")
     void suspendPromotion_alreadyProcessed() throws Exception {
         doThrow(new BusinessException(ErrorCode.PROMOTION_NOT_UNDER_REVIEW))
-                .when(promotionCommandService).suspendPromotion(any());
+                .when(promotionCommandService).suspendPromotion(any(), any());
 
         mockMvc.perform(post("/api/v1/hr/promotions/1/hold")
                         .with(csrf())
