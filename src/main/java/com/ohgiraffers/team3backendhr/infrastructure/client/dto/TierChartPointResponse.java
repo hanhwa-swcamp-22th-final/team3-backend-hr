@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 public class TierChartPointResponse {
 
     private Integer year;
-    private String evaluationPeriod;  // Admin score.evaluation_period (예: "Q1", "1분기")
+    private Integer evalSequence;
     private String tier;
-    private BigDecimal totalScore;    // Admin score.total_points에서 변환
+    private BigDecimal totalScore;
 }
