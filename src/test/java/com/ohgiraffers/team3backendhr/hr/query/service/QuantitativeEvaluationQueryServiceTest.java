@@ -34,7 +34,7 @@ class QuantitativeEvaluationQueryServiceTest {
         given(mapper.findList(null, null, 10, 0)).willReturn(List.of(new QuantitativeEvaluationSummaryItem()));
         given(mapper.countList(null, null)).willReturn(25L);
 
-        QuantitativeEvaluationListResponse result = service.getList(null, null, 1, 10);
+        QuantitativeEvaluationListResponse result = service.getList(null, null, 0, 10);
 
         assertThat(result.getTotalCount()).isEqualTo(25L);
         assertThat(result.getTotalPages()).isEqualTo(3L);
@@ -47,7 +47,7 @@ class QuantitativeEvaluationQueryServiceTest {
         given(mapper.findList(null, null, 10, 0)).willReturn(List.of());
         given(mapper.countList(null, null)).willReturn(0L);
 
-        QuantitativeEvaluationListResponse result = service.getList(null, null, 1, 10);
+        QuantitativeEvaluationListResponse result = service.getList(null, null, 0, 10);
 
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalCount()).isZero();

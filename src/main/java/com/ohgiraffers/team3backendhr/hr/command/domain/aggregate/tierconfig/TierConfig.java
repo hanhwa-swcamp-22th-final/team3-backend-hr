@@ -27,11 +27,26 @@ public class TierConfig {
     @Column(name = "tier_config_tier", nullable = false)
     private Grade tierConfigTier;
 
-    @Column(name = "tier_config_weight_distribution", columnDefinition = "JSON")
-    private String tierConfigWeightDistribution;    // 합계 100% — JSON
-
     @Column(name = "tier_config_promotion_point")
     private Integer tierConfigPromotionPoint;
+
+    @Column(name = "equipment_response_target_score")
+    private Double equipmentResponseTargetScore;
+
+    @Column(name = "technical_transfer_target_score")
+    private Double technicalTransferTargetScore;
+
+    @Column(name = "innovation_proposal_target_score")
+    private Double innovationProposalTargetScore;
+
+    @Column(name = "safety_compliance_target_score")
+    private Double safetyComplianceTargetScore;
+
+    @Column(name = "quality_management_target_score")
+    private Double qualityManagementTargetScore;
+
+    @Column(name = "productivity_target_score")
+    private Double productivityTargetScore;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)

@@ -69,7 +69,7 @@ public class WorkerEvaluationQueryService {
 
     /** HR-EVAL-011: 평가 이력 목록 (이의신청 대상 선택용, 페이징) */
     public WorkerEvalHistoryResponse getEvalHistory(Long employeeId, int page, int size) {
-        int offset = (page - 1) * size;
+        int offset = page * size;
         List<WorkerEvalHistoryItem> content = mapper.findEvalHistory(employeeId, size, offset);
         long totalCount = mapper.countEvalHistory(employeeId);
         return new WorkerEvalHistoryResponse(content, totalCount);

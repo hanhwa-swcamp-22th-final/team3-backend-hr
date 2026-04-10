@@ -12,6 +12,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class QualitativeKeywordRuleEvent {
 
+    private Long domainKeywordId;
     private String keyword;
+    private String domainCompetencyCategory;
     private BigDecimal scoreWeight;
 }

@@ -18,7 +18,7 @@ public class HrmEvaluationCommandController {
 
     private final QualitativeEvaluationCommandService service;
 
-    @PostMapping("/{employeeId}/confirm")
+    @PatchMapping("/{employeeId}")
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> confirmFinal(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,

@@ -1,20 +1,20 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
+import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.TierConfig;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
-import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.TierConfigSnapshotEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.PromotionEventPublisher;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Map;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Service
 @RequiredArgsConstructor
@@ -23,35 +23,52 @@ public class TierCriteriaCommandService {
 
     private final TierConfigRepository tierConfigRepository;
     private final IdGenerator idGenerator;
-    private final ObjectMapper objectMapper;
+    private final PromotionEventPublisher promotionEventPublisher;
 
     public void saveCriteria(List<TierCriteriaSaveRequest> requests) {
-        for (TierCriteriaSaveRequest req : requests) {
-            validateWeightSum(req.getTierConfigWeightDistribution());
+        List<TierConfigSnapshotEvent> snapshotEvents = new ArrayList<>();
 
+        for (TierCriteriaSaveRequest req : requests) {
             TierConfig config = TierConfig.builder()
-                    .tierConfigId(idGenerator.generate())
-                    .tierConfigTier(Grade.valueOf(req.getTier()))
-                    .tierConfigWeightDistribution(req.getTierConfigWeightDistribution())
-                    .tierConfigPromotionPoint(req.getTierConfigPromotionPoint())
-                    .build();
-            tierConfigRepository.save(config);
+                .tierConfigId(idGenerator.generate())
+                .tierConfigTier(Grade.valueOf(req.getTier()))
+                .tierConfigPromotionPoint(req.getTierConfigPromotionPoint())
+                .equipmentResponseTargetScore(req.getEquipmentResponseTargetScore())
+                .technicalTransferTargetScore(req.getTechnicalTransferTargetScore())
+                .innovationProposalTargetScore(req.getInnovationProposalTargetScore())
+                .safetyComplianceTargetScore(req.getSafetyComplianceTargetScore())
+                .qualityManagementTargetScore(req.getQualityManagementTargetScore())
+                .productivityTargetScore(req.getProductivityTargetScore())
+                .build();
+            TierConfig saved = tierConfigRepository.save(config);
+
+            snapshotEvents.add(TierConfigSnapshotEvent.builder()
+                .tierConfigId(saved.getTierConfigId())
+                .tier(saved.getTierConfigTier().name())
+                .weightDistribution(null)
+                .promotionPoint(saved.getTierConfigPromotionPoint())
+                .occurredAt(LocalDateTime.now())
+                .build());
         }
+
+        publishSnapshotsAfterCommit(snapshotEvents);
     }
 
-    private void validateWeightSum(String weightDistributionJson) {
-        try {
-            Map<String, Integer> weights = objectMapper.readValue(
-                    weightDistributionJson, new TypeReference<>() {});
-            int sum = weights.values().stream().mapToInt(Integer::intValue).sum();
-            if (sum != 100) {
-                throw new BusinessException(ErrorCode.INVALID_WEIGHT_SUM,
-                        "가중치 합계는 100%이어야 합니다. 현재 합계: " + sum);
-            }
-        } catch (BusinessException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.INVALID_WEIGHT_FORMAT);
+    private void publishSnapshotsAfterCommit(List<TierConfigSnapshotEvent> snapshotEvents) {
+        if (snapshotEvents.isEmpty()) {
+            return;
         }
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    snapshotEvents.forEach(promotionEventPublisher::publishTierConfigSnapshot);
+                }
+            });
+            return;
+        }
+
+        snapshotEvents.forEach(promotionEventPublisher::publishTierConfigSnapshot);
     }
 }

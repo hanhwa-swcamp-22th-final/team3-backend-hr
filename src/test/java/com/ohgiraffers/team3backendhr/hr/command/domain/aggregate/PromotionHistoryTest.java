@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,10 +15,9 @@ class PromotionHistoryTest {
         return PromotionHistory.builder()
                 .tierPromotionId(1L)
                 .employeeId(10L)
-                .reviewerId(20L)
                 .currentTierConfigId(1L)
                 .targetTierConfigId(2L)
-                .tierAccumulatedPoint(80)
+                .tierAccumulatedPoint(BigDecimal.valueOf(80))
                 .build();
     }
 
@@ -26,10 +26,11 @@ class PromotionHistoryTest {
     void confirm_underReview_changesStatusToConfirmed() {
         PromotionHistory history = underReview();
 
-        history.confirm();
+        history.confirm(20L);
 
         assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.CONFIRMATION_OF_PROMOTION);
         assertThat(history.getTierReviewedAt()).isNotNull();
+        assertThat(history.getReviewerId()).isEqualTo(20L);
     }
 
     @Test
@@ -37,19 +38,20 @@ class PromotionHistoryTest {
     void suspend_underReview_changesStatusToSuspension() {
         PromotionHistory history = underReview();
 
-        history.suspend();
+        history.suspend(20L);
 
         assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.SUSPENSION);
         assertThat(history.getTierReviewedAt()).isNotNull();
+        assertThat(history.getReviewerId()).isEqualTo(20L);
     }
 
     @Test
     @DisplayName("이미 확정된 승급 후보를 다시 확정하면 예외가 발생한다")
     void confirm_alreadyConfirmed_throwsException() {
         PromotionHistory history = underReview();
-        history.confirm();
+        history.confirm(20L);
 
-        assertThatThrownBy(history::confirm)
+        assertThatThrownBy(() -> history.confirm(20L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
     }
@@ -58,9 +60,9 @@ class PromotionHistoryTest {
     @DisplayName("이미 보류된 승급 후보를 다시 보류하면 예외가 발생한다")
     void suspend_alreadySuspended_throwsException() {
         PromotionHistory history = underReview();
-        history.suspend();
+        history.suspend(20L);
 
-        assertThatThrownBy(history::suspend)
+        assertThatThrownBy(() -> history.suspend(20L))
                 .isInstanceOf(BusinessException.class)
                 .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
     }

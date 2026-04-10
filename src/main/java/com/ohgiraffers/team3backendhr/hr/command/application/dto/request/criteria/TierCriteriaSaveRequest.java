@@ -12,9 +12,24 @@ public class TierCriteriaSaveRequest {
     @NotBlank
     private final String tier;                          // S | A | B | C
 
-    @NotBlank
-    private final String tierConfigWeightDistribution;  // JSON {"카테고리": 점수합계100}
-
     @NotNull
     private final Integer tierConfigPromotionPoint;
+
+    @NotNull
+    private final Double equipmentResponseTargetScore;
+
+    @NotNull
+    private final Double technicalTransferTargetScore;
+
+    @NotNull
+    private final Double innovationProposalTargetScore;
+
+    @NotNull
+    private final Double safetyComplianceTargetScore;
+
+    @NotNull
+    private final Double qualityManagementTargetScore;
+
+    @NotNull
+    private final Double productivityTargetScore;
 }

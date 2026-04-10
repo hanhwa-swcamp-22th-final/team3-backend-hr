@@ -111,7 +111,7 @@ class AppealQueryServiceTest {
         given(mapper.countAppeals(null)).willReturn(1L);
 
         // when
-        var result = service.getAppeals(null, 1, 10);
+        var result = service.getAppeals(null, 0, 10);
 
         // then
         assertThat(result.getContent()).hasSize(1);

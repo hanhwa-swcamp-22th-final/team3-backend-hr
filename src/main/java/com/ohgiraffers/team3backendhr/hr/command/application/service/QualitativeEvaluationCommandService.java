@@ -8,6 +8,8 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationConfirmRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcomment.EvaluationComment;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
@@ -80,6 +82,41 @@ public class QualitativeEvaluationCommandService {
         publishSubmittedEventAfterCommit(eval);
     }
 
+    /* TL — draft·submit 통합 (PATCH) */
+    public void updateForTL(Long evaluatorId, Long evaluateeId, QualitativeEvaluationUpdateRequest request) {
+        QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 1L);
+        if (request.getStatus() == QualEvalStatus.DRAFT) {
+            eval.saveDraft(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
+        } else if (request.getStatus() == QualEvalStatus.SUBMITTED) {
+            validateEvalComment(request.getEvalComment());
+            eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
+            publishSubmittedEventAfterCommit(eval);
+        } else {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "TL 평가는 DRAFT 또는 SUBMITTED만 허용됩니다.");
+        }
+    }
+
+    /* DL — draft·submit 통합 (PATCH) */
+    public void updateForDL(Long evaluatorId, Long evaluateeId, QualitativeEvaluationUpdateRequest request) {
+        validateLevel1Submitted(evaluateeId, request.getEvaluationPeriodId());
+        QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
+        if (request.getStatus() == QualEvalStatus.DRAFT) {
+            eval.saveDraft(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
+        } else if (request.getStatus() == QualEvalStatus.SUBMITTED) {
+            validateEvalComment(request.getEvalComment());
+            eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
+            publishSubmittedEventAfterCommit(eval);
+        } else {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "DL 평가는 DRAFT 또는 SUBMITTED만 허용됩니다.");
+        }
+    }
+
+    private void validateEvalComment(String evalComment) {
+        if (evalComment == null || evalComment.trim().length() < 20) {
+            throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
+        }
+    }
+
     public void saveDraftForDL(Long evaluatorId, Long evaluateeId, QualitativeEvaluationDraftRequest request) {
         validateLevel1Submitted(evaluateeId, request.getEvaluationPeriodId());
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
@@ -145,6 +182,7 @@ public class QualitativeEvaluationCommandService {
             .nlpSentiment(sentenceAnalysis.getNlpSentiment())
             .matchedKeywordCount(sentenceAnalysis.getMatchedKeywordCount() == null ? 0 : sentenceAnalysis.getMatchedKeywordCount())
             .matchedKeywords(toJson(sentenceAnalysis.getMatchedKeywords()))
+            .matchedKeywordDetails(toJson(sentenceAnalysis.getMatchedKeywordDetails()))
             .contextWeight(sentenceAnalysis.getContextWeight())
             .negationDetected(Boolean.TRUE.equals(sentenceAnalysis.getNegationDetected()))
             .createdAt(occurredAt)
@@ -252,10 +290,15 @@ public class QualitativeEvaluationCommandService {
             return null;
         }
 
-        return new QualitativeKeywordRuleEvent(response.getDomainKeyword(), scoreWeight);
+        return new QualitativeKeywordRuleEvent(
+            response.getDomainKeywordId(),
+            response.getDomainKeyword(),
+            response.getDomainCompetencyCategory(),
+            scoreWeight
+        );
     }
 
-    private String toJson(List<String> values) {
+    private String toJson(List<?> values) {
         try {
             return objectMapper.writeValueAsString(values == null ? List.of() : values);
         } catch (JsonProcessingException exception) {

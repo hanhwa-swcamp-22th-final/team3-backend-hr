@@ -12,6 +12,7 @@ public class DomainKeywordRuleResponse {
 
     private Long domainKeywordId;
     private String domainKeyword;
+    private String domainCompetencyCategory;
     private BigDecimal domainBaseScore;
     private BigDecimal domainWeight;
     private Boolean domainIsActive;

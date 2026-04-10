@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,15 +50,25 @@ class PromotionHistoryRepositoryTest {
         tierConfigRepository.save(TierConfig.builder()
                 .tierConfigId(currentTierConfigId)
                 .tierConfigTier(Grade.B)
-                .tierConfigWeightDistribution("{\"qualitative\":0.6,\"quantitative\":0.4}")
                 .tierConfigPromotionPoint(300)
+                .equipmentResponseTargetScore(80.0)
+                .technicalTransferTargetScore(75.0)
+                .innovationProposalTargetScore(70.0)
+                .safetyComplianceTargetScore(78.0)
+                .qualityManagementTargetScore(72.0)
+                .productivityTargetScore(68.0)
                 .build());
 
         tierConfigRepository.save(TierConfig.builder()
                 .tierConfigId(targetTierConfigId)
                 .tierConfigTier(Grade.A)
-                .tierConfigWeightDistribution("{\"qualitative\":0.7,\"quantitative\":0.3}")
                 .tierConfigPromotionPoint(500)
+                .equipmentResponseTargetScore(85.0)
+                .technicalTransferTargetScore(80.0)
+                .innovationProposalTargetScore(75.0)
+                .safetyComplianceTargetScore(83.0)
+                .qualityManagementTargetScore(77.0)
+                .productivityTargetScore(73.0)
                 .build());
 
         promotionHistoryId = idGenerator.generate();
@@ -67,7 +78,7 @@ class PromotionHistoryRepositoryTest {
                 .reviewerId(reviewerId)
                 .currentTierConfigId(currentTierConfigId)
                 .targetTierConfigId(targetTierConfigId)
-                .tierAccumulatedPoint(320)
+                .tierAccumulatedPoint(BigDecimal.valueOf(320))
                 .build();
     }
 

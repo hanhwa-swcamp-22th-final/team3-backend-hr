@@ -39,7 +39,7 @@ public class AppealQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<AppealListResponse>> getAppeals(
             @RequestParam(required = false) String status,
-            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(service.getAppeals(status, page, size)));
     }

@@ -8,6 +8,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Tie
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.TierConfigRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.PromotionEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class PromotionCommandServiceTest {
     @Mock
     private AdminClient adminClient;
 
+    @Mock
+    private PromotionEventPublisher promotionEventPublisher;
+
     @InjectMocks
     private PromotionCommandService promotionCommandService;
 
@@ -43,7 +47,6 @@ class PromotionCommandServiceTest {
         return PromotionHistory.builder()
                 .tierPromotionId(1000L)
                 .employeeId(99L)
-                .reviewerId(1L)
                 .currentTierConfigId(10L)
                 .targetTierConfigId(20L)
                 .tierPromoStatus(status)
@@ -69,11 +72,12 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(1000L)).willReturn(Optional.of(history));
 
             // when
-            promotionCommandService.confirmPromotion(1000L);
+            promotionCommandService.confirmPromotion(1000L, 77L);
 
             // then
             assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.CONFIRMATION_OF_PROMOTION);
             assertThat(history.getTierReviewedAt()).isNotNull();
+            assertThat(history.getReviewerId()).isEqualTo(77L);
             verifyNoInteractions(adminClient);
         }
 
@@ -84,7 +88,7 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(9999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> promotionCommandService.confirmPromotion(9999L))
+            assertThatThrownBy(() -> promotionCommandService.confirmPromotion(9999L, 77L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessage("승급 이력을 찾을 수 없습니다.");
         }
@@ -97,7 +101,7 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(1000L)).willReturn(Optional.of(history));
 
             // when & then
-            assertThatThrownBy(() -> promotionCommandService.confirmPromotion(1000L))
+            assertThatThrownBy(() -> promotionCommandService.confirmPromotion(1000L, 77L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
         }
@@ -159,11 +163,12 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(1000L)).willReturn(Optional.of(history));
 
             // when
-            promotionCommandService.suspendPromotion(1000L);
+            promotionCommandService.suspendPromotion(1000L, 88L);
 
             // then
             assertThat(history.getTierPromoStatus()).isEqualTo(PromotionStatus.SUSPENSION);
             assertThat(history.getTierReviewedAt()).isNotNull();
+            assertThat(history.getReviewerId()).isEqualTo(88L);
         }
 
         @Test
@@ -173,7 +178,7 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(9999L)).willReturn(Optional.empty());
 
             // when & then
-            assertThatThrownBy(() -> promotionCommandService.suspendPromotion(9999L))
+            assertThatThrownBy(() -> promotionCommandService.suspendPromotion(9999L, 88L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessage("승급 이력을 찾을 수 없습니다.");
         }
@@ -186,7 +191,7 @@ class PromotionCommandServiceTest {
             given(promotionHistoryRepository.findById(1000L)).willReturn(Optional.of(history));
 
             // when & then
-            assertThatThrownBy(() -> promotionCommandService.suspendPromotion(1000L))
+            assertThatThrownBy(() -> promotionCommandService.suspendPromotion(1000L, 88L))
                     .isInstanceOf(BusinessException.class)
                     .hasMessage("심사 중인 승급 후보만 처리할 수 있습니다.");
         }

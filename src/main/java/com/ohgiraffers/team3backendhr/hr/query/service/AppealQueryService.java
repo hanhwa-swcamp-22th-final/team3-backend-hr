@@ -35,7 +35,7 @@ public class AppealQueryService {
 
     /* HRM — 이의신청 목록 조회 (상태 필터, 페이징) */
     public AppealListResponse getAppeals(String status, int page, int size) {
-        int offset = (page - 1) * size;
+        int offset = page * size;
         List<AppealSummaryResponse> content = mapper.findAppeals(status, size, offset);
         long totalCount = mapper.countAppeals(status);
         long totalPages = (long) Math.ceil((double) totalCount / size);
