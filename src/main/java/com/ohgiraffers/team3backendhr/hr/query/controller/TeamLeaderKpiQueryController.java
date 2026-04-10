@@ -26,9 +26,9 @@ public class TeamLeaderKpiQueryController {
     public ResponseEntity<ApiResponse<List<KpiMemberSummaryResponse>>> getTeamKpi(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestParam int year,
-            @RequestParam int quarter) {
+            @RequestParam int evalSequence) {
         return ResponseEntity.ok(ApiResponse.success(
-                kpiQueryService.getTeamKpiSummary(userDetails.getEmployeeId(), year, quarter)));
+                kpiQueryService.getTeamKpiSummary(userDetails.getEmployeeId(), year, evalSequence)));
     }
 
     /* HR-011: 특정 팀원 정량 점수 산출 상세 조회 (설비별) */
@@ -37,8 +37,8 @@ public class TeamLeaderKpiQueryController {
     public ResponseEntity<ApiResponse<List<KpiMemberDetailResponse>>> getMemberKpi(
             @PathVariable Long employeeId,
             @RequestParam int year,
-            @RequestParam int quarter) {
+            @RequestParam int evalSequence) {
         return ResponseEntity.ok(ApiResponse.success(
-                kpiQueryService.getMemberKpiDetail(employeeId, year, quarter)));
+                kpiQueryService.getMemberKpiDetail(employeeId, year, evalSequence)));
     }
 }

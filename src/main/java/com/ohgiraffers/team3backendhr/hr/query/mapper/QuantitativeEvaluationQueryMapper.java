@@ -28,11 +28,11 @@ public interface QuantitativeEvaluationQueryMapper {
     List<KpiMemberSummaryResponse> findTeamKpiSummary(
             @Param("employeeIds") List<Long> employeeIds,
             @Param("year") int year,
-            @Param("quarter") int quarter);
+            @Param("evalSequence") int evalSequence);
 
     /* HR-011: 특정 팀원 정량 점수 상세 (설비별 행 반환) */
     List<KpiMemberDetailResponse> findMemberKpiDetail(
             @Param("employeeId") Long employeeId,
             @Param("year") int year,
-            @Param("quarter") int quarter);
+            @Param("evalSequence") int evalSequence);
 }

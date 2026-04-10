@@ -20,7 +20,7 @@
         FROM qualitative_evaluation qe
         JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
         WHERE ep.eval_year     = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
           AND qe.evaluation_level = 3
     </select>
 
@@ -38,7 +38,7 @@
         JOIN employee e ON e.employee_id = qe.evaluatee_id
         JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
         WHERE ep.eval_year     = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
           AND qe.evaluation_level = 3
         ORDER BY qe.score DESC
         LIMIT #{size} OFFSET #{offset}
@@ -57,7 +57,7 @@
         JOIN employee e ON e.employee_id = qe.evaluatee_id
         JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
         WHERE ep.eval_year     = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
           AND qe.evaluation_level = 3
         ORDER BY qe.score DESC
     </select>
@@ -67,7 +67,7 @@
         FROM qualitative_evaluation qe
         JOIN evaluation_period ep ON qe.evaluation_period_id = ep.eval_period_id
         WHERE ep.eval_year     = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
           AND qe.evaluation_level = 3
     </select>
 
@@ -76,7 +76,7 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem">
         SELECT
             ep.eval_year        AS year,
-            ep.eval_sequence    AS quarter,
+            ep.eval_sequence    AS evalSequence,
             ROUND(AVG(qe.score), 1)                                AS avgScore,
             SUM(CASE WHEN qe.grade = 'S' THEN 1 ELSE 0 END)       AS sTierCount,
             SUM(CASE WHEN qe.grade = 'A' THEN 1 ELSE 0 END)       AS aTierCount,

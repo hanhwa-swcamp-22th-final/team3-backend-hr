@@ -89,7 +89,7 @@
                 #{id}
             </foreach>
           AND ep.eval_year = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
         GROUP BY qn.employee_id, e.employee_name
         ORDER BY e.employee_name ASC
     </select>
@@ -101,7 +101,7 @@
             qn.employee_id                  AS employeeId,
             e.employee_name                 AS employeeName,
             ep.eval_year                    AS year,
-            ep.eval_sequence                AS quarter,
+            ep.eval_sequence                AS evalSequence,
             qn.equipment_id                 AS equipmentId,
             qn.uph_score                    AS uphScore,
             qn.yield_score                  AS yieldScore,
@@ -115,7 +115,7 @@
         JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
         WHERE qn.employee_id = #{employeeId}
           AND ep.eval_year = #{year}
-          AND ep.eval_sequence = #{quarter}
+          AND ep.eval_sequence = #{evalSequence}
         ORDER BY qn.equipment_id ASC
     </select>
 

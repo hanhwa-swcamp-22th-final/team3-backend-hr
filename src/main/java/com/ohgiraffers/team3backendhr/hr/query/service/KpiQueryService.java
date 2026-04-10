@@ -19,14 +19,14 @@ public class KpiQueryService {
     private final QuantitativeEvaluationQueryMapper quantitativeEvaluationQueryMapper;
 
     /* HR-010: 팀원별 정량 점수 산출 내역 조회 */
-    public List<KpiMemberSummaryResponse> getTeamKpiSummary(Long leaderId, int year, int quarter) {
+    public List<KpiMemberSummaryResponse> getTeamKpiSummary(Long leaderId, int year, int evalSequence) {
         List<Long> memberIds = adminClient.getTeamMemberIds(leaderId);
         if (memberIds.isEmpty()) return List.of();
-        return quantitativeEvaluationQueryMapper.findTeamKpiSummary(memberIds, year, quarter);
+        return quantitativeEvaluationQueryMapper.findTeamKpiSummary(memberIds, year, evalSequence);
     }
 
     /* HR-011: 특정 팀원 정량 점수 산출 상세 조회 */
-    public List<KpiMemberDetailResponse> getMemberKpiDetail(Long employeeId, int year, int quarter) {
-        return quantitativeEvaluationQueryMapper.findMemberKpiDetail(employeeId, year, quarter);
+    public List<KpiMemberDetailResponse> getMemberKpiDetail(Long employeeId, int year, int evalSequence) {
+        return quantitativeEvaluationQueryMapper.findMemberKpiDetail(employeeId, year, evalSequence);
     }
 }

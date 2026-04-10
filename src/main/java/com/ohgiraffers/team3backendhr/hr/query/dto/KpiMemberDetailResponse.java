@@ -14,7 +14,7 @@ public class KpiMemberDetailResponse {
     private Long employeeId;
     private String employeeName;
     private int year;
-    private int quarter;
+    private int evalSequence;
     private Long equipmentId;
     private BigDecimal uphScore;
     private BigDecimal yieldScore;
