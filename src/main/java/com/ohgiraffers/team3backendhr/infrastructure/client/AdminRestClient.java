@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
@@ -158,22 +159,26 @@ public class AdminRestClient implements AdminClient {
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
-        return restTemplate.postForObject(
-            adminBaseUrl + "/api/v1/admin/org/departments",
+        restTemplate.postForObject(
+            adminBaseUrl + "/api/v1/organization/department",
             request,
-            Long.class
+            Object.class
         );
+        return null;
     }
 
     @Override
     public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
-        restTemplate.put(adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId, request);
+        restTemplate.put(
+            adminBaseUrl + "/api/v1/organization/department",
+            new DepartmentUpdateRequest(departmentId, request.getDepartmentName(), request.getTeamName())
+        );
         return departmentId;
     }
 
     @Override
     public void deleteDepartment(Long departmentId) {
-        restTemplate.delete(adminBaseUrl + "/api/v1/admin/org/departments/" + departmentId);
+        restTemplate.delete(adminBaseUrl + "/api/v1/organization/department/" + departmentId);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client.feign;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
@@ -86,15 +87,15 @@ public interface AdminFeignApi {
     AdminApiResponse<OrgTeamMembersResponse> getTeamMembers(@PathVariable Long teamId);
 
     /* 부서 생성 */
-    @PostMapping("/api/v1/admin/org/departments")
-    AdminApiResponse<Long> createDepartment(@RequestBody DepartmentCreateRequest request);
+    @PostMapping("/api/v1/organization/department")
+    AdminApiResponse<Object> createDepartment(@RequestBody DepartmentCreateRequest request);
 
-    /* 부서 수정 */
-    @PutMapping("/api/v1/admin/org/departments/{departmentId}")
-    void updateDepartment(@PathVariable Long departmentId, @RequestBody DepartmentCreateRequest request);
+    /* 부서 수정 (Admin은 body에 departmentId 포함, path variable 없음) */
+    @PutMapping("/api/v1/organization/department")
+    void updateDepartment(@RequestBody DepartmentUpdateRequest request);
 
     /* 부서 삭제 */
-    @DeleteMapping("/api/v1/admin/org/departments/{departmentId}")
+    @DeleteMapping("/api/v1/organization/department/{departmentId}")
     void deleteDepartment(@PathVariable Long departmentId);
 
     /* 팀 생성 */

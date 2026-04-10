@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
@@ -103,13 +104,15 @@ public class AdminFeignClient implements AdminClient {
 
     @Override
     public Long createDepartment(DepartmentCreateRequest request) {
-        AdminApiResponse<Long> response = adminFeignApi.createDepartment(request);
-        return response != null ? response.getData() : null;
+        adminFeignApi.createDepartment(request);
+        return null; // Admin 응답에 생성된 ID가 포함되면 추후 반영
     }
 
     @Override
     public Long updateDepartment(Long departmentId, DepartmentCreateRequest request) {
-        adminFeignApi.updateDepartment(departmentId, request);
+        adminFeignApi.updateDepartment(
+            new DepartmentUpdateRequest(departmentId, request.getDepartmentName(), request.getTeamName())
+        );
         return departmentId;
     }
 
