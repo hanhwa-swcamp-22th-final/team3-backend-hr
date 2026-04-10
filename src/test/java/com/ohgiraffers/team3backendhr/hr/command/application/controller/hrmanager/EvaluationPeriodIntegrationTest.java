@@ -176,7 +176,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
-                LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30), 2L);
+                LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30), 2L, null);
 
         // when
         mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId())

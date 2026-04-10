@@ -2,8 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.teamlea
 
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.QualitativeEvaluationCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,23 +18,13 @@ public class TeamLeaderEvaluationCommandController {
 
     private final QualitativeEvaluationCommandService service;
 
-    @PostMapping("/{employeeId}/draft")
+    @PatchMapping("/{employeeId}")
     @PreAuthorize("hasAuthority('TL')")
-    public ResponseEntity<ApiResponse<Void>> saveDraft(
+    public ResponseEntity<ApiResponse<Void>> update(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @PathVariable Long employeeId,
-            @RequestBody @Valid QualitativeEvaluationDraftRequest request) {
-        service.saveDraft(userDetails.getEmployeeId(), employeeId, request);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @PostMapping("/{employeeId}/submit")
-    @PreAuthorize("hasAuthority('TL')")
-    public ResponseEntity<ApiResponse<Void>> submit(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails,
-            @PathVariable Long employeeId,
-            @RequestBody @Valid QualitativeEvaluationSubmitRequest request) {
-        service.submit(userDetails.getEmployeeId(), employeeId, request);
+            @RequestBody @Valid QualitativeEvaluationUpdateRequest request) {
+        service.updateForTL(userDetails.getEmployeeId(), employeeId, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

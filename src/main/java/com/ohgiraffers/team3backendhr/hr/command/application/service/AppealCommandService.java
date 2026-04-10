@@ -4,7 +4,10 @@ import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealRegisterRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealStatusUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.ReviewResult;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.ReferenceType;
@@ -80,6 +83,25 @@ public class AppealCommandService {
         validateOwner(appeal, requesterId, "본인의 이의신청만 취소할 수 있습니다.");
         appeal.cancel();    // COMPLETED 상태 검증
         appealRepository.delete(appeal);
+    }
+
+    /* HRM 상태 변경 — 보류·승인·반려 통합 처리 */
+    public void updateStatus(Long appealId, Long reviewerId, AppealStatusUpdateRequest request) {
+        if (request.getStatus() == AppealStatus.REVIEWING) {
+            hold(appealId, reviewerId);
+            return;
+        }
+        // COMPLETED
+        ReviewResult reviewResult = request.getReviewResult();
+        if (reviewResult == null) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "COMPLETED 상태에는 reviewResult가 필요합니다.");
+        }
+        if (reviewResult == ReviewResult.DISMISS) {
+            reject(appealId, reviewerId);
+        } else {
+            approve(appealId, reviewerId,
+                    new AppealReviewRequest(reviewResult, request.getModifiedScore(), request.getReason()));
+        }
     }
 
     /* 승인 — score_modification_log 생성 + 평가 점수 반영 */

@@ -27,9 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.promotion.PromotionStatusUpdateRequest;
+import org.springframework.http.MediaType;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -43,6 +46,9 @@ class PromotionCommandIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private TierConfigRepository tierConfigRepository;
@@ -101,9 +107,12 @@ class PromotionCommandIntegrationTest {
     @Test
     @DisplayName("승급 확정 전체 흐름 — 200 반환 및 DB에 확정 상태가 반영된다")
     void confirmPromotion_fullFlow() throws Exception {
-        mockMvc.perform(post("/api/v1/hr/promotions/" + tierPromotionId + "/confirm")
+        PromotionStatusUpdateRequest request = new PromotionStatusUpdateRequest(PromotionStatus.CONFIRMATION_OF_PROMOTION);
+        mockMvc.perform(patch("/api/v1/hr/promotions/" + tierPromotionId)
                         .with(csrf())
-                        .with(user(hrmUser())))
+                        .with(user(hrmUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -116,9 +125,12 @@ class PromotionCommandIntegrationTest {
     @Test
     @DisplayName("승급 보류 전체 흐름 — 200 반환 및 DB에 보류 상태가 반영된다")
     void suspendPromotion_fullFlow() throws Exception {
-        mockMvc.perform(post("/api/v1/hr/promotions/" + tierPromotionId + "/hold")
+        PromotionStatusUpdateRequest request = new PromotionStatusUpdateRequest(PromotionStatus.SUSPENSION);
+        mockMvc.perform(patch("/api/v1/hr/promotions/" + tierPromotionId)
                         .with(csrf())
-                        .with(user(hrmUser())))
+                        .with(user(hrmUser()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 

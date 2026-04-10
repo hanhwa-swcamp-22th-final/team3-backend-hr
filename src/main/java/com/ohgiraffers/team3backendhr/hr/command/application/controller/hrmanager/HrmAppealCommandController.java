@@ -1,6 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
 
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealStatusUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.AppealCommandService;
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
@@ -18,31 +18,13 @@ public class HrmAppealCommandController {
 
     private final AppealCommandService service;
 
-    @PostMapping("/{appealId}/approve")
+    @PatchMapping("/{appealId}")
     @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> approve(
+    public ResponseEntity<ApiResponse<Void>> updateStatus(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
-            @RequestBody @Valid AppealReviewRequest request) {
-        service.approve(appealId, userDetails.getEmployeeId(), request);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @PostMapping("/{appealId}/reject")
-    @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> reject(
-            @PathVariable Long appealId,
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        service.reject(appealId, userDetails.getEmployeeId());
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @PostMapping("/{appealId}/hold")
-    @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> hold(
-            @PathVariable Long appealId,
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        service.hold(appealId, userDetails.getEmployeeId());
+            @RequestBody @Valid AppealStatusUpdateRequest request) {
+        service.updateStatus(appealId, userDetails.getEmployeeId(), request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
