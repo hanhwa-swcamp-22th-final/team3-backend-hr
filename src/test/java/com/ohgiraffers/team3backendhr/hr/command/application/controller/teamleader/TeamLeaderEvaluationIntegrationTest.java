@@ -3,8 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.teamlea
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationDraftRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationSubmitRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualitativeevaluation.QualitativeEvaluationUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
@@ -28,7 +27,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,7 +66,6 @@ class TeamLeaderEvaluationIntegrationTest {
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
 
-        // 평가 기간 생성 시 선생성되는 level 1 레코드 세팅
         repository.save(QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(idGenerator.generate())
                 .evaluateeId(EVALUATEE_ID)
@@ -84,12 +82,10 @@ class TeamLeaderEvaluationIntegrationTest {
     @Test
     @DisplayName("1차 평가 임시저장 시 상태가 DRAFT로 변경된다")
     void saveDraft_success() throws Exception {
-        // given
-        QualitativeEvaluationDraftRequest request = new QualitativeEvaluationDraftRequest(
-                PERIOD_ID, "{\"성과\":80}", "임시저장 코멘트입니다.", InputMethod.TEXT);
+        QualitativeEvaluationUpdateRequest request = new QualitativeEvaluationUpdateRequest(
+                QualEvalStatus.DRAFT, PERIOD_ID, "{\"성과\":80}", "임시저장 코멘트입니다.", InputMethod.TEXT);
 
-        // when
-        mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/draft")
+        mockMvc.perform(patch("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(tlAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,7 +93,6 @@ class TeamLeaderEvaluationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        // then
         QualitativeEvaluation eval = repository
                 .findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(EVALUATEE_ID, PERIOD_ID, 1L)
                 .orElseThrow();
@@ -108,12 +103,11 @@ class TeamLeaderEvaluationIntegrationTest {
     @Test
     @DisplayName("1차 평가 제출 시 상태가 SUBMITTED로 변경되고 score·grade는 null이다 — batch 분석 전")
     void submit_success() throws Exception {
-        // given
-        QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
-                PERIOD_ID, "{\"성과\":85}", "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
+        QualitativeEvaluationUpdateRequest request = new QualitativeEvaluationUpdateRequest(
+                QualEvalStatus.SUBMITTED, PERIOD_ID, "{\"성과\":85}",
+                "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
 
-        // when
-        mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/submit")
+        mockMvc.perform(patch("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(tlAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -121,7 +115,6 @@ class TeamLeaderEvaluationIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
-        // then
         QualitativeEvaluation eval = repository
                 .findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(EVALUATEE_ID, PERIOD_ID, 1L)
                 .orElseThrow();
@@ -134,20 +127,21 @@ class TeamLeaderEvaluationIntegrationTest {
     @Test
     @DisplayName("이미 제출된 평가에 임시저장 시 400을 반환한다")
     void saveDraft_fail_alreadySubmitted() throws Exception {
-        // given — 먼저 제출
-        QualitativeEvaluationSubmitRequest submitRequest = new QualitativeEvaluationSubmitRequest(
-                PERIOD_ID, null, "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
-        mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/submit")
+        // 먼저 제출
+        QualitativeEvaluationUpdateRequest submitRequest = new QualitativeEvaluationUpdateRequest(
+                QualEvalStatus.SUBMITTED, PERIOD_ID, null,
+                "제출 코멘트입니다. 충분히 길게 작성하였습니다.", InputMethod.TEXT);
+        mockMvc.perform(patch("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(tlAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(submitRequest)))
                 .andExpect(status().isOk());
 
-        // when — 제출 후 임시저장 시도
-        QualitativeEvaluationDraftRequest draftRequest = new QualitativeEvaluationDraftRequest(
-                PERIOD_ID, null, "수정 시도", InputMethod.TEXT);
-        mockMvc.perform(post("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID + "/draft")
+        // 제출 후 임시저장 시도
+        QualitativeEvaluationUpdateRequest draftRequest = new QualitativeEvaluationUpdateRequest(
+                QualEvalStatus.DRAFT, PERIOD_ID, null, "수정 시도", InputMethod.TEXT);
+        mockMvc.perform(patch("/api/v1/hr/team-leader/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(tlAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
