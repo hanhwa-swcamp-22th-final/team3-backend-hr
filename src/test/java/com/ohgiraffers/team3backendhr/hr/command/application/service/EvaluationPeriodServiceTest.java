@@ -136,7 +136,8 @@ class EvaluationPeriodServiceTest {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 3, 1),
                 LocalDate.of(2026, 5, 31),
-                1L
+                1L,
+                null
         );
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1), 1L)).willReturn(true);
@@ -187,7 +188,8 @@ class EvaluationPeriodServiceTest {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 4, 30),
                 LocalDate.of(2026, 1, 1),
-                1L
+                1L,
+                null
         );
 
         assertThatThrownBy(() -> service.update(1L, request))
@@ -204,7 +206,8 @@ class EvaluationPeriodServiceTest {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 2, 1),
                 LocalDate.of(2026, 4, 30),
-                2L
+                2L,
+                null
         );
 
         assertThatThrownBy(() -> service.update(1L, request))
@@ -220,7 +223,7 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
                 period.getEndDate(), period.getStartDate(), 1L)).willReturn(false);
 
-        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(null, null, 99L);
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(null, null, 99L, null);
 
         assertThatNoException().isThrownBy(() -> service.update(1L, request));
         assertThat(period.getAlgorithmVersionId()).isEqualTo(99L);
@@ -235,7 +238,8 @@ class EvaluationPeriodServiceTest {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 2, 1),
                 LocalDate.of(2026, 4, 30),
-                2L
+                2L,
+                null
         );
 
         service.update(1L, request);

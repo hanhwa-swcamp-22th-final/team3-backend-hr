@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodCommandService;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -81,8 +82,13 @@ class EvaluationPeriodControllerTest {
     @DisplayName("평가 기간을 마감한다")
     @WithMockUser(authorities = "HRM")
     void close_success() throws Exception {
-        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1/close")
-                        .with(csrf()))
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                null, null, null, EvalPeriodStatus.CLOSING);
+
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -93,8 +99,13 @@ class EvaluationPeriodControllerTest {
     @DisplayName("평가 기간을 확정한다")
     @WithMockUser(authorities = "HRM")
     void confirm_success() throws Exception {
-        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1/confirm")
-                        .with(csrf()))
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                null, null, null, EvalPeriodStatus.CONFIRMED);
+
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -108,7 +119,8 @@ class EvaluationPeriodControllerTest {
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 2, 1),
                 LocalDate.of(2026, 4, 30),
-                2L
+                2L,
+                null
         );
 
         mockMvc.perform(patch("/api/v1/hr/evaluation-periods/1")

@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodCommandService;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -24,25 +25,17 @@ public class EvaluationPeriodCommandController {
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 
-    @PatchMapping("/{id}/close")
-    @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> close(@PathVariable Long id) {
-        service.close(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
-    @PatchMapping("/{id}/confirm")
-    @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> confirm(@PathVariable Long id) {
-        service.confirm(id);
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
     @PatchMapping("/{id}")
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Void>> update(@PathVariable Long id,
                                                     @RequestBody EvaluationPeriodUpdateRequest request) {
-        service.update(id, request);
+        if (request.getStatus() == EvalPeriodStatus.CLOSING) {
+            service.close(id);
+        } else if (request.getStatus() == EvalPeriodStatus.CONFIRMED) {
+            service.confirm(id);
+        } else {
+            service.update(id, request);
+        }
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
