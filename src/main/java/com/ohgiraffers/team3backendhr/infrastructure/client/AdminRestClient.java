@@ -138,6 +138,19 @@ public class AdminRestClient implements AdminClient {
     }
 
     @Override
+    public AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion() {
+        ResponseEntity<AdminApiResponse<List<AlgorithmVersionSnapshotResponse>>> response = restTemplate.exchange(
+            adminBaseUrl + "/api/v1/algorithm-version?isActive=true",
+            HttpMethod.GET,
+            null,
+            new ParameterizedTypeReference<>() {}
+        );
+        AdminApiResponse<List<AlgorithmVersionSnapshotResponse>> body = response.getBody();
+        List<AlgorithmVersionSnapshotResponse> list = body != null ? body.getData() : null;
+        return (list != null && !list.isEmpty()) ? list.get(0) : null;
+    }
+
+    @Override
     public OrgUnitTreeResponse getOrgTree() {
         return restTemplate.getForObject(
             adminBaseUrl + "/api/v1/admin/org/units",

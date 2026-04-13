@@ -115,6 +115,11 @@ public class AdminClientStub implements AdminClient {
     }
 
     @Override
+    public AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion() {
+        return getAlgorithmVersionSnapshot(1L);
+    }
+
+    @Override
     public OrgUnitTreeResponse getOrgTree() {
         return OrgUnitTreeResponse.builder()
                 .unitId(1L).unitName("전사").type("ROOT")

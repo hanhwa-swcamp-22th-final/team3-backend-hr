@@ -88,6 +88,16 @@ public class AdminFeignClient implements AdminClient {
     }
 
     @Override
+    public AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion() {
+        AdminApiResponse<List<AlgorithmVersionSnapshotResponse>> response =
+            adminFeignApi.getAlgorithmVersionList(true);
+        if (response == null || response.getData() == null || response.getData().isEmpty()) {
+            return null;
+        }
+        return response.getData().get(0);
+    }
+
+    @Override
     public OrgUnitTreeResponse getOrgTree() {
         return adminRestClient.getOrgTree();
     }
