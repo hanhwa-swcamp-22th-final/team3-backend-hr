@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
@@ -21,4 +22,5 @@ public class EmployeeProfileResponse {
     private String teamName;
     private Grade currentTier;
     private BigDecimal totalScore;
+    private LocalDate hireDate;
 }

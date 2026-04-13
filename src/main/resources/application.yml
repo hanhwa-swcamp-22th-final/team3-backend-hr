@@ -48,9 +48,9 @@ mybatis:
 # External Service Clients
 feign:
   admin:
-    url: http://localhost:8080
+    url: ${FEIGN_ADMIN_URL:http://localhost:8080}
   scm:
-    url: http://localhost:8082
+    url: ${FEIGN_SCM_URL:http://localhost:8082}
 
 # Scheduler
 scheduler:

@@ -2,8 +2,10 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem;
 import com.ohgiraffers.team3backendhr.hr.query.service.MissionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.PerformancePointQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.PromotionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.WorkerEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
@@ -22,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -45,6 +48,9 @@ class WorkerQueryControllerTest {
 
     @MockitoBean
     private MissionQueryService missionQueryService;
+
+    @MockitoBean
+    private PromotionQueryService promotionQueryService;
 
     @MockitoBean
     private WorkerProfileQueryService workerProfileQueryService;
@@ -141,5 +147,21 @@ class WorkerQueryControllerTest {
                         .with(user(workerUserDetails())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data").isEmpty());
+    }
+
+    @Test
+    @DisplayName("티어 성장 히스토리 조회 — 입사 티어 포함")
+    void getTierHistory_success() throws Exception {
+        given(promotionQueryService.getWorkerTierHistory(any()))
+                .willReturn(List.of(new WorkerTierHistoryItem(
+                        "INITIAL", null, "C", null, null, "입사 티어",
+                        LocalDate.of(2024, 1, 1), null)));
+
+        mockMvc.perform(get("/api/v1/hr/workers/me/tier-history")
+                        .with(user(workerUserDetails())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].eventType").value("INITIAL"))
+                .andExpect(jsonPath("$.data[0].toTier").value("C"));
     }
 }

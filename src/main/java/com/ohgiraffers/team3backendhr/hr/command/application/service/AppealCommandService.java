@@ -17,6 +17,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealReposit
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +37,7 @@ public class AppealCommandService {
     private final ScoreModificationLogRepository scoreLogRepository;
     private final QualitativeEvaluationRepository qualitativeEvaluationRepository;
     private final IdGenerator idGenerator;
+    private final NotificationCommandService notificationCommandService;
 
     /* 이의신청 등록 — 파일 그룹 자동 생성 (S3 추후 도입) */
     public void register(Long appealEmployeeId, AppealRegisterRequest request) {
@@ -68,6 +71,15 @@ public class AppealCommandService {
                 .filedAt(LocalDateTime.now())
                 .fileGroupId(fileGroup.getFileGroupId())
                 .build());
+
+        if (eval.getEvaluatorId() != null) {
+            notificationCommandService.create(
+                NotificationType.OBJECTIONS,
+                "이의신청 접수",
+                appealEmployeeId + "번 직원이 이의신청을 제출했습니다.",
+                List.of(eval.getEvaluatorId())
+            );
+        }
     }
 
     /* 이의신청 수정 */
