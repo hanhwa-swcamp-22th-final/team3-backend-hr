@@ -186,6 +186,7 @@ public class QualitativeEvaluationCommandService {
             .nlpSentiment(sentenceAnalysis.getNlpSentiment())
             .matchedKeywordCount(sentenceAnalysis.getMatchedKeywordCount() == null ? 0 : sentenceAnalysis.getMatchedKeywordCount())
             .matchedKeywords(toJson(sentenceAnalysis.getMatchedKeywords()))
+            .matchedKeywordDetails(toJson(sentenceAnalysis.getMatchedKeywordDetails()))
             .contextWeight(sentenceAnalysis.getContextWeight())
             .negationDetected(Boolean.TRUE.equals(sentenceAnalysis.getNegationDetected()))
             .createdAt(occurredAt)
@@ -293,10 +294,15 @@ public class QualitativeEvaluationCommandService {
             return null;
         }
 
-        return new QualitativeKeywordRuleEvent(response.getDomainKeyword(), scoreWeight);
+        return new QualitativeKeywordRuleEvent(
+            response.getDomainKeywordId(),
+            response.getDomainKeyword(),
+            response.getDomainCompetencyCategory(),
+            scoreWeight
+        );
     }
 
-    private String toJson(List<String> values) {
+    private String toJson(List<?> values) {
         try {
             return objectMapper.writeValueAsString(values == null ? List.of() : values);
         } catch (JsonProcessingException exception) {

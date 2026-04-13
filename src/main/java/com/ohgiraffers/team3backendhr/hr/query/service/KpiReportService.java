@@ -18,13 +18,13 @@ public class KpiReportService {
 
     private final DashboardQueryService dashboardQueryService;
 
-    public byte[] generateHrmKpiExcel(int year, int quarter) {
-        List<HrmKpiDetailItem> items = dashboardQueryService.getHrmKpiDetailsAll(year, quarter);
+    public byte[] generateHrmKpiExcel(int year, int evalSequence) {
+        List<HrmKpiDetailItem> items = dashboardQueryService.getHrmKpiDetailsAll(year, evalSequence);
 
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             
-            Sheet sheet = workbook.createSheet("KPI Report " + year + " Q" + quarter);
+            Sheet sheet = workbook.createSheet("KPI Report " + year + " Q" + evalSequence);
 
             // 1. 헤더 스타일 생성 (굵은 글씨 + 배경색)
             CellStyle headerStyle = workbook.createCellStyle();

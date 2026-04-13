@@ -27,16 +27,16 @@ class KpiReportServiceTest {
     void generateHrmKpiExcel_success() {
         // given
         int year = 2026;
-        int quarter = 1;
+        int evalSequence = 1;
         List<HrmKpiDetailItem> mockItems = List.of(
                 new HrmKpiDetailItem(1L, "홍길동", "S", 95.5, "S", "CONFIRMED"),
                 new HrmKpiDetailItem(2L, "김철수", "A", 88.0, "A", "CONFIRMED")
         );
         // DashboardQueryService에서 데이터를 가져온다고 가정 (페이징 없이 전체 조회용 메서드 필요할 수 있음)
-        given(dashboardQueryService.getHrmKpiDetailsAll(year, quarter)).willReturn(mockItems);
+        given(dashboardQueryService.getHrmKpiDetailsAll(year, evalSequence)).willReturn(mockItems);
 
         // when
-        byte[] excelBytes = kpiReportService.generateHrmKpiExcel(year, quarter);
+        byte[] excelBytes = kpiReportService.generateHrmKpiExcel(year, evalSequence);
 
         // then
         assertThat(excelBytes).isNotEmpty();

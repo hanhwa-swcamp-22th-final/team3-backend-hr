@@ -33,9 +33,9 @@ public class HrmDashboardQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<HrmKpiSummaryResponse>> getKpiSummary(
             @RequestParam int year,
-            @RequestParam int quarter) {
+            @RequestParam int evalSequence) {
         return ResponseEntity.ok(ApiResponse.success(
-                dashboardQueryService.getHrmKpiSummary(year, quarter)));
+                dashboardQueryService.getHrmKpiSummary(year, evalSequence)));
     }
 
     /* HR-002: KPI 상세 조회 */
@@ -43,11 +43,11 @@ public class HrmDashboardQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<List<HrmKpiDetailItem>>> getKpiDetails(
             @RequestParam int year,
-            @RequestParam int quarter,
+            @RequestParam int evalSequence,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(ApiResponse.success(
-                dashboardQueryService.getHrmKpiDetails(year, quarter, page, size)));
+                dashboardQueryService.getHrmKpiDetails(year, evalSequence, page, size)));
     }
 
     /* HR-003: KPI 추이 조회 */
@@ -67,11 +67,11 @@ public class HrmDashboardQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<byte[]> downloadKpiReport(
             @RequestParam int year,
-            @RequestParam int quarter) {
+            @RequestParam int evalSequence) {
         
-        byte[] excelBytes = kpiReportService.generateHrmKpiExcel(year, quarter);
+        byte[] excelBytes = kpiReportService.generateHrmKpiExcel(year, evalSequence);
         
-        String fileName = "전사_KPI_보고서_" + year + "_Q" + quarter + ".xlsx";
+        String fileName = "전사_KPI_보고서_" + year + "_Q" + evalSequence + ".xlsx";
         String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
         
         return ResponseEntity.ok()

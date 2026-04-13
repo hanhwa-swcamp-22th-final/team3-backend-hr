@@ -1,8 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.EvaluationReferenceEventPublisher;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
@@ -32,6 +33,12 @@ class EvaluationPeriodServiceTest {
 
     @Mock
     private QualitativeEvaluationCommandService qualitativeEvaluationService;
+
+    @Mock
+    private AdminClient adminClient;
+
+    @Mock
+    private EvaluationReferenceEventPublisher evaluationReferenceEventPublisher;
 
     @Mock
     private IdGenerator idGenerator;

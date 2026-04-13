@@ -13,7 +13,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.OrgUnitTreeRespo
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import java.util.List;
 
@@ -24,8 +23,6 @@ public interface AdminClient {
     EmployeeProfileResponse getWorkerProfile(Long employeeId);
 
     List<EmployeeSkillResponse> getWorkerSkills(Long employeeId);
-
-    List<TierMilestoneResponse> getTierMilestones(Long employeeId);
 
     List<TierChartPointResponse> getTierChart(Long employeeId);
 

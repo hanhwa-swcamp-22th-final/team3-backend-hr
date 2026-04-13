@@ -4,7 +4,6 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +27,7 @@ public class WorkerProfileQueryService {
         return adminClient.getWorkerSkills(employeeId);
     }
 
-    /* HR-066: Tier 마일스톤 조회 */
-    public List<TierMilestoneResponse> getTierMilestones(Long employeeId) {
-        return adminClient.getTierMilestones(employeeId);
-    }
-
-    /* HR-067: Tier 차트 조회 */
+    /* HR-066: Tier 차트 조회 */
     public List<TierChartPointResponse> getTierChart(Long employeeId) {
         return adminClient.getTierChart(employeeId);
     }

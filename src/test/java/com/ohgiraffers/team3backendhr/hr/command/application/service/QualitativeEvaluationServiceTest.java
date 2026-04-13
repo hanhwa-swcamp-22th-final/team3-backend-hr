@@ -8,8 +8,14 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualita
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.InputMethod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import java.time.LocalDate;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationAnalyzedEvent;
 import java.math.BigDecimal;
@@ -49,7 +55,13 @@ class QualitativeEvaluationServiceTest {
     private QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
 
     @Mock
+    private EvaluationPeriodRepository evaluationPeriodRepository;
+
+    @Mock
     private EvaluationCommentRepository evaluationCommentRepository;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private QualitativeEvaluationCommandService service;
@@ -127,6 +139,10 @@ class QualitativeEvaluationServiceTest {
         QualitativeEvaluation eval = buildEval(QualEvalStatus.DRAFT);
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
+        given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
+                EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
+                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
                 5L, "{\"TECHNICAL_COMPETENCE\": 95}", "제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
@@ -224,6 +240,10 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
+        given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
+                EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
+                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
                 5L, "{\"LEADERSHIP\": 95}", "2차 제출 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);

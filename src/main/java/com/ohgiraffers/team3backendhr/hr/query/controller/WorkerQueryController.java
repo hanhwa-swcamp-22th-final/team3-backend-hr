@@ -17,7 +17,6 @@ import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
-import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierMilestoneResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -87,15 +86,7 @@ public class WorkerQueryController {
                 workerProfileQueryService.getSkills(userDetails.getEmployeeId())));
     }
 
-    /* HR-066: Tier 마일스톤 조회 */
-    @GetMapping("/tier-milestones")
-    public ResponseEntity<ApiResponse<List<TierMilestoneResponse>>> getTierMilestones(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(
-                workerProfileQueryService.getTierMilestones(userDetails.getEmployeeId())));
-    }
-
-    /* HR-067: Tier 차트 조회 */
+    /* HR-066: Tier 차트 조회 */
     @GetMapping("/tier-chart")
     public ResponseEntity<ApiResponse<List<TierChartPointResponse>>> getTierChart(
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {

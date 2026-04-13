@@ -39,6 +39,9 @@ public class EvaluationComment {
     @Column(name = "matched_keywords", columnDefinition = "JSON")
     private String matchedKeywords;
 
+    @Column(name = "matched_keyword_details", columnDefinition = "JSON")
+    private String matchedKeywordDetails;
+
     @Column(name = "context_weight")
     private BigDecimal contextWeight;
 

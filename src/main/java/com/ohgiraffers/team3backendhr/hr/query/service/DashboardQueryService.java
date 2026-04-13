@@ -23,17 +23,17 @@ public class DashboardQueryService {
     private final DashboardQueryMapper mapper;
 
     /* HR-001 */
-    public HrmKpiSummaryResponse getHrmKpiSummary(int year, int quarter) {
-        return mapper.findHrmKpiSummary(year, quarter);
+    public HrmKpiSummaryResponse getHrmKpiSummary(int year, int evalSequence) {
+        return mapper.findHrmKpiSummary(year, evalSequence);
     }
 
     /* HR-002 */
-    public List<HrmKpiDetailItem> getHrmKpiDetails(int year, int quarter, int page, int size) {
-        return mapper.findHrmKpiDetails(year, quarter, size, page * size);
+    public List<HrmKpiDetailItem> getHrmKpiDetails(int year, int evalSequence, int page, int size) {
+        return mapper.findHrmKpiDetails(year, evalSequence, size, page * size);
     }
 
-    public List<HrmKpiDetailItem> getHrmKpiDetailsAll(int year, int quarter) {
-        return mapper.findHrmKpiDetailsAll(year, quarter);
+    public List<HrmKpiDetailItem> getHrmKpiDetailsAll(int year, int evalSequence) {
+        return mapper.findHrmKpiDetailsAll(year, evalSequence);
     }
 
     /* HR-003 */
