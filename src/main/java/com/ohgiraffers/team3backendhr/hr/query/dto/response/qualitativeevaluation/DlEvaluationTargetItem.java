@@ -10,6 +10,7 @@ import lombok.Setter;
 public class DlEvaluationTargetItem {
 
     private Long evaluateeId;
+    private Long evaluationPeriodId;
     private String employeeName;
     private String employeeTier;
     private Long evalId;

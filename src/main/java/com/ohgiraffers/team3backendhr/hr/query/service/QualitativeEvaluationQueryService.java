@@ -27,16 +27,9 @@ public class QualitativeEvaluationQueryService {
 
     /* TL 평가 대상 조회 — 같은 부서 WORKER × level 1 레코드 반환 */
     public TlEvaluationTargetResponse getTlTargets(Long tlId, Long periodId) {
-        Long resolvedPeriodId = periodId != null ? periodId : null;
+        Long resolvedPeriodId = resolvePeriodId(periodId);
         List<TlEvaluationTargetItem> targets = mapper.findTlTargets(tlId, resolvedPeriodId);
-        List<Long> evalPeriodIds = targets.stream()
-            .map(TlEvaluationTargetItem::getEvaluationPeriodId)
-            .distinct()
-            .toList();
-        Long primaryPeriodId = periodId != null
-            ? periodId
-            : (evalPeriodIds.isEmpty() ? null : evalPeriodIds.get(0));
-        return new TlEvaluationTargetResponse(primaryPeriodId, evalPeriodIds, targets);
+        return new TlEvaluationTargetResponse(resolvedPeriodId, List.of(resolvedPeriodId), targets);
     }
 
     /* DL 평가 대상 조회 — level 1 SUBMITTED인 대상 × level 2 레코드 반환 */
