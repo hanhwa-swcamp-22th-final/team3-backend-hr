@@ -68,6 +68,11 @@ public interface AdminFeignApi {
         @PathVariable Long algorithmVersionId
     );
 
+    @GetMapping("/api/v1/algorithm-version")
+    AdminApiResponse<List<AlgorithmVersionSnapshotResponse>> getAlgorithmVersionList(
+        @RequestParam(required = false) Boolean isActive
+    );
+
     /* 조직도 트리 */
     @GetMapping("/api/v1/admin/org/units")
     AdminApiResponse<OrgUnitTreeResponse> getOrgTree();

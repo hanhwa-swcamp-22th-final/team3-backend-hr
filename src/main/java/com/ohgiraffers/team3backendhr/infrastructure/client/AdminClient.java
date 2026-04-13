@@ -34,6 +34,8 @@ public interface AdminClient {
 
     AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId);
 
+    AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion();
+
     OrgUnitTreeResponse getOrgTree();
 
     List<OrgEmployeeResponse> getEmployees(Long departmentId, Long teamId, String keyword, int page, int size);

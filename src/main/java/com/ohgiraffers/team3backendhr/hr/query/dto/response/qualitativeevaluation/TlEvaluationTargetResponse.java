@@ -10,5 +10,6 @@ import java.util.List;
 public class TlEvaluationTargetResponse {
 
     private final Long evalPeriodId;
+    private final List<Long> evalPeriodIds;
     private final List<TlEvaluationTargetItem> targets;
 }

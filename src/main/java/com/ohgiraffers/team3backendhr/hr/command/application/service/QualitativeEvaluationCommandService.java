@@ -55,6 +55,10 @@ public class QualitativeEvaluationCommandService {
     private final QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
     private final ObjectMapper objectMapper;
 
+    public void deleteByPeriodId(Long periodId) {
+        repository.deleteByEvaluationPeriodId(periodId);
+    }
+
     public void createRecordsForPeriod(Long periodId) {
         List<WorkerResponse> workers = adminClient.getWorkers();
         List<QualitativeEvaluation> evaluations = new ArrayList<>();

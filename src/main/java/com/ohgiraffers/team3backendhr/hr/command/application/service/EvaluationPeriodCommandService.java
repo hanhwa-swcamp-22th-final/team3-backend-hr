@@ -37,9 +37,6 @@ public class EvaluationPeriodCommandService {
     private final IdGenerator idGenerator;
 
     public void create(EvaluationPeriodCreateRequest request) {
-        if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
-            throw new BusinessException(ErrorCode.EVAL_PERIOD_ALREADY_IN_PROGRESS);
-        }
         if (!request.getEndDate().isAfter(request.getStartDate())) {
             throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
         }
@@ -63,6 +60,13 @@ public class EvaluationPeriodCommandService {
         repository.save(period);
         qualitativeEvaluationService.createRecordsForPeriod(period.getEvalPeriodId());
         publishPeriodSnapshotAfterCommit(period);
+    }
+
+    public void delete(Long evalPeriodId) {
+        EvaluationPeriod period = repository.findById(evalPeriodId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVAL_PERIOD_NOT_FOUND));
+        qualitativeEvaluationService.deleteByPeriodId(evalPeriodId);
+        repository.delete(period);
     }
 
     public void close(Long evalPeriodId) {
