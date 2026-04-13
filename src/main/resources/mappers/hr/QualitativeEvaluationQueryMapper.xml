@@ -103,18 +103,20 @@
             e.employee_tier                 AS employeeTier,
             qe1.score                       AS firstStageScore,
             NULL                            AS aiRecommendedScore,
-            qe2.status
+            qe2.status,
+            qe2.eval_comment                AS evalComment
         FROM qualitative_evaluation qe2
         JOIN qualitative_evaluation qe1
             ON  qe1.evaluatee_id          = qe2.evaluatee_id
             AND qe1.evaluation_period_id  = qe2.evaluation_period_id
             AND qe1.evaluation_level      = 1
             AND qe1.status                = 'SUBMITTED'
-        JOIN employee e  ON e.employee_id = qe2.evaluatee_id
-        JOIN employee dl ON dl.employee_id = #{dlId}
+        JOIN employee e    ON e.employee_id = qe2.evaluatee_id
+        JOIN department d  ON d.department_id = e.department_id
+        JOIN employee dl   ON dl.employee_id = #{dlId}
         WHERE qe2.evaluation_period_id = #{periodId}
           AND qe2.evaluation_level = 2
-          AND e.department_id = dl.department_id
+          AND d.parent_department_id = dl.department_id
           AND e.employee_role = 'WORKER'
         ORDER BY e.employee_name
     </select>
@@ -196,14 +198,15 @@
             NULL                            AS aiRecommendedScore,
             qe.status
         FROM qualitative_evaluation qe
-        JOIN employee e  ON e.employee_id = qe.evaluatee_id
+        JOIN employee e    ON e.employee_id = qe.evaluatee_id
+        JOIN department d  ON d.department_id = e.department_id
         LEFT JOIN employee tl ON tl.employee_id = qe.evaluator_id
-        JOIN employee dl ON dl.employee_id = #{dlId}
+        JOIN employee dl   ON dl.employee_id = #{dlId}
         WHERE qe.evaluatee_id = #{evaluateeId}
           AND qe.evaluation_period_id = #{periodId}
           AND qe.evaluation_level = 1
           AND qe.status = 'SUBMITTED'
-          AND e.department_id = dl.department_id
+          AND d.parent_department_id = dl.department_id
     </select>
 
     <!-- HRM 평가 상세 조회 -->
