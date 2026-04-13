@@ -1,7 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
-import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
@@ -12,7 +10,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class QuantitativeEvaluationTest {
 
@@ -30,6 +27,7 @@ class QuantitativeEvaluationTest {
                 .sQuant(BigDecimal.valueOf(87.5))
                 .tScore(BigDecimal.valueOf(91.0))
                 .materialShielding(0)
+                .status("CONFIRMED")
                 .build();
     }
 
@@ -42,7 +40,7 @@ class QuantitativeEvaluationTest {
 
         assertThat(eval.getUphScore()).isEqualByComparingTo(BigDecimal.valueOf(90.0));
         assertThat(eval.getTScore()).isEqualByComparingTo(BigDecimal.valueOf(91.0));
-        assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.TEMPORARY);
+        assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
 
     @Test
@@ -50,8 +48,6 @@ class QuantitativeEvaluationTest {
     void confirm_success() {
         QuantitativeEvaluation eval = buildEvaluation();
         eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
-
-        eval.confirm();
 
         assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
@@ -61,10 +57,7 @@ class QuantitativeEvaluationTest {
     void confirm_fail_alreadyConfirmed() {
         QuantitativeEvaluation eval = buildEvaluation();
         eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
-        eval.confirm();
 
-        assertThatThrownBy(eval::confirm)
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(ErrorCode.EVALUATION_ALREADY_CONFIRMED.getMessage());
+        assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
 }
