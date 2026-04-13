@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 
 @Service
@@ -54,6 +55,7 @@ public class QualitativeEvaluationCommandService {
     private final IdGenerator idGenerator;
     private final QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
     private final ObjectMapper objectMapper;
+    private final NotificationCommandService notificationCommandService;
 
     public void createRecordsForPeriod(Long periodId) {
         List<WorkerResponse> workers = adminClient.getWorkers();
@@ -137,6 +139,15 @@ public class QualitativeEvaluationCommandService {
             .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
         eval.applyAnalysisResult(rawScore.doubleValue());
         replaceEvaluationComments(event);
+
+        if (eval.getEvaluatorId() != null) {
+            notificationCommandService.create(
+                NotificationType.RESULTS,
+                "평가 분석 결과 도착",
+                eval.getEvaluateeId() + "번 직원의 정성 평가 분석이 완료되었습니다.",
+                List.of(eval.getEvaluatorId())
+            );
+        }
     }
 
     public void applyNormalizedResult(QualitativeEvaluationNormalizedEvent event) {

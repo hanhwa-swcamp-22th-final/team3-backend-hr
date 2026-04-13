@@ -10,8 +10,10 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalSta
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem;
 import com.ohgiraffers.team3backendhr.hr.query.service.MissionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.PerformancePointQueryService;
+import com.ohgiraffers.team3backendhr.hr.query.service.PromotionQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.WorkerEvaluationQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.WorkerProfileQueryService;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
@@ -34,6 +36,7 @@ public class WorkerQueryController {
     private final MissionQueryService missionQueryService;
     private final WorkerProfileQueryService workerProfileQueryService;
     private final WorkerEvaluationQueryService workerEvaluationQueryService;
+    private final PromotionQueryService promotionQueryService;
 
     @GetMapping("/point-summary")
     public ResponseEntity<ApiResponse<PointSummaryResponse>> getPointSummary(
@@ -68,6 +71,14 @@ public class WorkerQueryController {
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(
                 missionQueryService.getUpgradeMissions(userDetails.getEmployeeId())));
+    }
+
+    /* Worker — 입사 티어를 포함한 내 티어 성장 히스토리 */
+    @GetMapping("/tier-history")
+    public ResponseEntity<ApiResponse<List<WorkerTierHistoryItem>>> getTierHistory(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                promotionQueryService.getWorkerTierHistory(userDetails.getEmployeeId())));
     }
 
     /* HR-064: 내 프로필 조회 */

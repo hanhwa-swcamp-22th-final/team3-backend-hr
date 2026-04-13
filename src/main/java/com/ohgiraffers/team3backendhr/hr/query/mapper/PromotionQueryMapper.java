@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateDetailResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.promotion.PromotionCandidateItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -27,4 +28,7 @@ public interface PromotionQueryMapper {
 
     /* 후보 상세 */
     PromotionCandidateDetailResponse findCandidateById(Long candidateId);
+
+    /* Worker — 본인 티어 성장 이력 */
+    List<WorkerTierHistoryItem> findWorkerTierHistory(Long employeeId);
 }
