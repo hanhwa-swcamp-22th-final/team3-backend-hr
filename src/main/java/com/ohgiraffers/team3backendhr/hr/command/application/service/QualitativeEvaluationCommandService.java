@@ -265,7 +265,7 @@ public class QualitativeEvaluationCommandService {
         );
         Double baseScore = firstEvaluation.getScore();
         if (baseScore == null) {
-            throw new IllegalStateException("Level 1 raw score is required before submitting level 2 qualitative evaluation.");
+            return null;
         }
         return BigDecimal.valueOf(baseScore).setScale(4, RoundingMode.HALF_UP);
     }

@@ -69,6 +69,7 @@
             e.employee_tier                 AS employeeTier,
             qe.status,
             CASE WHEN qe.status = 'SUBMITTED' THEN true ELSE false END AS submitted,
+            qe.score                        AS firstStageScore,
             s.total_points                  AS totalScore,
             qe.eval_comment                 AS evalComment
         FROM qualitative_evaluation qe
@@ -90,9 +91,12 @@
             qe2.qualitative_evaluation_id   AS evalId,
             qe2.evaluatee_id                AS evaluateeId,
             qe2.evaluation_period_id        AS evaluationPeriodId,
+            e.employee_code                 AS employeeCode,
             e.employee_name                 AS employeeName,
             e.employee_tier                 AS employeeTier,
+            d.department_name               AS teamName,
             qe1.score                       AS firstStageScore,
+            qe2.score                       AS secondStageScore,
             NULL                            AS aiRecommendedScore,
             qe2.status,
             qe2.eval_comment                AS evalComment

@@ -11,12 +11,13 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationSummaryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,19 +25,37 @@ import java.util.List;
 public class QualitativeEvaluationQueryService {
 
     private final QualitativeEvaluationQueryMapper mapper;
+    private final EvaluationPeriodRepository evaluationPeriodRepository;
 
     /* TL 평가 대상 조회 — 같은 부서 WORKER × level 1 레코드 반환 */
     public TlEvaluationTargetResponse getTlTargets(Long tlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<TlEvaluationTargetItem> targets = mapper.findTlTargets(tlId, resolvedPeriodId);
-        return new TlEvaluationTargetResponse(resolvedPeriodId, List.of(resolvedPeriodId), targets);
+        EvaluationPeriod period = evaluationPeriodRepository.findById(resolvedPeriodId).orElse(null);
+        return new TlEvaluationTargetResponse(
+            resolvedPeriodId,
+            List.of(resolvedPeriodId),
+            targets,
+            period != null ? period.getEvalYear() : null,
+            period != null ? period.getEvalSequence() : null,
+            period != null ? period.getStartDate() : null,
+            period != null ? period.getEndDate() : null
+        );
     }
 
     /* DL 평가 대상 조회 — level 1 SUBMITTED인 대상 × level 2 레코드 반환 */
     public DlEvaluationTargetResponse getDlTargets(Long dlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
-        return new DlEvaluationTargetResponse(resolvedPeriodId, targets);
+        EvaluationPeriod period = evaluationPeriodRepository.findById(resolvedPeriodId).orElse(null);
+        return new DlEvaluationTargetResponse(
+            resolvedPeriodId,
+            targets,
+            period != null ? period.getEvalYear() : null,
+            period != null ? period.getEvalSequence() : null,
+            period != null ? period.getStartDate() : null,
+            period != null ? period.getEndDate() : null
+        );
     }
 
     /* TL — 제출 완료 평가 상세 조회 (본인 제출분만) */

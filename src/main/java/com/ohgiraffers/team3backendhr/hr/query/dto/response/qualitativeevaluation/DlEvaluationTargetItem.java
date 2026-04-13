@@ -11,10 +11,13 @@ public class DlEvaluationTargetItem {
 
     private Long evaluateeId;
     private Long evaluationPeriodId;
+    private String employeeCode;
     private String employeeName;
     private String employeeTier;
+    private String teamName;
     private Long evalId;
     private Double firstStageScore;
+    private Double secondStageScore;
     private Double aiRecommendedScore;  // 현재 null 반환 (AI 미구현)
     private String status;
     private String evalComment;         // DL 2차 평가 임시저장 코멘트

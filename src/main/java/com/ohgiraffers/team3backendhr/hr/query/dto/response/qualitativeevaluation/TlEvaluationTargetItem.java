@@ -17,6 +17,7 @@ public class TlEvaluationTargetItem {
     private Long evalId;
     private String status;
     private Boolean submitted;
+    private Double firstStageScore;
     private Integer totalScore;
     private String evalComment;
 }
