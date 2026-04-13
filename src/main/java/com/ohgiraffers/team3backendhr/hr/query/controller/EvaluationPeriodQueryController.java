@@ -4,6 +4,8 @@ import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.EvaluationPeriodQueryService;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EvaluationPeriodQueryController {
 
     private final EvaluationPeriodQueryService service;
+    private final AdminClient adminClient;
 
     /* 평가 기간 목록 조회 — year·status 필터, 페이징 지원 */
     @GetMapping
@@ -28,6 +31,17 @@ public class EvaluationPeriodQueryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(service.getEvaluationPeriods(year, status, page, size)));
+    }
+
+    /* 활성 알고리즘 버전 ID 조회 — 평가기간 생성 시 프론트에서 사용 */
+    @GetMapping("/active-algorithm")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Long>> getActiveAlgorithmVersionId() {
+        AlgorithmVersionSnapshotResponse version = adminClient.getActiveAlgorithmVersion();
+        if (version == null) {
+            return ResponseEntity.ok(ApiResponse.success(null));
+        }
+        return ResponseEntity.ok(ApiResponse.success(version.getAlgorithmVersionId()));
     }
 
     /* 마감일 조회 — 현재 IN_PROGRESS 기간의 endDate·daysRemaining 반환 */
