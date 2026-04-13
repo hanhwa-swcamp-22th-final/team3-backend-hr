@@ -161,6 +161,7 @@ public class EvaluationPeriodCommandService {
             .status(period.getStatus().name())
             .algorithmVersionNo(snapshot != null ? snapshot.getVersionNo() : null)
             .algorithmImplementationKey(snapshot != null ? snapshot.getImplementationKey() : null)
+            .policyConfig(snapshot != null ? snapshot.getPolicyConfig() : null)
             .parameters(snapshot != null ? snapshot.getParameters() : null)
             .referenceValues(snapshot != null ? snapshot.getReferenceValues() : null)
             .occurredAt(LocalDateTime.now())
