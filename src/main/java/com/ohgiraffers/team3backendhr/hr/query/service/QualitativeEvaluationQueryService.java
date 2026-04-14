@@ -11,12 +11,13 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationSummaryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetResponse;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,22 +25,40 @@ import java.util.List;
 public class QualitativeEvaluationQueryService {
 
     private final QualitativeEvaluationQueryMapper mapper;
+    private final EvaluationPeriodRepository evaluationPeriodRepository;
 
-    /* TL ?됯? ???議고쉶 ??媛숈? 遺??WORKER 횞 level 1 ?덉퐫??諛섑솚 */
+    /* TL target list for level 1 qualitative evaluation */
     public TlEvaluationTargetResponse getTlTargets(Long tlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<TlEvaluationTargetItem> targets = mapper.findTlTargets(tlId, resolvedPeriodId);
-        return new TlEvaluationTargetResponse(resolvedPeriodId, List.of(resolvedPeriodId), targets);
+        EvaluationPeriod period = evaluationPeriodRepository.findById(resolvedPeriodId).orElse(null);
+        return new TlEvaluationTargetResponse(
+            resolvedPeriodId,
+            List.of(resolvedPeriodId),
+            targets,
+            period != null ? period.getEvalYear() : null,
+            period != null ? period.getEvalSequence() : null,
+            period != null ? period.getStartDate() : null,
+            period != null ? period.getEndDate() : null
+        );
     }
 
-    /* DL ?됯? ???議고쉶 ??level 1 SUBMITTED?????횞 level 2 ?덉퐫??諛섑솚 */
+    /* DL target list for level 2 qualitative evaluation */
     public DlEvaluationTargetResponse getDlTargets(Long dlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
-        return new DlEvaluationTargetResponse(resolvedPeriodId, targets);
+        EvaluationPeriod period = evaluationPeriodRepository.findById(resolvedPeriodId).orElse(null);
+        return new DlEvaluationTargetResponse(
+            resolvedPeriodId,
+            targets,
+            period != null ? period.getEvalYear() : null,
+            period != null ? period.getEvalSequence() : null,
+            period != null ? period.getStartDate() : null,
+            period != null ? period.getEndDate() : null
+        );
     }
 
-    /* TL ???쒖텧 ?꾨즺 ?됯? ?곸꽭 議고쉶 (蹂몄씤 ?쒖텧遺꾨쭔) */
+    /* TL evaluation detail */
     public EvaluationDetailResponse getTlEvaluationDetail(Long tlId, Long evalId) {
         EvaluationDetailResponse detail = mapper.findTlEvaluationDetail(evalId, tlId);
         if (detail == null) {
@@ -48,7 +67,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* DL ??1李??됯? ??ぉ + AI 異붿쿇 ?먯닔 議고쉶 (蹂몄씤 遺??吏곸썝留? */
+    /* DL evaluation detail */
     public DlEvaluationDetailResponse getDlEvaluationDetail(Long dlId, Long evaluateeId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(dlId, evaluateeId, resolvedPeriodId);
@@ -58,7 +77,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM ???됯? ?곸꽭 議고쉶 */
+    /* HRM evaluation detail */
     public EvaluationDetailResponse getEvaluationDetail(Long evalId) {
         EvaluationDetailResponse detail = mapper.findEvaluationDetail(evalId);
         if (detail == null) {
@@ -67,13 +86,13 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM ???깃툒蹂??됯? 吏묎퀎 */
+    /* HRM evaluation grade summary */
     public List<EvaluationGradeSummaryItem> getEvaluationGradeSummary(Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         return mapper.findEvaluationGradeSummary(resolvedPeriodId);
     }
 
-    /* HRM ???됯? 紐⑸줉 議고쉶 (periodId쨌grade쨌status ?꾪꽣, ?섏씠吏? */
+    /* HRM evaluation list with filters */
     public EvaluationListResponse getEvaluations(Long periodId, String grade, String status, int page, int size) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         int offset = page * size;
@@ -83,7 +102,7 @@ public class QualitativeEvaluationQueryService {
         return new EvaluationListResponse(content, totalCount, totalPages);
     }
 
-    /* periodId null ?대㈃ ?꾩옱 IN_PROGRESS 湲곌컙?쇰줈 ?먮룞 resolve ???꾨줎?몄뿉??湲곌컙 ?좏깮 ???대룄 ?숈옉 */
+    /* Resolve current in-progress period when periodId is omitted */
     private Long resolvePeriodId(Long periodId) {
         if (periodId != null) return periodId;
         Long currentId = mapper.findCurrentPeriodId();

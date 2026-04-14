@@ -276,7 +276,10 @@ public class QualitativeEvaluationCommandService {
         );
         Double baseScore = firstEvaluation.getScore();
         if (baseScore == null) {
-            throw new IllegalStateException("Level 1 raw score is required before submitting level 2 qualitative evaluation.");
+            throw new BusinessException(
+                ErrorCode.INVALID_INPUT,
+                "1차 평가 점수가 산출되지 않아 2차 평가를 제출할 수 없습니다."
+            );
         }
         return BigDecimal.valueOf(baseScore).setScale(4, RoundingMode.HALF_UP);
     }
