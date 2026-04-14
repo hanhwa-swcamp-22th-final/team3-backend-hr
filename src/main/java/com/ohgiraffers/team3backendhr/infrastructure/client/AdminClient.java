@@ -29,6 +29,10 @@ public interface AdminClient {
 
     List<Long> getTeamMemberIds(Long leaderId);
 
+    List<Long> getActiveWorkerIdsByTier(String tier);
+
+    boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier);
+
     void updateEmployeeTier(Long employeeId, Grade newTier);
 
     List<DomainKeywordRuleResponse> getActiveDomainKeywordRules();

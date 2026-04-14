@@ -66,6 +66,18 @@ public class AdminFeignClient implements AdminClient {
     }
 
     @Override
+    public List<Long> getActiveWorkerIdsByTier(String tier) {
+        AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByTier(tier);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier) {
+        AdminApiResponse<Boolean> response = adminFeignApi.existsActiveWorkerByIdAndTier(employeeId, tier);
+        return response != null && Boolean.TRUE.equals(response.getData());
+    }
+
+    @Override
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
         adminFeignApi.updateEmployeeTier(employeeId, new TierUpdateRequest(newTier));
         log.info("[AdminFeignClient] Tier updated. employeeId={}, newTier={}", employeeId, newTier);

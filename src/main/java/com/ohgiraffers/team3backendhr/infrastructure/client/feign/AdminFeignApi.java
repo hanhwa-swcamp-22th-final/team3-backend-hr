@@ -55,6 +55,17 @@ public interface AdminFeignApi {
     @GetMapping("/api/v1/admin/employees/{leaderId}/team-members")
     AdminApiResponse<List<Long>> getTeamMemberIds(@PathVariable Long leaderId);
 
+    /* 티어별 활성 작업자 ID 목록 */
+    @GetMapping("/api/v1/admin/employees/workers/active")
+    AdminApiResponse<List<Long>> getActiveWorkerIdsByTier(@RequestParam String tier);
+
+    /* 활성 작업자/티어 검증 */
+    @GetMapping("/api/v1/admin/employees/{employeeId}/active-worker")
+    AdminApiResponse<Boolean> existsActiveWorkerByIdAndTier(
+        @PathVariable Long employeeId,
+        @RequestParam String tier
+    );
+
     /* 티어 변경: Admin 구현 예정 계약 */
     @PatchMapping("/api/v1/admin/employees/{employeeId}/tier")
     void updateEmployeeTier(@PathVariable Long employeeId, @RequestBody TierUpdateRequest request);

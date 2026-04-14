@@ -2,12 +2,12 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.response.mission.MissionAssignmentResponse;
-import com.ohgiraffers.team3backendhr.hr.command.application.mapper.MissionEmployeeMapper;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missionprogress.MissionProgress;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionTemplate;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.UpgradeToTier;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionProgressRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.MissionTemplateRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +21,14 @@ public class MissionAssignmentCommandService {
 
     private final MissionTemplateRepository missionTemplateRepository;
     private final MissionProgressRepository missionProgressRepository;
-    private final MissionEmployeeMapper missionEmployeeMapper;
+    private final AdminClient adminClient;
     private final IdGenerator idGenerator;
 
     @Transactional
     public MissionAssignmentResponse assignNextTierMissions(Long employeeId, String currentTier) {
         UpgradeToTier upgradeToTier = nextUpgradeTier(currentTier);
         if (upgradeToTier == null
-                || missionEmployeeMapper.findActiveWorkerIdByIdAndTier(employeeId, currentTier) == null) {
+                || !adminClient.existsActiveWorkerByIdAndTier(employeeId, currentTier)) {
             return MissionAssignmentResponse.builder()
                     .employeeId(employeeId)
                     .upgradeToTier(upgradeToTier == null ? null : upgradeToTier.getDbValue())
@@ -57,7 +57,7 @@ public class MissionAssignmentCommandService {
             return new AssignmentResult(0, 0);
         }
 
-        List<Long> employeeIds = missionEmployeeMapper.findActiveWorkerIdsByTier(previousTier);
+        List<Long> employeeIds = adminClient.getActiveWorkerIdsByTier(previousTier);
         return assignTemplatesToEmployees(List.of(template), employeeIds, initialValue);
     }
 
