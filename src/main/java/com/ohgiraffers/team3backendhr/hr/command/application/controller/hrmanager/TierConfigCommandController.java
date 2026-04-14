@@ -27,7 +27,7 @@ public class TierConfigCommandController {
 
     /* HRM — 평가 기준 조회 (HR-EVAL-025) */
     @GetMapping
-    @PreAuthorize("hasAuthority('HRM')")
+    @PreAuthorize("hasAnyAuthority('HRM', 'WORKER')")
     public ResponseEntity<ApiResponse<List<TierCriteriaItem>>> getCriteria() {
         return ResponseEntity.ok(ApiResponse.success(queryService.getCriteria()));
     }
