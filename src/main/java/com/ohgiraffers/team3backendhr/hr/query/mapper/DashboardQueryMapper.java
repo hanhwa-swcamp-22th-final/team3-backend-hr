@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboar
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardTeamItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTeamStatsItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardMemberItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardSummaryResponse;
@@ -33,6 +34,9 @@ public interface DashboardQueryMapper {
 
     /* HR-003: HRM KPI 추이 (연도별 분기 목록) */
     List<HrmKpiTrendItem> findHrmKpiTrends(@Param("year") int year);
+
+    List<HrmKpiTeamStatsItem> findHrmKpiTeamStats(@Param("year") int year,
+                                                  @Param("evalSequence") int evalSequence);
 
     /* HR-005: TL 팀 지표 요약 */
     TlDashboardSummaryResponse findTlDashboardSummary(@Param("tlId") Long tlId);

@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
@@ -160,5 +161,11 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public void removeTeamMember(Long teamId, Long employeeId) {
         adminFeignApi.removeTeamMember(teamId, employeeId);
+    }
+
+    @Override
+    public Long assignDepartmentLeader(Long departmentId, DepartmentLeaderAssignRequest request) {
+        AdminApiResponse<Long> response = adminFeignApi.assignDepartmentLeader(departmentId, request);
+        return response != null ? response.getData() : request.getEmployeeId();
     }
 }

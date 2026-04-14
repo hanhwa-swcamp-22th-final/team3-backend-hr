@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client.feign;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
@@ -124,4 +125,11 @@ public interface AdminFeignApi {
     /* 팀원 제거 */
     @DeleteMapping("/api/v1/admin/org/teams/{teamId}/members/{employeeId}")
     void removeTeamMember(@PathVariable Long teamId, @PathVariable Long employeeId);
+
+    /* 부서장 지정 */
+    @PutMapping("/api/v1/admin/org/departments/{departmentId}/leader")
+    AdminApiResponse<Long> assignDepartmentLeader(
+        @PathVariable Long departmentId,
+        @RequestBody DepartmentLeaderAssignRequest request
+    );
 }

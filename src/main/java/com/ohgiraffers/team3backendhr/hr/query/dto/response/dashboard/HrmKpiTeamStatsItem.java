@@ -7,11 +7,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TlDashboardSummaryResponse {
+public class HrmKpiTeamStatsItem {
 
-    private Double teamAvgScore;
-    private Double evaluationRate;
-    private int completedCount;
+    private Long departmentId;
+    private String departmentName;
+    private int memberCount;
+    private Double avgScore;
     private int tierSCount;
     private int tierACount;
     private int tierBCount;
