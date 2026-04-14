@@ -74,7 +74,7 @@ class WorkerEvaluationQueryIntegrationTest {
 
     private void insertQuantEval(long evalId, long periodId) {
         jdbcTemplate.update(
-                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,91.0,false,'TEMPORARY')",
+                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,91.0,false,'CONFIRMED')",
                 evalId, WORKER_ID, periodId, EQUIPMENT_ID);
     }
 

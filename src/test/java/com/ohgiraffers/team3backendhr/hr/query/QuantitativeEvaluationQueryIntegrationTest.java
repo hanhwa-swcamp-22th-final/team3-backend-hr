@@ -54,9 +54,10 @@ class QuantitativeEvaluationQueryIntegrationTest {
 
     private long insertQuantEval(long periodId, String status) {
         long id = idGenerator.generate();
+        Double tScore = "CONFIRMED".equals(status) ? 91.0 : null;
         jdbcTemplate.update(
-                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,91.0,false,?)",
-                id, WORKER_ID, periodId, EQUIPMENT_ID, status);
+                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,?,false,?)",
+                id, WORKER_ID, periodId, EQUIPMENT_ID, tScore, status);
         return id;
     }
 

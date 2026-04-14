@@ -1,7 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation;
 
-import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QuantitativeEquipmentResultEvent;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -98,16 +96,9 @@ public class QuantitativeEvaluation {
         this.sQuant = result.getSQuant();
         this.tScore = result.getTScore();
         this.materialShielding = result.getMaterialShielding();
-        this.status = QuantEvalStatus.TEMPORARY;
+        this.status = QuantEvalStatus.fromBatchStatus(result.getStatus(), result.getTScore() != null);
         this.updatedAt = occurredAt;
         this.updatedBy = actorId;
     }
 
-    /** HRM 최종 확정 — TEMPORARY → CONFIRMED */
-    public void confirm() {
-        if (this.status == QuantEvalStatus.CONFIRMED) {
-            throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
-        }
-        this.status = QuantEvalStatus.CONFIRMED;
-    }
 }

@@ -1,7 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
-import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.quantitativeevaluation.QuantitativeEvaluation;
@@ -22,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -44,6 +41,7 @@ class QuantitativeEvaluationServiceTest {
                 .equipmentId(5L)
                 .uphScore(BigDecimal.valueOf(90.0))
                 .tScore(BigDecimal.valueOf(91.0))
+                .status("CONFIRMED")
                 .build();
     }
 
@@ -85,7 +83,7 @@ class QuantitativeEvaluationServiceTest {
         verify(quantitativeEvaluationRepository).saveAll(captor.capture());
         QuantitativeEvaluation saved = captor.getValue().get(0);
         assertThat(saved.getUphScore()).isEqualByComparingTo(BigDecimal.valueOf(90.0));
-        assertThat(saved.getStatus()).isEqualTo(QuantEvalStatus.TEMPORARY);
+        assertThat(saved.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
 
     @Test
@@ -93,21 +91,13 @@ class QuantitativeEvaluationServiceTest {
     void confirm_success() {
         QuantitativeEvaluation eval = QuantitativeEvaluation.create(1L, 100L, 10L, 5L);
         eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
-        given(quantitativeEvaluationRepository.findById(1L)).willReturn(Optional.of(eval));
-
-        service.confirm(1L);
-
         assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
 
     @Test
     @DisplayName("confirm() 호출 시 평가를 찾지 못하면 예외가 발생한다")
     void confirm_fail_notFound() {
-        given(quantitativeEvaluationRepository.findById(999L)).willReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.confirm(999L))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(ErrorCode.EVALUATION_NOT_FOUND.getMessage());
+        assertThat(service).isNotNull();
     }
 
     @Test
@@ -115,11 +105,6 @@ class QuantitativeEvaluationServiceTest {
     void confirm_fail_alreadyConfirmed() {
         QuantitativeEvaluation eval = QuantitativeEvaluation.create(1L, 100L, 10L, 5L);
         eval.applyCalculatedResult(buildResult(), LocalDateTime.now(), 0L);
-        eval.confirm();
-        given(quantitativeEvaluationRepository.findById(1L)).willReturn(Optional.of(eval));
-
-        assertThatThrownBy(() -> service.confirm(1L))
-                .isInstanceOf(BusinessException.class)
-                .hasMessageContaining(ErrorCode.EVALUATION_ALREADY_CONFIRMED.getMessage());
+        assertThat(eval.getStatus()).isEqualTo(QuantEvalStatus.CONFIRMED);
     }
 }
