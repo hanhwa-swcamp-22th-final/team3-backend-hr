@@ -42,8 +42,8 @@ class EvaluationPeriodQueryMapperTest {
         jdbcTemplate.update("""
                 INSERT INTO evaluation_period
                   (eval_period_id, algorithm_version_id, eval_year, eval_sequence,
-                   eval_type, start_date, end_date, status)
-                VALUES (?, 1, ?, 1, 'QUALITATIVE', ?, ?, ?)
+                   start_date, end_date, status)
+                VALUES (?, 1, ?, 1, ?, ?, ?)
                 """,
                 idGenerator.generate(), year,
                 LocalDate.of(year, 1, 1),

@@ -40,8 +40,8 @@ public class EvaluationPeriodCommandService {
         if (!request.getEndDate().isAfter(request.getStartDate())) {
             throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
         }
-        if (repository.existsByEvalYearAndEvalSequenceAndEvalType(
-                request.getEvalYear(), request.getEvalSequence(), request.getEvalType())) {
+        if (repository.existsByEvalYearAndEvalSequence(
+                request.getEvalYear(), request.getEvalSequence())) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_DUPLICATE);
         }
         if (repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
@@ -53,7 +53,6 @@ public class EvaluationPeriodCommandService {
                 .algorithmVersionId(request.getAlgorithmVersionId())
                 .evalYear(request.getEvalYear())
                 .evalSequence(request.getEvalSequence())
-                .evalType(request.getEvalType())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .build();
@@ -155,7 +154,7 @@ public class EvaluationPeriodCommandService {
             .algorithmVersionId(period.getAlgorithmVersionId())
             .evaluationYear(period.getEvalYear())
             .evaluationSequence(period.getEvalSequence())
-            .evaluationType(period.getEvalType().name())
+            .evaluationType(null)
             .startDate(period.getStartDate())
             .endDate(period.getEndDate())
             .status(period.getStatus().name())

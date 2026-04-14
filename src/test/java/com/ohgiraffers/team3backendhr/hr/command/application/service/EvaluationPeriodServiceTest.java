@@ -5,7 +5,6 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.EvaluationReferenceEventPublisher;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
@@ -51,7 +50,6 @@ class EvaluationPeriodServiceTest {
                 .algorithmVersionId(1L)
                 .evalYear(2026)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(2026, 1, 1))
                 .endDate(LocalDate.of(2026, 3, 31))
                 .status(status)
@@ -62,10 +60,12 @@ class EvaluationPeriodServiceTest {
     @DisplayName("평가 기간을 생성하고 Admin에서 WORKER 조회 후 level 1·2·3 레코드를 선생성한다")
     void create_success() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(false);
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                LocalDate.of(2026, 3, 31), LocalDate.of(2026, 1, 1))).willReturn(false);
         given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
@@ -78,10 +78,9 @@ class EvaluationPeriodServiceTest {
     @DisplayName("종료일이 시작일보다 이전이면 생성 시 예외가 발생한다")
     void create_fail_endDateBeforeStartDate() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 3, 31), LocalDate.of(2026, 1, 1)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(BusinessException.class)
@@ -92,25 +91,24 @@ class EvaluationPeriodServiceTest {
     @DisplayName("이미 진행 중인 평가 기간이 있으면 생성 시 예외가 발생한다")
     void create_fail_alreadyInProgress() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("이미 진행 중인 평가 기간이 있습니다.");
+                .hasMessage("동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다.");
     }
 
     @Test
     @DisplayName("동일한 연도·차수·유형의 평가 기간이 이미 존재하면 생성 시 예외가 발생한다")
     void create_fail_duplicateSequence() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
-        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 1, EvalType.QUALITATIVE)).willReturn(true);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(BusinessException.class)
@@ -121,11 +119,10 @@ class EvaluationPeriodServiceTest {
     @DisplayName("날짜가 기존 평가 기간과 겹치면 생성 시 예외가 발생한다")
     void create_fail_dateOverlap() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 2, EvalType.QUALITATIVE,
+                1L, 2026, 2,
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 5, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
-        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 2, EvalType.QUALITATIVE)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 2)).willReturn(false);
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1))).willReturn(true);
 
