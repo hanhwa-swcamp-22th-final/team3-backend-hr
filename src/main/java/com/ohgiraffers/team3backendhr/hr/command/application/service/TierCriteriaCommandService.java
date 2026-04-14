@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.EvaluationCategoryWeightSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.EvaluationCriteriaSaveRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.TierCriteriaSaveRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.response.criteria.EvaluationCriteriaCommandResponse;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcriteria.EvaluationCategory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcriteria.EvaluationTierGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcriteria.EvaluationWeightConfig;
@@ -35,12 +36,12 @@ public class TierCriteriaCommandService {
     private final IdGenerator idGenerator;
     private final PromotionEventPublisher promotionEventPublisher;
 
-    public void createCriteria(EvaluationCriteriaSaveRequest request) {
-        persistCriteria(request);
+    public EvaluationCriteriaCommandResponse createCriteria(EvaluationCriteriaSaveRequest request) {
+        return persistCriteria(request);
     }
 
-    public void updateCriteria(EvaluationCriteriaSaveRequest request) {
-        persistCriteria(request);
+    public EvaluationCriteriaCommandResponse updateCriteria(EvaluationCriteriaSaveRequest request) {
+        return persistCriteria(request);
     }
 
     public void deleteCriteria() {
@@ -74,15 +75,17 @@ public class TierCriteriaCommandService {
         publishSnapshotsAfterCommit(snapshotEvents, weightSnapshotEvents);
     }
 
-    public void saveCriteria(EvaluationCriteriaSaveRequest request) {
-        persistCriteria(request);
+    public EvaluationCriteriaCommandResponse saveCriteria(EvaluationCriteriaSaveRequest request) {
+        return persistCriteria(request);
     }
 
-    private void persistCriteria(EvaluationCriteriaSaveRequest request) {
+    private EvaluationCriteriaCommandResponse persistCriteria(EvaluationCriteriaSaveRequest request) {
         validateWeightTotals(request.getCategoryWeights());
 
         List<TierConfigSnapshotEvent> snapshotEvents = new ArrayList<>();
         List<EvaluationWeightConfigSnapshotEvent> weightSnapshotEvents = new ArrayList<>();
+        List<Long> savedTierConfigIds = new ArrayList<>();
+        List<Long> savedEvaluationWeightConfigIds = new ArrayList<>();
 
         for (TierCriteriaSaveRequest req : request.getTierConfigs()) {
             Grade tier = Grade.valueOf(req.getTier());
@@ -103,6 +106,7 @@ public class TierCriteriaCommandService {
                 .build();
             TierConfig saved = tierConfigRepository.save(config);
 
+            savedTierConfigIds.add(saved.getTierConfigId());
             snapshotEvents.add(buildSnapshotEvent(saved));
         }
 
@@ -125,10 +129,18 @@ public class TierCriteriaCommandService {
                 .active(Boolean.TRUE)
                 .deleted(Boolean.FALSE)
                 .build());
+            savedEvaluationWeightConfigIds.add(saved.getEvaluationWeightConfigId());
             weightSnapshotEvents.add(buildWeightSnapshotEvent(saved));
         }
 
         publishSnapshotsAfterCommit(snapshotEvents, weightSnapshotEvents);
+
+        return new EvaluationCriteriaCommandResponse(
+            savedTierConfigIds,
+            savedEvaluationWeightConfigIds,
+            savedTierConfigIds.size(),
+            savedEvaluationWeightConfigIds.size()
+        );
     }
 
     private void validateWeightTotals(List<EvaluationCategoryWeightSaveRequest> requests) {

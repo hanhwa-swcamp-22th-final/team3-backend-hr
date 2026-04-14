@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanag
 
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.criteria.EvaluationCriteriaSaveRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.response.criteria.EvaluationCriteriaCommandResponse;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.TierCriteriaCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,18 +24,18 @@ public class TierConfigCommandController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> createCriteria(
+    public ResponseEntity<ApiResponse<EvaluationCriteriaCommandResponse>> createCriteria(
             @RequestBody @Valid EvaluationCriteriaSaveRequest request) {
-        commandService.createCriteria(request);
-        return ResponseEntity.status(201).body(ApiResponse.success(null));
+        EvaluationCriteriaCommandResponse response = commandService.createCriteria(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PutMapping
     @PreAuthorize("hasAuthority('HRM')")
-    public ResponseEntity<ApiResponse<Void>> updateCriteria(
+    public ResponseEntity<ApiResponse<EvaluationCriteriaCommandResponse>> updateCriteria(
             @RequestBody @Valid EvaluationCriteriaSaveRequest request) {
-        commandService.updateCriteria(request);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        EvaluationCriteriaCommandResponse response = commandService.updateCriteria(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping
