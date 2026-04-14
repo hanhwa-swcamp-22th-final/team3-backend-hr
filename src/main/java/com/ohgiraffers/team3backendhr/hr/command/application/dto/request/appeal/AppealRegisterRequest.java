@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AppealRegisterRequest {
 
-    @NotNull(message = "정성 평가 ID는 필수입니다.")
-    private final Long qualitativeEvaluationId;
+    @NotNull(message = "평가 기간 ID는 필수입니다.")
+    private final Long evaluationPeriodId;
 
     @NotNull(message = "이의신청 유형은 필수입니다.")
     private final AppealType appealType;
