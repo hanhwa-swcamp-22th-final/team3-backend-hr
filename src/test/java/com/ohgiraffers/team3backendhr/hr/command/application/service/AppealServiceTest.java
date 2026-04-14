@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealRegisterRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealType;
@@ -14,18 +15,23 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeeva
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileDetail;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileStorage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -38,8 +44,10 @@ class AppealServiceTest {
 
     @Mock private AppealRepository appealRepository;
     @Mock private AttachmentFileGroupRepository fileGroupRepository;
+    @Mock private AttachmentRepository attachmentRepository;
     @Mock private ScoreModificationLogRepository scoreLogRepository;
     @Mock private QualitativeEvaluationRepository qualitativeEvaluationRepository;
+    @Mock private FileStorage fileStorage;
     @Mock private IdGenerator idGenerator;
     @Mock private NotificationCommandService notificationCommandService;
 
@@ -86,10 +94,11 @@ class AppealServiceTest {
         given(fileGroupRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
         given(appealRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
-        service.register(100L, request);
+        Long appealId = service.register(100L, request);
 
         verify(fileGroupRepository).save(any(AttachmentFileGroup.class));
         verify(appealRepository).save(any(EvaluationAppeal.class));
+        assertThat(appealId).isEqualTo(99L);
     }
 
     @Test
@@ -241,5 +250,23 @@ class AppealServiceTest {
         service.hold(1L, 200L);
 
         assertThat(appeal.getStatus()).isEqualTo(AppealStatus.REVIEWING);
+    }
+
+    @Test
+    @DisplayName("첨부파일 업로드 시 파일 저장 후 attachment가 저장된다")
+    void uploadAttachments_success() {
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.SUBMITTED);
+        MockMultipartFile file = new MockMultipartFile(
+                "files", "evidence.pdf", "application/pdf", "test".getBytes());
+
+        given(appealRepository.findById(1L)).willReturn(Optional.of(appeal));
+        given(fileStorage.upload(any(), any())).willReturn(new FileDetail("evidence.pdf", "/tmp/evidence.pdf", 4L));
+        given(idGenerator.generate()).willReturn(321L);
+        given(attachmentRepository.save(any())).willAnswer(invocation -> invocation.getArgument(0, Attachment.class));
+
+        service.uploadAttachments(1L, 100L, List.of(file));
+
+        verify(fileStorage).upload(any(), any());
+        verify(attachmentRepository).save(any(Attachment.class));
     }
 }

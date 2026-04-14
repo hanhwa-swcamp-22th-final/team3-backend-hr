@@ -158,6 +158,21 @@ class AppealQueryMapperTest {
         assertThat(result).allMatch(r -> r.getStatus().equals("COMPLETED"));
     }
 
+    @Test
+    @DisplayName("상태 필터 COMPLETED — 기각 완료 건도 조회된다")
+    void findAppeals_completedFilter_includesDismissed() {
+        // given
+        insertAppeal("COMPLETED", "DISMISS");
+
+        // when
+        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", 10, 0);
+
+        // then
+        assertThat(result).isNotEmpty();
+        assertThat(result).anyMatch(r ->
+                "COMPLETED".equals(r.getStatus()) && "DISMISS".equals(r.getReviewResult()));
+    }
+
     /* ── countAppeals ──────────────────────────────────────────────── */
 
     @Test

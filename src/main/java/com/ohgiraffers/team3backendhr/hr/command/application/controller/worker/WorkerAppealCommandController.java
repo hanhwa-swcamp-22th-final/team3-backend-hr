@@ -11,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/hr/appeals")
@@ -21,10 +24,20 @@ public class WorkerAppealCommandController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('WORKER')")
-    public ResponseEntity<ApiResponse<Void>> register(
+    public ResponseEntity<ApiResponse<Long>> register(
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody @Valid AppealRegisterRequest request) {
-        service.register(userDetails.getEmployeeId(), request);
+        Long appealId = service.register(userDetails.getEmployeeId(), request);
+        return ResponseEntity.status(201).body(ApiResponse.success(appealId));
+    }
+
+    @PostMapping("/{appealId}/attachments")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<Void>> uploadAttachments(
+            @PathVariable Long appealId,
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam("files") List<MultipartFile> files) {
+        service.uploadAttachments(appealId, userDetails.getEmployeeId(), files);
         return ResponseEntity.status(201).body(ApiResponse.success(null));
     }
 

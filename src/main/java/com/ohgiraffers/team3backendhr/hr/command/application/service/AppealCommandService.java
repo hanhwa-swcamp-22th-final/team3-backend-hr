@@ -10,20 +10,26 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.AppealStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.ReviewResult;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Attachment;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.FileType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.ReferenceType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.EvaluationAppeal;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileDetail;
+import com.ohgiraffers.team3backendhr.infrastructure.storage.FileStorage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,13 +43,15 @@ public class AppealCommandService {
 
     private final AppealRepository appealRepository;
     private final AttachmentFileGroupRepository fileGroupRepository;
+    private final AttachmentRepository attachmentRepository;
     private final ScoreModificationLogRepository scoreLogRepository;
     private final QualitativeEvaluationRepository qualitativeEvaluationRepository;
+    private final FileStorage fileStorage;
     private final IdGenerator idGenerator;
     private final NotificationCommandService notificationCommandService;
 
     /* 이의신청 등록 — 2차 평가 제출 후 7일 이내, 평가기간당 1회 */
-    public void register(Long appealEmployeeId, AppealRegisterRequest request) {
+    public Long register(Long appealEmployeeId, AppealRegisterRequest request) {
         if (appealRepository.existsByAppealEmployeeIdAndEvaluationPeriodId(
                 appealEmployeeId, request.getEvaluationPeriodId())) {
             throw new BusinessException(ErrorCode.APPEAL_ALREADY_EXISTS);
@@ -107,6 +115,36 @@ public class AppealCommandService {
                 appealEmployeeId + "번 직원이 이의신청을 제출했습니다.",
                 recipients
             );
+        }
+
+        return appealId;
+    }
+
+    public void uploadAttachments(Long appealId, Long requesterId, List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+
+        EvaluationAppeal appeal = findAppeal(appealId);
+        validateOwner(appeal, requesterId, "본인의 이의신청만 첨부파일을 등록할 수 있습니다.");
+
+        Long fileGroupId = appeal.getFileGroupId();
+        if (fileGroupId == null) {
+            throw new BusinessException(ErrorCode.ATTACHMENT_NOT_FOUND, "첨부파일 그룹을 찾을 수 없습니다.");
+        }
+
+        for (MultipartFile file : files) {
+            FileDetail detail = fileStorage.upload(file, "appeals");
+
+            attachmentRepository.save(Attachment.builder()
+                    .attachmentId(idGenerator.generate())
+                    .fileGroupId(fileGroupId)
+                    .fileName(detail.getFileName())
+                    .filePath(detail.getFilePath())
+                    .fileSize(detail.getFileSize())
+                    .fileType(FileType.fromExtension(detail.getFileName()))
+                    .fileAttachmentUploadedAt(LocalDateTime.now())
+                    .build());
         }
     }
 

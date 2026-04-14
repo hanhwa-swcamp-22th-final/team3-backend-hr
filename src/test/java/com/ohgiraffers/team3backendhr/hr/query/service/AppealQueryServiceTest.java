@@ -166,5 +166,35 @@ class AppealQueryServiceTest {
         assertThat(result).isEmpty();
     }
 
+    @Test
+    @DisplayName("TL 이의신청 조회 — 진행중과 완료 상태를 함께 반환하도록 조회한다")
+    void getTlAppeals_includesCompletedStatuses() {
+        // given
+        given(mapper.findReviewerAppeals(200L, 1L, List.of("RECEIVING", "REVIEWING", "COMPLETED")))
+                .willReturn(List.of(new AppealSummaryResponse()));
+
+        // when
+        List<AppealSummaryResponse> result = service.getTlAppeals(200L);
+
+        // then
+        assertThat(result).hasSize(1);
+        verify(mapper).findReviewerAppeals(200L, 1L, List.of("RECEIVING", "REVIEWING", "COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("DL 이의신청 조회 — 검토중과 완료 상태를 함께 반환하도록 조회한다")
+    void getDlAppeals_includesCompletedStatuses() {
+        // given
+        given(mapper.findReviewerAppeals(300L, 2L, List.of("REVIEWING", "COMPLETED")))
+                .willReturn(List.of(new AppealSummaryResponse()));
+
+        // when
+        List<AppealSummaryResponse> result = service.getDlAppeals(300L);
+
+        // then
+        assertThat(result).hasSize(1);
+        verify(mapper).findReviewerAppeals(300L, 2L, List.of("REVIEWING", "COMPLETED"));
+    }
+
 
 }

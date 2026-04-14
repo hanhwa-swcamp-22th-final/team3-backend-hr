@@ -59,10 +59,10 @@ public class AppealQueryService {
     }
 
     public List<AppealSummaryResponse> getTlAppeals(Long reviewerId) {
-        return mapper.findReviewerAppeals(reviewerId, 1L, "RECEIVING");
+        return mapper.findReviewerAppeals(reviewerId, 1L, List.of("RECEIVING", "REVIEWING", "COMPLETED"));
     }
 
     public List<AppealSummaryResponse> getDlAppeals(Long reviewerId) {
-        return mapper.findReviewerAppeals(reviewerId, 2L, "REVIEWING");
+        return mapper.findReviewerAppeals(reviewerId, 2L, List.of("REVIEWING", "COMPLETED"));
     }
 }

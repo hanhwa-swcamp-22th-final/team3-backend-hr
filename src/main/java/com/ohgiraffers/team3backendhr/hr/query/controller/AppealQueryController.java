@@ -26,7 +26,7 @@ public class AppealQueryController {
     private final AppealQueryService service;
 
     /* HRM·Worker — 이의신청 상세 조회 (Worker는 본인 것만) */
-    @GetMapping("/appeals/{appealId}")
+    @GetMapping("/appeals/{appealId:\\d+}")
     @PreAuthorize("hasAnyAuthority('HRM', 'WORKER', 'TL', 'DL')")
     public ResponseEntity<ApiResponse<AppealDetailResponse>> getAppeal(
             @PathVariable Long appealId,
