@@ -2,7 +2,6 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ class EvaluationPeriodTest {
                 .algorithmVersionId(1L)
                 .evalYear(2026)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(2026, 1, 1))
                 .endDate(LocalDate.of(2026, 3, 31))
                 .status(status)

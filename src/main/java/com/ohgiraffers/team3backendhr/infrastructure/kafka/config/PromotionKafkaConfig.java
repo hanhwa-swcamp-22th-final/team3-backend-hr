@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.config;
 
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PerformancePointCalculatedEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.EvaluationWeightConfigSnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PerformancePointSnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PromotionCandidateEvaluatedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PromotionHistorySnapshotEvent;
@@ -62,6 +63,16 @@ public class PromotionKafkaConfig {
     @Bean
     public KafkaTemplate<String, TierConfigSnapshotEvent> tierConfigSnapshotKafkaTemplate() {
         return new KafkaTemplate<>(tierConfigSnapshotProducerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<String, EvaluationWeightConfigSnapshotEvent> evaluationWeightConfigSnapshotProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfig());
+    }
+
+    @Bean
+    public KafkaTemplate<String, EvaluationWeightConfigSnapshotEvent> evaluationWeightConfigSnapshotKafkaTemplate() {
+        return new KafkaTemplate<>(evaluationWeightConfigSnapshotProducerFactory());
     }
 
     @Bean

@@ -48,7 +48,7 @@ class QuantitativeEvaluationQueryIntegrationTest {
     private long insertPeriod(int year, int seq, String status) {
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,?,?,'QUANTITATIVE',?,?,?)",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,?,?,?,?,?)",
                 id, year, seq, year + "-01-01", year + "-03-31", status);
         return id;
     }

@@ -39,6 +39,8 @@ class TierConfigRepositoryTest {
                 .safetyComplianceTargetScore(78.0)
                 .qualityManagementTargetScore(72.0)
                 .productivityTargetScore(68.0)
+                .active(Boolean.TRUE)
+                .deleted(Boolean.FALSE)
                 .build();
     }
 
@@ -76,7 +78,7 @@ class TierConfigRepositoryTest {
     void findByTierConfigTier_success() {
         tierConfigRepository.save(tierConfig);
 
-        Optional<TierConfig> result = tierConfigRepository.findByTierConfigTier(Grade.B);
+        Optional<TierConfig> result = tierConfigRepository.findByTierConfigTierAndActiveTrueAndDeletedFalse(Grade.B);
 
         assertTrue(result.isPresent());
         assertEquals(tierConfigId, result.get().getTierConfigId());
@@ -85,7 +87,7 @@ class TierConfigRepositoryTest {
     @Test
     @DisplayName("Find tier config by tier failure: return empty when grade does not exist")
     void findByTierConfigTier_whenNotFound_thenEmpty() {
-        Optional<TierConfig> result = tierConfigRepository.findByTierConfigTier(Grade.S);
+        Optional<TierConfig> result = tierConfigRepository.findByTierConfigTierAndActiveTrueAndDeletedFalse(Grade.S);
 
         assertFalse(result.isPresent());
     }

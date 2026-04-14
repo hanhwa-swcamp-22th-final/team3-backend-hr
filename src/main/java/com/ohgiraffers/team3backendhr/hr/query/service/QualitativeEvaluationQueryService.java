@@ -25,28 +25,21 @@ public class QualitativeEvaluationQueryService {
 
     private final QualitativeEvaluationQueryMapper mapper;
 
-    /* TL 평가 대상 조회 — 같은 부서 WORKER × level 1 레코드 반환 */
+    /* TL ?됯? ???議고쉶 ??媛숈? 遺??WORKER 횞 level 1 ?덉퐫??諛섑솚 */
     public TlEvaluationTargetResponse getTlTargets(Long tlId, Long periodId) {
-        Long resolvedPeriodId = periodId != null ? periodId : null;
+        Long resolvedPeriodId = resolvePeriodId(periodId);
         List<TlEvaluationTargetItem> targets = mapper.findTlTargets(tlId, resolvedPeriodId);
-        List<Long> evalPeriodIds = targets.stream()
-            .map(TlEvaluationTargetItem::getEvaluationPeriodId)
-            .distinct()
-            .toList();
-        Long primaryPeriodId = periodId != null
-            ? periodId
-            : (evalPeriodIds.isEmpty() ? null : evalPeriodIds.get(0));
-        return new TlEvaluationTargetResponse(primaryPeriodId, evalPeriodIds, targets);
+        return new TlEvaluationTargetResponse(resolvedPeriodId, List.of(resolvedPeriodId), targets);
     }
 
-    /* DL 평가 대상 조회 — level 1 SUBMITTED인 대상 × level 2 레코드 반환 */
+    /* DL ?됯? ???議고쉶 ??level 1 SUBMITTED?????횞 level 2 ?덉퐫??諛섑솚 */
     public DlEvaluationTargetResponse getDlTargets(Long dlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
         return new DlEvaluationTargetResponse(resolvedPeriodId, targets);
     }
 
-    /* TL — 제출 완료 평가 상세 조회 (본인 제출분만) */
+    /* TL ???쒖텧 ?꾨즺 ?됯? ?곸꽭 議고쉶 (蹂몄씤 ?쒖텧遺꾨쭔) */
     public EvaluationDetailResponse getTlEvaluationDetail(Long tlId, Long evalId) {
         EvaluationDetailResponse detail = mapper.findTlEvaluationDetail(evalId, tlId);
         if (detail == null) {
@@ -55,7 +48,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* DL — 1차 평가 항목 + AI 추천 점수 조회 (본인 부서 직원만) */
+    /* DL ??1李??됯? ??ぉ + AI 異붿쿇 ?먯닔 議고쉶 (蹂몄씤 遺??吏곸썝留? */
     public DlEvaluationDetailResponse getDlEvaluationDetail(Long dlId, Long evaluateeId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(dlId, evaluateeId, resolvedPeriodId);
@@ -65,7 +58,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM — 평가 상세 조회 */
+    /* HRM ???됯? ?곸꽭 議고쉶 */
     public EvaluationDetailResponse getEvaluationDetail(Long evalId) {
         EvaluationDetailResponse detail = mapper.findEvaluationDetail(evalId);
         if (detail == null) {
@@ -74,13 +67,13 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM — 등급별 평가 집계 */
+    /* HRM ???깃툒蹂??됯? 吏묎퀎 */
     public List<EvaluationGradeSummaryItem> getEvaluationGradeSummary(Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         return mapper.findEvaluationGradeSummary(resolvedPeriodId);
     }
 
-    /* HRM — 평가 목록 조회 (periodId·grade·status 필터, 페이징) */
+    /* HRM ???됯? 紐⑸줉 議고쉶 (periodId쨌grade쨌status ?꾪꽣, ?섏씠吏? */
     public EvaluationListResponse getEvaluations(Long periodId, String grade, String status, int page, int size) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         int offset = page * size;
@@ -90,7 +83,7 @@ public class QualitativeEvaluationQueryService {
         return new EvaluationListResponse(content, totalCount, totalPages);
     }
 
-    /* periodId null 이면 현재 IN_PROGRESS 기간으로 자동 resolve — 프론트에서 기간 선택 안 해도 동작 */
+    /* periodId null ?대㈃ ?꾩옱 IN_PROGRESS 湲곌컙?쇰줈 ?먮룞 resolve ???꾨줎?몄뿉??湲곌컙 ?좏깮 ???대룄 ?숈옉 */
     private Long resolvePeriodId(Long periodId) {
         if (periodId != null) return periodId;
         Long currentId = mapper.findCurrentPeriodId();

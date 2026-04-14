@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher;
 
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.EvaluationWeightConfigSnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PerformancePointSnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PromotionHistorySnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.TierConfigSnapshotEvent;
@@ -19,6 +20,7 @@ public class PromotionEventPublisher {
     private final KafkaTemplate<String, PerformancePointSnapshotEvent> performancePointSnapshotKafkaTemplate;
     private final KafkaTemplate<String, PromotionHistorySnapshotEvent> promotionHistorySnapshotKafkaTemplate;
     private final KafkaTemplate<String, TierConfigSnapshotEvent> tierConfigSnapshotKafkaTemplate;
+    private final KafkaTemplate<String, EvaluationWeightConfigSnapshotEvent> evaluationWeightConfigSnapshotKafkaTemplate;
 
     public void publishPerformancePointSnapshot(PerformancePointSnapshotEvent event) {
         performancePointSnapshotKafkaTemplate.send(
@@ -56,10 +58,29 @@ public class PromotionEventPublisher {
             event
         );
         log.info(
-            "Published tier config snapshot. tierConfigId={}, tier={}, promotionPoint={}",
+            "Published tier config snapshot. tierConfigId={}, tier={}, promotionPoint={}, active={}, deleted={}",
             event.getTierConfigId(),
             event.getTier(),
-            event.getPromotionPoint()
+            event.getPromotionPoint(),
+            event.getActive(),
+            event.getDeleted()
+        );
+    }
+
+    public void publishEvaluationWeightConfigSnapshot(EvaluationWeightConfigSnapshotEvent event) {
+        evaluationWeightConfigSnapshotKafkaTemplate.send(
+            PromotionKafkaTopics.EVALUATION_WEIGHT_CONFIG_SNAPSHOT,
+            String.valueOf(event.getEvaluationWeightConfigId()),
+            event
+        );
+        log.info(
+            "Published evaluation weight config snapshot. configId={}, tierGroup={}, categoryCode={}, weightPercent={}, active={}, deleted={}",
+            event.getEvaluationWeightConfigId(),
+            event.getTierGroup(),
+            event.getCategoryCode(),
+            event.getWeightPercent(),
+            event.getActive(),
+            event.getDeleted()
         );
     }
 }

@@ -48,8 +48,8 @@ class QualitativeEvaluationQueryMapperTest {
         jdbcTemplate.update("""
                 INSERT INTO evaluation_period
                   (eval_period_id, algorithm_version_id, eval_year, eval_sequence,
-                   eval_type, start_date, end_date, status)
-                VALUES (?, 1, ?, ?, 'QUALITATIVE', ?, ?, ?)
+                   start_date, end_date, status)
+                VALUES (?, 1, ?, ?, ?, ?, ?)
                 """,
                 id, year, sequence,
                 LocalDate.of(year, 1, 1),
