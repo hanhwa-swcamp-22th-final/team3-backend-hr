@@ -165,7 +165,11 @@ public class QualitativeEvaluationCommandService {
 
     public void confirmFinal(Long evaluatorId, Long evaluateeId, QualitativeEvaluationConfirmRequest request) {
         validateLevel2Submitted(evaluateeId, request.getEvaluationPeriodId());
+        QualitativeEvaluation level1 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 1L);
+        QualitativeEvaluation level2 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 3L);
+        level1.confirmFinal(level1.getEvaluatorId(), level1.getEvalComment(), level1.getInputMethod());
+        level2.confirmFinal(level2.getEvaluatorId(), level2.getEvalComment(), level2.getInputMethod());
         eval.confirmFinal(evaluatorId, request.getEvalComment(), request.getInputMethod());
     }
 

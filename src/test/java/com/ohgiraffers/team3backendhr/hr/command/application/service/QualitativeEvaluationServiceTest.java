@@ -141,7 +141,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
         given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
                 EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
-                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .startDate(LocalDate.of(2026, 1, 1))
                         .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
@@ -163,6 +163,7 @@ class QualitativeEvaluationServiceTest {
     void saveDraftForDL_success() {
         // given
         QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        level1.applyAnalysisResult(88.0);
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
@@ -229,6 +230,7 @@ class QualitativeEvaluationServiceTest {
     void submitForDL_success() {
         // given
         QualitativeEvaluation level1 = buildEval(QualEvalStatus.SUBMITTED);
+        level1.applyAnalysisResult(88.0);
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
@@ -242,7 +244,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
         given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
                 EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
-                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .startDate(LocalDate.of(2026, 1, 1))
                         .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
@@ -334,11 +336,24 @@ class QualitativeEvaluationServiceTest {
     @DisplayName("3차 최종 확정 성공 — level 2 SUBMITTED이면 level 3 CONFIRMED")
     void confirmFinal_success() {
         // given
+        QualitativeEvaluation level1 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(1L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(1L)
+                .evaluatorId(200L)
+                .evalComment("1차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
+                .inputMethod(InputMethod.TEXT)
+                .status(QualEvalStatus.SUBMITTED)
+                .build();
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
                 .evaluationPeriodId(5L)
                 .evaluationLevel(2L)
+                .evaluatorId(300L)
+                .evalComment("2차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
+                .inputMethod(InputMethod.TEXT)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level3 = QualitativeEvaluation.builder()
@@ -348,6 +363,8 @@ class QualitativeEvaluationServiceTest {
                 .evaluationLevel(3L)
                 .status(QualEvalStatus.NO_INPUT)
                 .build();
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
@@ -391,11 +408,24 @@ class QualitativeEvaluationServiceTest {
     @DisplayName("3차 최종 확정 — 코멘트 20자 미만이면 예외")
     void confirmFinal_fail_commentTooShort() {
         // given
+        QualitativeEvaluation level1 = QualitativeEvaluation.builder()
+                .qualitativeEvaluationId(1L)
+                .evaluateeId(101L)
+                .evaluationPeriodId(5L)
+                .evaluationLevel(1L)
+                .evaluatorId(200L)
+                .evalComment("1차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
+                .inputMethod(InputMethod.TEXT)
+                .status(QualEvalStatus.SUBMITTED)
+                .build();
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
                 .qualitativeEvaluationId(2L)
                 .evaluateeId(101L)
                 .evaluationPeriodId(5L)
                 .evaluationLevel(2L)
+                .evaluatorId(300L)
+                .evalComment("2차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
+                .inputMethod(InputMethod.TEXT)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level3 = QualitativeEvaluation.builder()
@@ -405,6 +435,8 @@ class QualitativeEvaluationServiceTest {
                 .evaluationLevel(3L)
                 .status(QualEvalStatus.NO_INPUT)
                 .build();
+        given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(level1));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
