@@ -26,7 +26,8 @@ public class TierConfigCommandController {
     public ResponseEntity<ApiResponse<Void>> createCriteria(
             @RequestBody @Valid EvaluationCriteriaSaveRequest request) {
         commandService.createCriteria(request);
-        return ResponseEntity.status(201).body(ApiResponse.success(null));
+        return ResponseEntity.status(201)
+                .body(ApiResponse.success(null));
     }
 
     @PutMapping
