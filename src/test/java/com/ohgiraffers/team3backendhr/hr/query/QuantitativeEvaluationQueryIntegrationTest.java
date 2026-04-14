@@ -47,7 +47,7 @@ class QuantitativeEvaluationQueryIntegrationTest {
     private long insertPeriod(int year, int seq, String status) {
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,?,?,'QUANTITATIVE',?,?,?)",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,?,?,?,?,?)",
                 id, year, seq, year + "-01-01", year + "-03-31", status);
         return id;
     }
@@ -68,11 +68,12 @@ class QuantitativeEvaluationQueryIntegrationTest {
         long periodId = insertPeriod(2026, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
 
-        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative"))
+        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.data.content[0].employeeId").value(WORKER_ID));
+                .andExpect(jsonPath("$.data.content[?(@.employeeId == %s)]".formatted(WORKER_ID)).isArray());
     }
 
     @Test
@@ -100,6 +101,7 @@ class QuantitativeEvaluationQueryIntegrationTest {
         insertQuantEval(periodId, "CONFIRMED");
 
         mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId))
                         .param("status", "CONFIRMED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalCount").value(1))

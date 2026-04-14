@@ -124,7 +124,7 @@ class AppealQueryServiceTest {
         // given
         AppealSummaryResponse item = new AppealSummaryResponse();
         item.setStatus("RECEIVING");
-        given(mapper.findAppeals("RECEIVING", 10, 0)).willReturn(List.of(item));
+        given(mapper.findAppeals("RECEIVING", 10, 10)).willReturn(List.of(item));
         given(mapper.countAppeals("RECEIVING")).willReturn(1L);
 
         // when
@@ -132,7 +132,7 @@ class AppealQueryServiceTest {
 
         // then
         assertThat(result.getContent()).allMatch(r -> "RECEIVING".equals(r.getStatus()));
-        verify(mapper).findAppeals("RECEIVING", 10, 0);
+        verify(mapper).findAppeals("RECEIVING", 10, 10);
     }
 
     /* ── getMyAppeals ──────────────────────────────────────────────── */

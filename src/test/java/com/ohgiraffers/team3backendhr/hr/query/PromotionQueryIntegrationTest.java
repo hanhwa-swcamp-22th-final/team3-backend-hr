@@ -51,15 +51,21 @@ class PromotionQueryIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.update(
+                "INSERT IGNORE INTO tier_config(tier_config_id, tier_config_tier, tier_config_promotion_point) VALUES (?, 'B', 60)",
+                CUR_TIER_ID);
+        jdbcTemplate.update(
+                "INSERT IGNORE INTO tier_config(tier_config_id, tier_config_tier, tier_config_promotion_point) VALUES (?, 'A', 80)",
+                TGT_TIER_ID);
         savedId = idGenerator.generate();
         jdbcTemplate.update(
                 "INSERT INTO promotion_history(tier_promotion_id, employee_id, reviewer_id, current_tier_config_id, target_tier_config_id, tier_accumulated_point, tier_promo_status, created_at, updated_at) " +
                 "VALUES (?, ?, ?, ?, ?, ?, 'UNDER_REVIEW', NOW(), NOW())",
                 savedId, EMPLOYEE_ID, HRM_ID, CUR_TIER_ID, TGT_TIER_ID, 80);
         jdbcTemplate.update(
-                "INSERT INTO employee(employee_id, department_id, employee_name, employee_email, employee_role, employee_status, mfa_enabled, login_fail_count, is_locked) " +
-                "VALUES (?, 1, '홍길동', 'hong@test.com', 'WORKER', 'ACTIVE', 0, 0, 0) " +
-                "ON DUPLICATE KEY UPDATE employee_name = '홍길동'",
+                "INSERT INTO employee(employee_id, department_id, employee_name, employee_email, employee_role, employee_status, employee_tier, mfa_enabled, login_fail_count, is_locked) " +
+                "VALUES (?, 1, '홍길동', 'hong@test.com', 'WORKER', 'ACTIVE', 'B', 0, 0, 0) " +
+                "ON DUPLICATE KEY UPDATE employee_name = '홍길동', employee_tier = 'B'",
                 EMPLOYEE_ID);
     }
 
@@ -103,6 +109,6 @@ class PromotionQueryIntegrationTest {
     void getCandidateDetail_notFound() throws Exception {
         mockMvc.perform(get("/api/v1/hr/promotions/99999999")
                         .with(authentication(hrmAuth())))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNotFound());
     }
 }

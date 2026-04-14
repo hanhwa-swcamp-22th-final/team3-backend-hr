@@ -10,7 +10,6 @@
             eval_period_id      AS evalPeriodId,
             eval_year           AS evalYear,
             eval_sequence       AS evalSequence,
-            eval_type           AS evalType,
             start_date          AS startDate,
             end_date            AS endDate,
             status,
@@ -77,10 +76,14 @@
         JOIN employee tl ON tl.employee_id = #{tlId}
         LEFT JOIN score s ON s.employee_id = qe.evaluatee_id
                          AND s.eval_period_id = qe.evaluation_period_id
+        LEFT JOIN evaluation_appeal ea
+            ON ea.appeal_employee_id = qe.evaluatee_id
+            AND ea.evaluation_period_id = qe.evaluation_period_id
         WHERE qe.evaluation_period_id = #{periodId}
           AND qe.evaluation_level = 1
           AND e.department_id = tl.department_id
           AND e.employee_role = 'WORKER'
+          AND ea.appeal_id IS NULL
         ORDER BY e.employee_name
     </select>
 
@@ -109,10 +112,14 @@
         JOIN employee e    ON e.employee_id = qe2.evaluatee_id
         JOIN department d  ON d.department_id = e.department_id
         JOIN employee dl   ON dl.employee_id = #{dlId}
+        LEFT JOIN evaluation_appeal ea
+            ON ea.appeal_employee_id = qe2.evaluatee_id
+            AND ea.evaluation_period_id = qe2.evaluation_period_id
         WHERE qe2.evaluation_period_id = #{periodId}
           AND qe2.evaluation_level = 2
           AND d.parent_department_id = dl.department_id
           AND e.employee_role = 'WORKER'
+          AND ea.appeal_id IS NULL
         ORDER BY e.employee_name
     </select>
 
@@ -137,8 +144,12 @@
         JOIN employee e   ON e.employee_id = qe.evaluatee_id
         LEFT JOIN department d  ON d.department_id = e.department_id
         LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        LEFT JOIN evaluation_appeal ea
+            ON ea.appeal_employee_id = qe.evaluatee_id
+            AND ea.evaluation_period_id = qe.evaluation_period_id
         <where>
             qe.evaluation_period_id = #{periodId}
+            AND ea.appeal_id IS NULL
             <if test="grade != null">AND qe.grade = #{grade}</if>
             <if test="status != null">AND qe.status = #{status}</if>
         </where>
@@ -149,11 +160,12 @@
     <select id="countEvaluations" resultType="long">
         SELECT COUNT(*)
         FROM qualitative_evaluation qe
-        JOIN employee e   ON e.employee_id = qe.evaluatee_id
-        LEFT JOIN department d  ON d.department_id = e.department_id
-        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        LEFT JOIN evaluation_appeal ea
+            ON ea.appeal_employee_id = qe.evaluatee_id
+            AND ea.evaluation_period_id = qe.evaluation_period_id
         <where>
             qe.evaluation_period_id = #{periodId}
+            AND ea.appeal_id IS NULL
             <if test="grade != null">AND qe.grade = #{grade}</if>
             <if test="status != null">AND qe.status = #{status}</if>
         </where>
@@ -232,14 +244,18 @@
             qe.created_at                   AS createdAt,
             qe1.eval_comment                AS firstStageComment,
             qe1.score                       AS firstStageScore,
-            qe.eval_comment                 AS secondStageComment,
-            qe.score                        AS secondStageScore
+            qe2.eval_comment                AS secondStageComment,
+            qe2.score                       AS secondStageScore
         FROM qualitative_evaluation qe
         JOIN employee e ON e.employee_id = qe.evaluatee_id
         LEFT JOIN qualitative_evaluation qe1
             ON  qe1.evaluatee_id         = qe.evaluatee_id
             AND qe1.evaluation_period_id = qe.evaluation_period_id
             AND qe1.evaluation_level     = 1
+        LEFT JOIN qualitative_evaluation qe2
+            ON  qe2.evaluatee_id         = qe.evaluatee_id
+            AND qe2.evaluation_period_id = qe.evaluation_period_id
+            AND qe2.evaluation_level     = 2
         WHERE qe.qualitative_evaluation_id = #{evalId}
     </select>
 

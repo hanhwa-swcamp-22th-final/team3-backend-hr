@@ -61,7 +61,7 @@ class WorkerEvaluationQueryIntegrationTest {
     private long insertPeriod(String status) {
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,2026,1,'QUALITATIVE','2026-01-01','2026-03-31',?)",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,2026,1,'2026-01-01','2026-03-31',?)",
                 id, status);
         return id;
     }
@@ -165,7 +165,7 @@ class WorkerEvaluationQueryIntegrationTest {
     void getEvalHistory_success() throws Exception {
         long periodId = insertPeriod("CONFIRMED");
         jdbcTemplate.update(
-                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, grade, score, status, confirmed_at) VALUES (?,?,?,3,'B',75.0,'CONFIRMED', NOW())",
+                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, grade, score, status, confirmed_at) VALUES (?,?,?,2,'B',75.0,'SUBMITTED', NOW())",
                 idGenerator.generate(), WORKER_ID, periodId);
 
         mockMvc.perform(get("/api/v1/hr/workers/me/evaluations/history")

@@ -36,7 +36,8 @@ class DlEvaluationQueryIntegrationTest {
 
     private static final Long DL_ID     = 300L;
     private static final Long WORKER_ID = 301L;
-    private static final Long DEPT_ID   = 20L;
+    private static final Long DL_DEPT_ID = 20L;
+    private static final Long TEAM_DEPT_ID = 21L;
 
     private UsernamePasswordAuthenticationToken dlAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
@@ -51,11 +52,17 @@ class DlEvaluationQueryIntegrationTest {
         jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
         jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
         jdbcTemplate.update(
+                "INSERT IGNORE INTO department(department_id, department_name, parent_department_id) VALUES (?,?,null)",
+                DL_DEPT_ID, "본부");
+        jdbcTemplate.update(
+                "INSERT IGNORE INTO department(department_id, department_name, parent_department_id) VALUES (?,?,?)",
+                TEAM_DEPT_ID, "팀", DL_DEPT_ID);
+        jdbcTemplate.update(
                 "INSERT IGNORE INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'DL','ACTIVE','pw',false,0,false)",
-                DL_ID, DEPT_ID, "DL001", "부서장");
+                DL_ID, DL_DEPT_ID, "DL001", "부서장");
         jdbcTemplate.update(
                 "INSERT IGNORE INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'WORKER','ACTIVE','pw',false,0,false)",
-                WORKER_ID, DEPT_ID, "W001", "워커");
+                WORKER_ID, TEAM_DEPT_ID, "W001", "워커");
     }
 
     @AfterEach
@@ -64,7 +71,7 @@ class DlEvaluationQueryIntegrationTest {
     private long insertPeriod(String status) {
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,2026,1,'QUALITATIVE','2026-01-01','2026-03-31',?)",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,2026,1,'2026-01-01','2026-03-31',?)",
                 id, status);
         return id;
     }

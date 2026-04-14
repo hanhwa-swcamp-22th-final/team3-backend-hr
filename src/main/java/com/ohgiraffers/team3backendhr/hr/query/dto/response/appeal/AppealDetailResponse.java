@@ -12,14 +12,21 @@ import java.time.LocalDateTime;
 public class AppealDetailResponse {
 
     private Long appealId;
-    private Long qualitativeEvaluationId;
     private Long appealEmployeeId;
+    private Long evaluationPeriodId;
+    private Integer evalYear;
+    private Integer evalSequence;
     private String employeeName;
     private String appealType;
     private String title;
     private String content;
     private String status;
     private String reviewResult;
+    private Double firstScore;
+    private Double secondScore;
+    private Double averageScore;
+    private String firstStageComment;
+    private String secondStageComment;
     private LocalDateTime filedAt;
     private LocalDateTime reviewedAt;
 }

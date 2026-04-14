@@ -64,7 +64,7 @@ class AppealQueryIntegrationTest {
                 "INSERT INTO employee(employee_id, department_id, employee_name, employee_role, employee_status, employee_code, employee_password) VALUES (?,?,?,'HRM','ACTIVE','H9101','pw')",
                 HRM_ID, DEPT_ID, "쿼리테스트HRM");
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,2026,1,'QUALITATIVE',?,?,'IN_PROGRESS')",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,2026,1,?,?,'IN_PROGRESS')",
                 PERIOD_ID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
         jdbcTemplate.update(
                 "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score) VALUES (?,?,?,3,'CONFIRMED',80.0)",
@@ -83,8 +83,8 @@ class AppealQueryIntegrationTest {
                 fileGroupId, EVAL_ID);
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_appeal(appeal_id, qualitative_evaluation_id, appeal_employee_id, appeal_type, title, content, status, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,0,?,?)",
-                id, EVAL_ID, WORKER_ID, status, LocalDateTime.now(), fileGroupId);
+                "INSERT INTO evaluation_appeal(appeal_id, appeal_employee_id, evaluation_period_id, appeal_type, title, content, status, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,?,?,?)",
+                id, WORKER_ID, PERIOD_ID, status, EVAL_ID, LocalDateTime.now(), fileGroupId);
         return id;
     }
 

@@ -17,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -63,7 +64,8 @@ class DepartmentLeaderEvaluationQueryControllerTest {
     void getTargets_success() throws Exception {
         // given
         given(service.getDlTargets(any(), any()))
-                .willReturn(new DlEvaluationTargetResponse(5L, List.of()));
+                .willReturn(new DlEvaluationTargetResponse(5L, List.of(), 2026, 1,
+                        LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)));
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")

@@ -48,7 +48,7 @@ class AppealQueryMapperTest {
                 "INSERT INTO employee(employee_id, department_id, employee_name, employee_role, employee_status, employee_code, employee_password) VALUES (?,?,?,'HRM','ACTIVE','H9001','pw')",
                 HRM_ID, DEPT_ID, "테스트HRM");
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,2026,1,'QUALITATIVE',?,?,'IN_PROGRESS')",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,2026,1,?,?,'IN_PROGRESS')",
                 PERIOD_ID, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
         jdbcTemplate.update(
                 "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score) VALUES (?,?,?,3,'CONFIRMED',80.0)",
@@ -59,7 +59,7 @@ class AppealQueryMapperTest {
     void tearDown() {
         jdbcTemplate.execute("DELETE FROM score_modification_log WHERE score_evaluatee_id = " + WORKER_ID);
         jdbcTemplate.execute("DELETE FROM evaluation_appeal WHERE appeal_employee_id = " + WORKER_ID);
-        jdbcTemplate.execute("DELETE FROM attachment_file_group WHERE reference_id = " + EVAL_ID);
+        jdbcTemplate.execute("DELETE FROM attachment_file_group WHERE reference_type = 'APPEAL'");
         jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE qualitative_evaluation_id = " + EVAL_ID);
         jdbcTemplate.execute("DELETE FROM evaluation_period WHERE eval_period_id = " + PERIOD_ID);
         jdbcTemplate.execute("DELETE FROM employee WHERE employee_id IN (" + WORKER_ID + "," + HRM_ID + ")");
@@ -78,8 +78,8 @@ class AppealQueryMapperTest {
         long fileGroupId = insertFileGroup();
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_appeal(appeal_id, qualitative_evaluation_id, appeal_employee_id, appeal_type, title, content, status, review_result, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,?,0,?,?)",
-                id, EVAL_ID, WORKER_ID, status, reviewResult, LocalDateTime.now(), fileGroupId);
+                "INSERT INTO evaluation_appeal(appeal_id, appeal_employee_id, evaluation_period_id, appeal_type, title, content, status, review_result, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,?,?,?,?)",
+                id, WORKER_ID, PERIOD_ID, status, reviewResult, EVAL_ID, LocalDateTime.now(), fileGroupId);
         return id;
     }
 
@@ -145,6 +145,9 @@ class AppealQueryMapperTest {
     @DisplayName("상태 필터 COMPLETED — COMPLETED 이의신청만 반환")
     void findAppeals_completedFilter() {
         // given
+        jdbcTemplate.update(
+                "UPDATE qualitative_evaluation SET status = 'SUBMITTED' WHERE qualitative_evaluation_id = ?",
+                EVAL_ID);
         insertAppeal("COMPLETED", "ACKNOWLEDGE");
 
         // when

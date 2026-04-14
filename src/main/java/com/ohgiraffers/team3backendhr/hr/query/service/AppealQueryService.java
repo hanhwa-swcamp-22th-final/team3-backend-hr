@@ -27,7 +27,18 @@ public class AppealQueryService {
 
         boolean isWorker = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("WORKER"));
+        boolean isTl = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("TL"));
+        boolean isDl = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("DL"));
+
         if (isWorker && !detail.getAppealEmployeeId().equals(userDetails.getEmployeeId())) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        if (isTl && !mapper.existsReviewerAppealAccess(appealId, userDetails.getEmployeeId(), 1L)) {
+            throw new BusinessException(ErrorCode.ACCESS_DENIED);
+        }
+        if (isDl && !mapper.existsReviewerAppealAccess(appealId, userDetails.getEmployeeId(), 2L)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED);
         }
         return detail;
@@ -45,5 +56,13 @@ public class AppealQueryService {
     /* Worker — 내 이의신청 목록 */
     public List<AppealSummaryResponse> getMyAppeals(Long employeeId) {
         return mapper.findMyAppeals(employeeId);
+    }
+
+    public List<AppealSummaryResponse> getTlAppeals(Long reviewerId) {
+        return mapper.findReviewerAppeals(reviewerId, 1L, "RECEIVING");
+    }
+
+    public List<AppealSummaryResponse> getDlAppeals(Long reviewerId) {
+        return mapper.findReviewerAppeals(reviewerId, 2L, "REVIEWING");
     }
 }
