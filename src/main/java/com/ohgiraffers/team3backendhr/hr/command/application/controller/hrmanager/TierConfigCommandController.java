@@ -28,6 +28,11 @@ public class TierConfigCommandController {
             @RequestBody @Valid EvaluationCriteriaSaveRequest request) {
         EvaluationCriteriaCommandResponse response = commandService.createCriteria(request);
         return ResponseEntity.ok(ApiResponse.success(response));
+    /* HRM — 평가 기준 조회 (HR-EVAL-025) */
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('HRM', 'WORKER')")
+    public ResponseEntity<ApiResponse<List<TierCriteriaItem>>> getCriteria() {
+        return ResponseEntity.ok(ApiResponse.success(queryService.getCriteria()));
     }
 
     @PutMapping
