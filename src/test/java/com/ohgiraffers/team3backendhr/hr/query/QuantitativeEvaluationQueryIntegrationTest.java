@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasItem;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -65,14 +66,14 @@ class QuantitativeEvaluationQueryIntegrationTest {
     @WithMockUser(authorities = "HRM")
     @DisplayName("정량 평가 목록을 조회하면 저장된 데이터를 반환한다")
     void getList_success() throws Exception {
-        long periodId = insertPeriod(2026, 1, "IN_PROGRESS");
+        long periodId = insertPeriod(2099, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
 
         mockMvc.perform(get("/api/v1/hr/evaluations/quantitative"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.data.content[0].employeeId").value(WORKER_ID));
+                .andExpect(jsonPath("$.data.content[*].employeeId", hasItem(WORKER_ID.intValue())));
     }
 
     @Test
@@ -95,11 +96,12 @@ class QuantitativeEvaluationQueryIntegrationTest {
     @WithMockUser(authorities = "HRM")
     @DisplayName("status 필터로 CONFIRMED 상태만 조회한다")
     void getList_filterByStatus() throws Exception {
-        long periodId = insertPeriod(2026, 1, "IN_PROGRESS");
+        long periodId = insertPeriod(2098, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
         insertQuantEval(periodId, "CONFIRMED");
 
         mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId))
                         .param("status", "CONFIRMED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalCount").value(1))
