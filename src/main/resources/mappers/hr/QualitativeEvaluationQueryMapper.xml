@@ -129,9 +129,14 @@
             qe.evaluation_level             AS evaluationLevel,
             qe.grade,
             qe.score,
-            qe.status
+            qe.status,
+            qe.input_method                 AS inputMethod,
+            d.department_name               AS teamName,
+            pd.department_name              AS departmentName
         FROM qualitative_evaluation qe
-        JOIN employee e ON e.employee_id = qe.evaluatee_id
+        JOIN employee e   ON e.employee_id = qe.evaluatee_id
+        LEFT JOIN department d  ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
         <where>
             qe.evaluation_period_id = #{periodId}
             <if test="grade != null">AND qe.grade = #{grade}</if>
@@ -144,6 +149,9 @@
     <select id="countEvaluations" resultType="long">
         SELECT COUNT(*)
         FROM qualitative_evaluation qe
+        JOIN employee e   ON e.employee_id = qe.evaluatee_id
+        LEFT JOIN department d  ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
         <where>
             qe.evaluation_period_id = #{periodId}
             <if test="grade != null">AND qe.grade = #{grade}</if>
@@ -204,7 +212,7 @@
           AND d.parent_department_id = dl.department_id
     </select>
 
-    <!-- HRM 평가 상세 조회 -->
+    <!-- HRM 평가 상세 조회 (1차·2차 평가 내용 포함) -->
     <select id="findEvaluationDetail"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse">
         SELECT
@@ -221,9 +229,17 @@
             qe.score,
             qe.input_method                 AS inputMethod,
             qe.status,
-            qe.created_at                   AS createdAt
+            qe.created_at                   AS createdAt,
+            qe1.eval_comment                AS firstStageComment,
+            qe1.score                       AS firstStageScore,
+            qe.eval_comment                 AS secondStageComment,
+            qe.score                        AS secondStageScore
         FROM qualitative_evaluation qe
         JOIN employee e ON e.employee_id = qe.evaluatee_id
+        LEFT JOIN qualitative_evaluation qe1
+            ON  qe1.evaluatee_id         = qe.evaluatee_id
+            AND qe1.evaluation_period_id = qe.evaluation_period_id
+            AND qe1.evaluation_level     = 1
         WHERE qe.qualitative_evaluation_id = #{evalId}
     </select>
 

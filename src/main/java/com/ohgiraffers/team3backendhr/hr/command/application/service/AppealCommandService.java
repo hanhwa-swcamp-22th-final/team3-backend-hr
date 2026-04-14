@@ -99,8 +99,11 @@ public class AppealCommandService {
 
     /* HRM 상태 변경 — 보류·승인·반려 통합 처리 */
     public void updateStatus(Long appealId, Long reviewerId, AppealStatusUpdateRequest request) {
+        EvaluationAppeal appeal = findAppeal(appealId);
+        ensureReviewStarted(appeal, reviewerId);
+
         if (request.getStatus() == AppealStatus.REVIEWING) {
-            hold(appealId, reviewerId);
+            appeal.hold();
             return;
         }
         // COMPLETED
@@ -109,16 +112,21 @@ public class AppealCommandService {
             throw new BusinessException(ErrorCode.INVALID_INPUT, "COMPLETED 상태에는 reviewResult가 필요합니다.");
         }
         if (reviewResult == ReviewResult.DISMISS) {
-            reject(appealId, reviewerId);
+            appeal.reject(reviewerId);
         } else {
-            approve(appealId, reviewerId,
-                    new AppealReviewRequest(reviewResult, request.getModifiedScore(), request.getReason()));
+            approve(appeal, reviewerId,
+                new AppealReviewRequest(reviewResult, request.getModifiedScore(), request.getReason()));
         }
     }
 
     /* 승인 — score_modification_log 생성 + 평가 점수 반영 */
     public void approve(Long appealId, Long reviewerId, AppealReviewRequest request) {
         EvaluationAppeal appeal = findAppeal(appealId);
+        ensureReviewStarted(appeal, reviewerId);
+        approve(appeal, reviewerId, request);
+    }
+
+    private void approve(EvaluationAppeal appeal, Long reviewerId, AppealReviewRequest request) {
         appeal.approve(reviewerId, request.getReviewResult());
 
         if (request.getModifiedScore() != null) {
@@ -140,12 +148,16 @@ public class AppealCommandService {
 
     /* 반려 */
     public void reject(Long appealId, Long reviewerId) {
-        findAppeal(appealId).reject(reviewerId);
+        EvaluationAppeal appeal = findAppeal(appealId);
+        ensureReviewStarted(appeal, reviewerId);
+        appeal.reject(reviewerId);
     }
 
     /* 보류 */
     public void hold(Long appealId, Long reviewerId) {
-        findAppeal(appealId).hold();
+        EvaluationAppeal appeal = findAppeal(appealId);
+        ensureReviewStarted(appeal, reviewerId);
+        appeal.hold();
     }
 
     private EvaluationAppeal findAppeal(Long appealId) {
@@ -156,6 +168,12 @@ public class AppealCommandService {
     private void validateOwner(EvaluationAppeal appeal, Long requesterId, String message) {
         if (!appeal.getAppealEmployeeId().equals(requesterId)) {
             throw new BusinessException(ErrorCode.ACCESS_DENIED, message);
+        }
+    }
+
+    private void ensureReviewStarted(EvaluationAppeal appeal, Long reviewerId) {
+        if (appeal.getStatus() == AppealStatus.RECEIVING) {
+            appeal.startReview(reviewerId);
         }
     }
 }
