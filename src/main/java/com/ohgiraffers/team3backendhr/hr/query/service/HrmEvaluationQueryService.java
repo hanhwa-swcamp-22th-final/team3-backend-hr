@@ -7,17 +7,18 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.T
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.TierCriteriaHistoryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.HrmEvaluationQueryMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +49,12 @@ public class HrmEvaluationQueryService {
         return mapper.findAntiGamingFlags();
     }
 
+    public List<TierCriteriaItem> getTierCriteria() {
+        return mapper.findLatestTierCriteria();
+    }
+
     /* 평가 기준(가중치·임계값) 조회 — Grade별 최신 기준만 반환 */
-    public EvaluationCriteriaResponse getCriteria() {
+    public EvaluationCriteriaResponse getEvaluationCriteriaDetail() {
         List<TierCriteriaHistoryItem> tierHistory = mapper.findTierCriteriaHistory();
         List<EvaluationCategoryWeightHistoryItem> weightHistory = mapper.findEvaluationCategoryWeightHistory();
 
