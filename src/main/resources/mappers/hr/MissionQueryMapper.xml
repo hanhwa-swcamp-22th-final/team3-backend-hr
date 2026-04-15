@@ -54,17 +54,40 @@
     <select id="findUpgradeByEmployeeId"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse">
         SELECT
-        <include refid="missionColumns"/>
-        FROM mission_progress mp
-                 JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
-                 JOIN employee e ON e.employee_id = mp.employee_id
-        WHERE mp.employee_id = #{employeeId}
-          AND mt.is_active = true
-        <include refid="tierFilter"/>
+            ranked.missionProgressId,
+            ranked.missionTemplateId,
+            ranked.missionName,
+            ranked.missionType,
+            ranked.upgradeToTier,
+            ranked.currentValue,
+            ranked.conditionValue,
+            ranked.progressRate,
+            ranked.status,
+            ranked.rewardPoint,
+            ranked.completedAt
+        FROM (
+            SELECT
+                <include refid="missionColumns"/>,
+                ROW_NUMBER() OVER (
+                    PARTITION BY mt.mission_template_id
+                    ORDER BY
+                        CASE WHEN mp.status = 'COMPLETED' THEN 1 ELSE 0 END DESC,
+                        mp.current_value DESC,
+                        COALESCE(mp.completed_at, mp.updated_at, mp.created_at) DESC,
+                        mp.mission_progress_id DESC
+                ) AS rowNumber
+            FROM mission_progress mp
+                     JOIN mission_template mt ON mp.mission_template_id = mt.mission_template_id
+                     JOIN employee e ON e.employee_id = mp.employee_id
+            WHERE mp.employee_id = #{employeeId}
+              AND mt.is_active = true
+            <include refid="tierFilter"/>
+        ) ranked
+        WHERE ranked.rowNumber = 1
         ORDER BY
-            FIELD(mt.upgrade_to_tier, 'B', 'A', 'S', 'S+'),
-            mp.status DESC,
-            mp.created_at DESC
+            FIELD(ranked.upgradeToTier, 'B', 'A', 'S', 'S+'),
+            CASE WHEN ranked.status = 'COMPLETED' THEN 1 ELSE 0 END DESC,
+            ranked.currentValue DESC
     </select>
 
 </mapper>
