@@ -70,7 +70,7 @@ class HrmEvaluationQueryServiceTest {
 
     @Test
     @DisplayName("평가 기준 조회 — 정상 반환")
-    void getCriteria_returnsResponse() {
+    void getEvaluationCriteriaDetail_returnsResponse() {
         // given
         given(mapper.findLatestTierCriteria()).willReturn(List.of(
             new TierCriteriaItem(1L, "S", 100)
@@ -86,7 +86,7 @@ class HrmEvaluationQueryServiceTest {
         ));
 
         // when
-        EvaluationCriteriaResponse result = service.getCriteria();
+        EvaluationCriteriaResponse result = service.getEvaluationCriteriaDetail();
 
         // then
         assertThat(result.getTierConfigs()).hasSize(1);
