@@ -13,6 +13,7 @@ public class KpiMemberSummaryResponse {
 
     private Long employeeId;
     private String employeeName;
+    private String employeeTier;
     private BigDecimal uphScore;
     private BigDecimal yieldScore;
     private BigDecimal leadTimeScore;

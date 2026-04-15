@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmTeamStatsItem;
 import com.ohgiraffers.team3backendhr.hr.query.service.DashboardQueryService;
 import com.ohgiraffers.team3backendhr.hr.query.service.KpiReportService;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,15 @@ public class HrmDashboardQueryController {
             @RequestParam int year) {
         return ResponseEntity.ok(ApiResponse.success(
                 dashboardQueryService.getHrmKpiTrends(year)));
+    }
+
+    @GetMapping("/team-stats")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<List<HrmTeamStatsItem>>> getTeamStats(
+            @RequestParam int year,
+            @RequestParam int evalSequence) {
+        return ResponseEntity.ok(ApiResponse.success(
+                dashboardQueryService.getHrmTeamStats(year, evalSequence)));
     }
 
     /**

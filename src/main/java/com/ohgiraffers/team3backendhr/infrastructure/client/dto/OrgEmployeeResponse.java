@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class OrgEmployeeResponse {
     private Long employeeId;
     private String name;
+    private String currentTier;
     private String departmentName;
     private String teamName;
     private String role;

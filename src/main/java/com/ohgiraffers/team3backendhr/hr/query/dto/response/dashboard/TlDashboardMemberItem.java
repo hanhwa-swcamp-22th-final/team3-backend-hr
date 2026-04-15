@@ -13,6 +13,7 @@ public class TlDashboardMemberItem {
     private String employeeName;
     private String employeeCode;
     private String tier;
+    private Double quantitativeScore;
     private Double qualitativeScore;
     private String grade;
     private String evalStatus;

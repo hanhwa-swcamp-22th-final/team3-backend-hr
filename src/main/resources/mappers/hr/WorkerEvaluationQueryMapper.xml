@@ -13,7 +13,7 @@
             ep.eval_period_id               AS evalPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            ep.eval_type                    AS evalType,
+            'QUARTERLY'                     AS evalType,
             COALESCE(qe.status, 'NO_INPUT') AS qualStatus
         FROM evaluation_period ep
         LEFT JOIN qualitative_evaluation qe
@@ -93,7 +93,7 @@
             ep.eval_period_id               AS evalPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            ep.eval_type                    AS evalType,
+            'QUARTERLY'                     AS evalType,
             qe.grade,
             qe.score,
             qe.status,
