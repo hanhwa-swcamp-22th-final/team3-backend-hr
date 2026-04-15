@@ -1,8 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.query;
 
-import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +18,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,12 +31,12 @@ class DlEvaluationQueryIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private IdGenerator idGenerator;
     @Autowired private JdbcTemplate jdbcTemplate;
-    @MockitoBean  private AdminClient adminClient;
+    @MockitoBean private AdminClient adminClient;
 
-    private static final Long DL_ID     = 300L;
+    private static final Long DL_ID = 300L;
     private static final Long WORKER_ID = 301L;
-    private static final Long DL_DEPT_ID = 20L;
-    private static final Long TEAM_DEPT_ID = 21L;
+    private static final Long DL_DEPT_ID = 920L;
+    private static final Long WORKER_DEPT_ID = 921L;
 
     private UsernamePasswordAuthenticationToken dlAuth() {
         EmployeeUserDetails userDetails = new EmployeeUserDetails(
@@ -51,22 +50,26 @@ class DlEvaluationQueryIntegrationTest {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
         jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
         jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
+        jdbcTemplate.update("DELETE FROM employee WHERE employee_id IN (?, ?)", DL_ID, WORKER_ID);
+        jdbcTemplate.update("DELETE FROM department WHERE department_id IN (?, ?)", WORKER_DEPT_ID, DL_DEPT_ID);
         jdbcTemplate.update(
-                "INSERT IGNORE INTO department(department_id, department_name, parent_department_id) VALUES (?,?,null)",
-                DL_DEPT_ID, "본부");
+                "INSERT INTO department(department_id, parent_department_id, department_name, team_name, depth, is_deleted) VALUES (?,?,?,?,?,false)",
+                DL_DEPT_ID, null, "dl-department", null, "1");
         jdbcTemplate.update(
-                "INSERT IGNORE INTO department(department_id, department_name, parent_department_id) VALUES (?,?,?)",
-                TEAM_DEPT_ID, "팀", DL_DEPT_ID);
+                "INSERT INTO department(department_id, parent_department_id, department_name, team_name, depth, is_deleted) VALUES (?,?,?,?,?,false)",
+                WORKER_DEPT_ID, DL_DEPT_ID, "worker-department", null, "2");
         jdbcTemplate.update(
-                "INSERT IGNORE INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'DL','ACTIVE','pw',false,0,false)",
-                DL_ID, DL_DEPT_ID, "DL001", "부서장");
+                "INSERT INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'DL','ACTIVE','pw',false,0,false)",
+                DL_ID, DL_DEPT_ID, "DL001", "dept-leader");
         jdbcTemplate.update(
-                "INSERT IGNORE INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'WORKER','ACTIVE','pw',false,0,false)",
-                WORKER_ID, TEAM_DEPT_ID, "W001", "워커");
+                "INSERT INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'WORKER','ACTIVE','pw',false,0,false)",
+                WORKER_ID, WORKER_DEPT_ID, "W001", "worker-user");
     }
 
     @AfterEach
-    void tearDown() { jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1"); }
+    void tearDown() {
+        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+    }
 
     private long insertPeriod(String status) {
         long id = idGenerator.generate();
@@ -83,14 +86,12 @@ class DlEvaluationQueryIntegrationTest {
     }
 
     @Test
-    @DisplayName("level 1이 SUBMITTED이면 DL 평가 대상 목록과 1차 점수를 반환한다")
+    @DisplayName("level 1 submitted returns DL targets with first-stage score")
     void getTargets_success() throws Exception {
-        // given
         long periodId = insertPeriod("IN_PROGRESS");
-        insertEval(idGenerator.generate(), WORKER_ID, periodId, 1, "SUBMITTED", 80.0);  // level 1 제출 완료
-        insertEval(idGenerator.generate(), WORKER_ID, periodId, 2, "NO_INPUT",  null);  // level 2 대기 중
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 1, "SUBMITTED", 80.0);
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 2, "NO_INPUT", null);
 
-        // when & then
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")
                         .param("periodId", String.valueOf(periodId))
                         .with(authentication(dlAuth())))
@@ -102,14 +103,12 @@ class DlEvaluationQueryIntegrationTest {
     }
 
     @Test
-    @DisplayName("level 1이 미제출이면 DL 평가 대상 목록이 비어있다")
+    @DisplayName("level 1 not submitted returns empty DL target list")
     void getTargets_emptyWhenLevel1NotSubmitted() throws Exception {
-        // given
         long periodId = insertPeriod("IN_PROGRESS");
-        insertEval(idGenerator.generate(), WORKER_ID, periodId, 1, "DRAFT",    null);  // level 1 미제출
-        insertEval(idGenerator.generate(), WORKER_ID, periodId, 2, "NO_INPUT", null);  // level 2 대기 중
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 1, "DRAFT", null);
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 2, "NO_INPUT", null);
 
-        // when & then
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")
                         .param("periodId", String.valueOf(periodId))
                         .with(authentication(dlAuth())))
@@ -118,7 +117,7 @@ class DlEvaluationQueryIntegrationTest {
     }
 
     @Test
-    @DisplayName("periodId 없고 IN_PROGRESS 기간도 없으면 400을 반환한다")
+    @DisplayName("without periodId and no in-progress period returns 400")
     void getTargets_fail_noInProgress() throws Exception {
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")
                         .with(authentication(dlAuth())))

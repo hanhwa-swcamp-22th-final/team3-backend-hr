@@ -14,7 +14,7 @@ public enum ErrorCode {
     /* 평가 기간 (EvaluationPeriod) */
     EVAL_PERIOD_NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND_001", "평가 기간을 찾을 수 없습니다."),
     EVAL_PERIOD_ALREADY_IN_PROGRESS(HttpStatus.BAD_REQUEST, "CONFLICT_001", "이미 진행 중인 평가 기간이 있습니다."),
-    EVAL_PERIOD_DUPLICATE(HttpStatus.BAD_REQUEST, "CONFLICT_002", "동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다."),
+    EVAL_PERIOD_DUPLICATE(HttpStatus.BAD_REQUEST, "CONFLICT_002", "동일한 연도·차수의 평가 기간이 이미 존재합니다."),
     EVAL_PERIOD_DATE_OVERLAP(HttpStatus.BAD_REQUEST, "CONFLICT_003", "기존 평가 기간과 날짜가 중복됩니다."),
     EVAL_PERIOD_CANNOT_CLOSE(HttpStatus.BAD_REQUEST, "CONFLICT_004", "진행 중인 평가 기간만 마감할 수 있습니다."),
     EVAL_PERIOD_CANNOT_CONFIRM(HttpStatus.BAD_REQUEST, "CONFLICT_005", "마감된 평가 기간만 확정할 수 있습니다."),

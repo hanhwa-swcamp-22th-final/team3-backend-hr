@@ -1,5 +1,9 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.EvaluationCategoryWeightItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.EvaluationCategoryWeightHistoryItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.EvaluationCriteriaResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.TierCriteriaHistoryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.AntiGamingFlagItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
@@ -11,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,14 +70,28 @@ class HrmEvaluationQueryServiceTest {
 
     @Test
     @DisplayName("평가 기준 조회 — 정상 반환")
-    void getCriteria_returnsList() {
+    void getCriteria_returnsResponse() {
         // given
-        given(mapper.findLatestCriteria()).willReturn(List.of());
+        given(mapper.findLatestTierCriteria()).willReturn(List.of(
+            new TierCriteriaItem(1L, "S", 100)
+        ));
+        given(mapper.findLatestEvaluationCategoryWeights()).willReturn(List.of(
+            new EvaluationCategoryWeightItem(10L, "SA", "PRODUCTIVITY", 20)
+        ));
+        given(mapper.findTierCriteriaHistory()).willReturn(List.of(
+            new TierCriteriaHistoryItem(1L, "S", 100, true, false, LocalDateTime.now(), LocalDateTime.now())
+        ));
+        given(mapper.findEvaluationCategoryWeightHistory()).willReturn(List.of(
+            new EvaluationCategoryWeightHistoryItem(10L, "SA", "PRODUCTIVITY", 20, true, false, LocalDateTime.now(), LocalDateTime.now())
+        ));
 
         // when
-        List<TierCriteriaItem> result = service.getCriteria();
+        EvaluationCriteriaResponse result = service.getCriteria();
 
         // then
-        assertThat(result).isEmpty();
+        assertThat(result.getTierConfigs()).hasSize(1);
+        assertThat(result.getCategoryWeights()).hasSize(1);
+        assertThat(result.getTierConfigHistoryGroups()).hasSize(1);
+        assertThat(result.getCategoryWeightHistoryGroups()).hasSize(1);
     }
 }

@@ -48,6 +48,12 @@ public class TierConfig {
     @Column(name = "productivity_target_score")
     private Double productivityTargetScore;
 
+    @Column(name = "is_active", nullable = false)
+    private Boolean active;
+
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean deleted;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -63,4 +69,13 @@ public class TierConfig {
     @LastModifiedBy
     @Column(name = "updated_by")
     private Long updatedBy;
+
+    public void deactivate() {
+        this.active = Boolean.FALSE;
+    }
+
+    public void softDelete() {
+        this.active = Boolean.FALSE;
+        this.deleted = Boolean.TRUE;
+    }
 }

@@ -64,8 +64,7 @@ class TeamLeaderEvaluationQueryControllerTest {
     void getTargets_success() throws Exception {
         // given
         given(service.getTlTargets(any(), any()))
-                .willReturn(new TlEvaluationTargetResponse(5L, List.of(5L), List.of(), 2026, 1,
-                        LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)));
+                .willReturn(new TlEvaluationTargetResponse(5L, List.of(5L), List.of(), null, null, null, null));
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/team-leader/evaluations/targets")

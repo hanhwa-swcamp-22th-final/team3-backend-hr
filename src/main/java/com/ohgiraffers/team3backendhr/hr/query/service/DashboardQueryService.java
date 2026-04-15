@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboar
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardTeamItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTeamStatsItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardMemberItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardSummaryResponse;
@@ -39,6 +40,10 @@ public class DashboardQueryService {
     /* HR-003 */
     public List<HrmKpiTrendItem> getHrmKpiTrends(int year) {
         return mapper.findHrmKpiTrends(year);
+    }
+
+    public List<HrmKpiTeamStatsItem> getHrmKpiTeamStats(int year, int evalSequence) {
+        return mapper.findHrmKpiTeamStats(year, evalSequence);
     }
 
     /* HR-005 */

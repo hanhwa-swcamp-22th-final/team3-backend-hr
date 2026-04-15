@@ -2,6 +2,7 @@ package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddRequest;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,10 @@ public class OrgCommandService {
     /* HR-084 */
     public void removeTeamMember(Long teamId, Long employeeId) {
         adminClient.removeTeamMember(teamId, employeeId);
+    }
+
+    /* HR-085 */
+    public Long assignDepartmentLeader(Long departmentId, DepartmentLeaderAssignRequest request) {
+        return adminClient.assignDepartmentLeader(departmentId, request);
     }
 }

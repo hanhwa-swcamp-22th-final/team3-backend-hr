@@ -14,22 +14,4 @@ public class TierCriteriaSaveRequest {
 
     @NotNull
     private final Integer tierConfigPromotionPoint;
-
-    @NotNull
-    private final Double equipmentResponseTargetScore;
-
-    @NotNull
-    private final Double technicalTransferTargetScore;
-
-    @NotNull
-    private final Double innovationProposalTargetScore;
-
-    @NotNull
-    private final Double safetyComplianceTargetScore;
-
-    @NotNull
-    private final Double qualityManagementTargetScore;
-
-    @NotNull
-    private final Double productivityTargetScore;
 }

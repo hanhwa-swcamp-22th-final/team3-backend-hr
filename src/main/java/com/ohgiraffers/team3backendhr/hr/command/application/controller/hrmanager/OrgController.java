@@ -123,4 +123,14 @@ public class OrgController {
         orgCommandService.removeTeamMember(teamId, employeeId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /* HR-085: 부서장 지정 */
+    @PatchMapping("/departments/{departmentId}/leader")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Long>> assignDepartmentLeader(
+            @PathVariable Long departmentId,
+            @RequestBody @Valid DepartmentLeaderAssignRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(
+                orgCommandService.assignDepartmentLeader(departmentId, request)));
+    }
 }
