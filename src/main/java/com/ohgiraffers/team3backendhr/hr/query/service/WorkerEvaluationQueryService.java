@@ -27,7 +27,7 @@ public class WorkerEvaluationQueryService {
 
     /** HR-EVAL-007: 현재 진행 중인 기간의 평가 완료 여부·분기 정보 */
     public WorkerEvalStatusResponse getEvalStatus(Long employeeId) {
-        WorkerEvalStatusResponse result = mapper.findCurrentEvalStatus(employeeId);
+        WorkerEvalStatusResponse result = mapper.findPreferredEvalStatus(employeeId);
         if (result == null) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }
@@ -103,7 +103,7 @@ public class WorkerEvaluationQueryService {
 
     private Long resolvePeriodId(Long periodId) {
         if (periodId != null) return periodId;
-        Long currentId = mapper.findCurrentPeriodId();
+        Long currentId = mapper.findPreferredPeriodId();
         if (currentId == null) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }

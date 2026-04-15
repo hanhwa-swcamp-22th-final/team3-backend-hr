@@ -87,7 +87,7 @@
         ORDER BY e.employee_name
     </select>
 
-    <!-- DL 평가 대상 목록 (같은 부서, level 1 SUBMITTED, level 2 레코드) -->
+    <!-- DL 평가 대상 목록 (같은 부서, level 1 SUBMITTED/CONFIRMED, level 2 레코드) -->
     <select id="findDlTargets"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem">
         SELECT
@@ -108,7 +108,7 @@
             ON  qe1.evaluatee_id          = qe2.evaluatee_id
             AND qe1.evaluation_period_id  = qe2.evaluation_period_id
             AND qe1.evaluation_level      = 1
-            AND qe1.status                = 'SUBMITTED'
+            AND qe1.status IN ('SUBMITTED', 'CONFIRMED')
         JOIN employee e    ON e.employee_id = qe2.evaluatee_id
         JOIN department d  ON d.department_id = e.department_id
         JOIN employee dl   ON dl.employee_id = #{dlId}
@@ -224,7 +224,7 @@
         WHERE qe.evaluatee_id = #{evaluateeId}
           AND qe.evaluation_period_id = #{periodId}
           AND qe.evaluation_level = 1
-          AND qe.status = 'SUBMITTED'
+          AND qe.status IN ('SUBMITTED', 'CONFIRMED')
           AND (
               e.department_id = dl.department_id
               OR d.parent_department_id = dl.department_id
