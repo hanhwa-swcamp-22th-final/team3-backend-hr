@@ -108,7 +108,7 @@ public class QualitativeEvaluation {
         if (this.status == QualEvalStatus.SUBMITTED || this.status == QualEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_SUBMITTED);
         }
-        if (evalComment == null || evalComment.length() < 20) {
+        if (requiresCommentOnSubmit(evalComment)) {
             throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
@@ -146,6 +146,13 @@ public class QualitativeEvaluation {
         this.inputMethod = inputMethod;
         this.status = QualEvalStatus.CONFIRMED;
         this.confirmedAt = LocalDateTime.now();
+    }
+
+    private boolean requiresCommentOnSubmit(String evalComment) {
+        if (evaluationLevel != null && evaluationLevel == 2L) {
+            return evalComment != null && !evalComment.isBlank() && evalComment.trim().length() < 20;
+        }
+        return evalComment == null || evalComment.trim().length() < 20;
     }
 
     public void reopenForAppealReview() {

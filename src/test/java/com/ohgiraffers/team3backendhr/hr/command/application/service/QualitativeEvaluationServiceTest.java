@@ -387,10 +387,10 @@ class QualitativeEvaluationServiceTest {
         // then
         assertThat(level3.getStatus()).isEqualTo(QualEvalStatus.CONFIRMED);
         assertThat(level3.getEvaluatorId()).isEqualTo(400L);
-        assertThat(level3.getScore()).isEqualTo(170.0);
+        assertThat(level3.getScore()).isEqualTo(90.0);
         verify(scoreLogRepository).save(argThat((ScoreModificationLog log) ->
                 log.getScoreOriginalScore().equals(70.0)
-                        && log.getScoreModifiedScore().equals(170.0)
+                        && log.getScoreModifiedScore().equals(90.0)
                         && log.getScoreEvaluateeId().equals(101L)
                         && log.getScoreModifierId().equals(400L)
         ));

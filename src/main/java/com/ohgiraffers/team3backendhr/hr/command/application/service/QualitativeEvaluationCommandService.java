@@ -111,7 +111,7 @@ public class QualitativeEvaluationCommandService {
         if (request.getStatus() == QualEvalStatus.DRAFT) {
             eval.saveDraft(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
         } else if (request.getStatus() == QualEvalStatus.SUBMITTED) {
-            validateEvalComment(request.getEvalComment());
+            validateDlSubmitComment(request.getEvalComment());
             eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
             publishSubmittedEventAfterCommit(eval);
         } else {
@@ -133,9 +133,17 @@ public class QualitativeEvaluationCommandService {
 
     public void submitForDL(Long evaluatorId, Long evaluateeId, QualitativeEvaluationSubmitRequest request) {
         validateLevel1Submitted(evaluateeId, request.getEvaluationPeriodId());
+        validateDlSubmitComment(request.getEvalComment());
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
         eval.submit(evaluatorId, request.getEvalItems(), request.getEvalComment(), request.getInputMethod());
         publishSubmittedEventAfterCommit(eval);
+    }
+
+    private void validateDlSubmitComment(String evalComment) {
+        if (evalComment == null || evalComment.trim().isEmpty()) {
+            return;
+        }
+        validateEvalComment(evalComment);
     }
 
     public void applyAnalyzedResult(QualitativeEvaluationAnalyzedEvent event) {
@@ -172,7 +180,7 @@ public class QualitativeEvaluationCommandService {
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 3L);
         Double originalLevel3Score = eval.getScore();
         Double modifiedLevel3Score = BigDecimal.valueOf(
-                requireScore(level1, "1차") + requireScore(level2, "2차")
+                requireScore(level2, "2차")
         ).setScale(4, RoundingMode.HALF_UP).doubleValue();
 
         eval.updateScore(modifiedLevel3Score);
@@ -290,9 +298,13 @@ public class QualitativeEvaluationCommandService {
     }
     private String resolveSecondEvaluationMode(QualitativeEvaluation evaluation) {
         if (evaluation.getEvaluationLevel() != null && evaluation.getEvaluationLevel() == 2L) {
-            return "ANALYZE_COMMENT";
+            return hasText(evaluation.getEvalComment()) ? "ANALYZE_COMMENT" : "KEEP_FIRST_SCORE";
         }
         return null;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.trim().isEmpty();
     }
 
     private BigDecimal resolveBaseRawScore(QualitativeEvaluation evaluation) {

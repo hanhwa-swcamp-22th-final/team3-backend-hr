@@ -28,7 +28,7 @@ public class AppealSummaryResponse {
     private String reviewResult;
     private Double firstScore;
     private Double secondScore;
-    private Double averageScore;
+    private Double finalScore;
     private LocalDateTime filedAt;
     private LocalDateTime reviewedAt;
 }
