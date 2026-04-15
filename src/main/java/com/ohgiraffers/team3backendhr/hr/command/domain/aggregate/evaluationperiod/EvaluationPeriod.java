@@ -36,10 +36,6 @@ public class EvaluationPeriod {
     @Column(name = "eval_sequence", nullable = false)
     private Integer evalSequence;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "eval_type", nullable = false)
-    private EvalType evalType;
-
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 

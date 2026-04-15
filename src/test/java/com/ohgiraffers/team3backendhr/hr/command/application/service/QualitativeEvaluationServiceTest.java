@@ -9,7 +9,6 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeeva
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
@@ -141,7 +140,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(1L))).willReturn(Optional.of(eval));
         given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
                 EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
-                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .startDate(LocalDate.of(2026, 1, 1))
                         .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(
@@ -242,7 +241,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
         given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(
                 EvaluationPeriod.builder().algorithmVersionId(1L).evalYear(2026).evalSequence(1)
-                        .evalType(EvalType.QUALITATIVE).startDate(LocalDate.of(2026, 1, 1))
+                        .startDate(LocalDate.of(2026, 1, 1))
                         .endDate(LocalDate.of(2026, 3, 31)).status(EvalPeriodStatus.IN_PROGRESS).build()));
 
         QualitativeEvaluationSubmitRequest request = new QualitativeEvaluationSubmitRequest(

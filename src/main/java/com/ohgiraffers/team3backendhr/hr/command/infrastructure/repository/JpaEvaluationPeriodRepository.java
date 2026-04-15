@@ -1,7 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.command.infrastructure.repository;
 
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,7 +10,7 @@ public interface JpaEvaluationPeriodRepository extends JpaRepository<EvaluationP
 
     boolean existsByStatus(EvalPeriodStatus status);
 
-    boolean existsByEvalYearAndEvalSequenceAndEvalType(int evalYear, int evalSequence, EvalType evalType);
+    boolean existsByEvalYearAndEvalSequence(int evalYear, int evalSequence);
 
     boolean existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(LocalDate endDate, LocalDate startDate);
 

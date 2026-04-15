@@ -27,7 +27,7 @@ public class QualitativeEvaluationQueryService {
     private final QualitativeEvaluationQueryMapper mapper;
     private final EvaluationPeriodRepository evaluationPeriodRepository;
 
-    /* TL 평가 대상 조회 — 같은 부서 WORKER × level 1 레코드 반환 */
+    /* TL target list for level 1 qualitative evaluation */
     public TlEvaluationTargetResponse getTlTargets(Long tlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<TlEvaluationTargetItem> targets = mapper.findTlTargets(tlId, resolvedPeriodId);
@@ -43,7 +43,7 @@ public class QualitativeEvaluationQueryService {
         );
     }
 
-    /* DL 평가 대상 조회 — level 1 SUBMITTED인 대상 × level 2 레코드 반환 */
+    /* DL target list for level 2 qualitative evaluation */
     public DlEvaluationTargetResponse getDlTargets(Long dlId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         List<DlEvaluationTargetItem> targets = mapper.findDlTargets(dlId, resolvedPeriodId);
@@ -58,7 +58,7 @@ public class QualitativeEvaluationQueryService {
         );
     }
 
-    /* TL — 제출 완료 평가 상세 조회 (본인 제출분만) */
+    /* TL evaluation detail */
     public EvaluationDetailResponse getTlEvaluationDetail(Long tlId, Long evalId) {
         EvaluationDetailResponse detail = mapper.findTlEvaluationDetail(evalId, tlId);
         if (detail == null) {
@@ -67,7 +67,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* DL — 1차 평가 항목 + AI 추천 점수 조회 (본인 부서 직원만) */
+    /* DL evaluation detail */
     public DlEvaluationDetailResponse getDlEvaluationDetail(Long dlId, Long evaluateeId, Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         DlEvaluationDetailResponse detail = mapper.findDlEvaluationDetail(dlId, evaluateeId, resolvedPeriodId);
@@ -77,7 +77,7 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM — 평가 상세 조회 */
+    /* HRM evaluation detail */
     public EvaluationDetailResponse getEvaluationDetail(Long evalId) {
         EvaluationDetailResponse detail = mapper.findEvaluationDetail(evalId);
         if (detail == null) {
@@ -86,13 +86,13 @@ public class QualitativeEvaluationQueryService {
         return detail;
     }
 
-    /* HRM — 등급별 평가 집계 */
+    /* HRM evaluation grade summary */
     public List<EvaluationGradeSummaryItem> getEvaluationGradeSummary(Long periodId) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         return mapper.findEvaluationGradeSummary(resolvedPeriodId);
     }
 
-    /* HRM — 평가 목록 조회 (periodId·grade·status 필터, 페이징) */
+    /* HRM evaluation list with filters */
     public EvaluationListResponse getEvaluations(Long periodId, String grade, String status, int page, int size) {
         Long resolvedPeriodId = resolvePeriodId(periodId);
         int offset = page * size;
@@ -102,7 +102,7 @@ public class QualitativeEvaluationQueryService {
         return new EvaluationListResponse(content, totalCount, totalPages);
     }
 
-    /* periodId null 이면 현재 IN_PROGRESS 기간으로 자동 resolve — 프론트에서 기간 선택 안 해도 동작 */
+    /* Resolve current in-progress period when periodId is omitted */
     private Long resolvePeriodId(Long periodId) {
         if (periodId != null) return periodId;
         Long currentId = mapper.findCurrentPeriodId();

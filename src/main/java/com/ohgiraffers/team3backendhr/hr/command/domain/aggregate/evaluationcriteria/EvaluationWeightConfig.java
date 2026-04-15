@@ -1,52 +1,47 @@
-package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig;
+package com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcriteria;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "tier_config")
+@Table(name = "evaluation_weight_config")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class TierConfig {
+public class EvaluationWeightConfig {
 
     @Id
-    @Column(name = "tier_config_id")
-    private Long tierConfigId;
+    @Column(name = "evaluation_weight_config_id")
+    private Long evaluationWeightConfigId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tier_config_tier", nullable = false)
-    private Grade tierConfigTier;
+    @Column(name = "tier_group", nullable = false, length = 10)
+    private EvaluationTierGroup tierGroup;
 
-    @Column(name = "tier_config_promotion_point")
-    private Integer tierConfigPromotionPoint;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category_code", nullable = false, length = 50)
+    private EvaluationCategory categoryCode;
 
-    @Column(name = "equipment_response_target_score")
-    private Double equipmentResponseTargetScore;
-
-    @Column(name = "technical_transfer_target_score")
-    private Double technicalTransferTargetScore;
-
-    @Column(name = "innovation_proposal_target_score")
-    private Double innovationProposalTargetScore;
-
-    @Column(name = "safety_compliance_target_score")
-    private Double safetyComplianceTargetScore;
-
-    @Column(name = "quality_management_target_score")
-    private Double qualityManagementTargetScore;
-
-    @Column(name = "productivity_target_score")
-    private Double productivityTargetScore;
+    @Column(name = "weight_percent", nullable = false)
+    private Integer weightPercent;
 
     @Column(name = "is_active", nullable = false)
     private Boolean active;

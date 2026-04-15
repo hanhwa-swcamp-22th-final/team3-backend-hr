@@ -15,7 +15,6 @@ public class WorkerEvalHistoryItem {
     private Long evalPeriodId;
     private Integer evalYear;
     private Integer evalSequence;
-    private String evalType;
     private String grade;
     private Double score;
     private String status;

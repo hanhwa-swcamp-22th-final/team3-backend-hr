@@ -5,7 +5,6 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluat
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.EvaluationPeriodCommandService;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,7 @@ class EvaluationPeriodControllerTest {
     @WithMockUser(authorities = "HRM")
     void create_success() throws Exception {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 3, 31)
         );
@@ -64,7 +63,7 @@ class EvaluationPeriodControllerTest {
     @WithMockUser(authorities = "HRM")
     void create_fail_alreadyInProgress() throws Exception {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1),
                 LocalDate.of(2026, 3, 31)
         );

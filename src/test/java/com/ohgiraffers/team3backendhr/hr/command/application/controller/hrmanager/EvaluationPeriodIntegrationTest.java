@@ -5,7 +5,6 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
@@ -84,7 +83,6 @@ class EvaluationPeriodIntegrationTest {
                 .algorithmVersionId(1L)
                 .evalYear(2026)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(2026, 1, 1))
                 .endDate(LocalDate.of(2026, 3, 31))
                 .status(status)
@@ -98,7 +96,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         given(adminClient.getWorkers()).willReturn(List.of(buildWorker(101L)));
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
         long beforeCount = qualitativeEvaluationRepository.count();
 
@@ -122,7 +120,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 2, EvalType.QUALITATIVE,
+                1L, 2026, 2,
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30));
 
         // when & then

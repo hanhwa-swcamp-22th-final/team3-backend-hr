@@ -2,7 +2,6 @@ package com.ohgiraffers.team3backendhr.hr.command.domain.repository;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.TimeBasedIdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +44,6 @@ class EvaluationPeriodRepositoryTest {
                 .algorithmVersionId(1L)
                 .evalYear(year)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(year, 1, 1))
                 .endDate(LocalDate.of(year, 3, 31))
                 .status(status)

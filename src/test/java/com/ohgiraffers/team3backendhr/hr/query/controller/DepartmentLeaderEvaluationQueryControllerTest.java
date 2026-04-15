@@ -63,7 +63,7 @@ class DepartmentLeaderEvaluationQueryControllerTest {
     void getTargets_success() throws Exception {
         // given
         given(service.getDlTargets(any(), any()))
-                .willReturn(new DlEvaluationTargetResponse(5L, List.of()));
+                .willReturn(new DlEvaluationTargetResponse(5L, List.of(), null, null, null, null));
 
         // when & then
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")

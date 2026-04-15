@@ -43,27 +43,58 @@
 
 
     <!-- Grade별 최신 평가 기준 조회 -->
-    <select id="findLatestCriteria"
+    <select id="findLatestTierCriteria"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem">
         SELECT
-            t1.tier_config_id                   AS tierConfigId,
-            t1.tier_config_tier                 AS tier,
-            t1.tier_config_promotion_point      AS tierConfigPromotionPoint,
-            t1.equipment_response_target_score  AS equipmentResponseTargetScore,
-            t1.technical_transfer_target_score  AS technicalTransferTargetScore,
-            t1.innovation_proposal_target_score AS innovationProposalTargetScore,
-            t1.safety_compliance_target_score   AS safetyComplianceTargetScore,
-            t1.quality_management_target_score  AS qualityManagementTargetScore,
-            t1.productivity_target_score        AS productivityTargetScore
-        FROM tier_config t1
-        WHERE t1.tier_config_id = (
-            SELECT t2.tier_config_id
-            FROM tier_config t2
-            WHERE t2.tier_config_tier = t1.tier_config_tier
-            ORDER BY t2.created_at DESC, t2.tier_config_id DESC
-            LIMIT 1
-        )
-        ORDER BY t1.tier_config_tier
+            tier_config_id              AS tierConfigId,
+            tier_config_tier            AS tier,
+            tier_config_promotion_point AS tierConfigPromotionPoint
+        FROM tier_config
+        WHERE is_active = TRUE
+          AND is_deleted = FALSE
+        ORDER BY FIELD(tier_config_tier, 'S', 'A', 'B', 'C')
+    </select>
+
+    <select id="findLatestEvaluationCategoryWeights"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.EvaluationCategoryWeightItem">
+        SELECT
+            e1.evaluation_weight_config_id AS evaluationWeightConfigId,
+            e1.tier_group                  AS tierGroup,
+            e1.category_code               AS categoryCode,
+            e1.weight_percent              AS weightPercent
+        FROM evaluation_weight_config e1
+        WHERE e1.is_active = TRUE
+          AND e1.is_deleted = FALSE
+        ORDER BY FIELD(e1.tier_group, 'SA', 'BC'), e1.category_code
+    </select>
+
+    <select id="findTierCriteriaHistory"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.TierCriteriaHistoryItem">
+        SELECT
+            tier_config_id              AS tierConfigId,
+            tier_config_tier            AS tier,
+            tier_config_promotion_point AS tierConfigPromotionPoint,
+            is_active                   AS active,
+            is_deleted                  AS deleted,
+            created_at                  AS createdAt,
+            updated_at                  AS updatedAt
+        FROM tier_config
+        ORDER BY created_at DESC, tier_config_id DESC
+    </select>
+
+    <select id="findEvaluationCategoryWeightHistory"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationcriteria.EvaluationCategoryWeightHistoryItem">
+        SELECT
+            evaluation_weight_config_id AS evaluationWeightConfigId,
+            tier_group                  AS tierGroup,
+            category_code               AS categoryCode,
+            weight_percent              AS weightPercent,
+            is_active                   AS active,
+            is_deleted                  AS deleted,
+            created_at                  AS createdAt,
+            updated_at                  AS updatedAt
+        FROM evaluation_weight_config
+        ORDER BY created_at DESC, evaluation_weight_config_id DESC
     </select>
 
 </mapper>
