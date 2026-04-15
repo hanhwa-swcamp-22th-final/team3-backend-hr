@@ -23,4 +23,8 @@ public class EmployeeProfileResponse {
     private Grade currentTier;
     private BigDecimal totalScore;
     private LocalDate hireDate;
+    private Integer assignedTaskCount;
+    private Integer inProgressTaskCount;
+    private Integer completedTaskCount;
+    private Integer taskCompletionRate;
 }

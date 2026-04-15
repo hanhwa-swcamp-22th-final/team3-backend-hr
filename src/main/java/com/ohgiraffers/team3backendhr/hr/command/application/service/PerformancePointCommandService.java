@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.missiontemplate.MissionType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PerformancePoint;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.performancepoint.PointType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PerformancePointRepository;
@@ -22,6 +23,7 @@ public class PerformancePointCommandService {
     private final PerformancePointRepository performancePointRepository;
     private final IdGenerator idGenerator;
     private final PromotionEventPublisher promotionEventPublisher;
+    private final MissionProgressCommandService missionProgressCommandService;
 
     public void applyCalculatedPoint(PerformancePointCalculatedEvent event) {
         PointType pointType = PointType.valueOf(event.getPointType());
@@ -47,7 +49,21 @@ public class PerformancePointCommandService {
         );
 
         PerformancePoint saved = performancePointRepository.save(performancePoint);
+        updateAiScoreMissionProgress(event);
         publishSnapshotAfterCommit(saved, event.getOccurredAt());
+    }
+
+    private void updateAiScoreMissionProgress(PerformancePointCalculatedEvent event) {
+        if (event.getCapabilityScore() == null) {
+            return;
+        }
+
+        missionProgressCommandService.updateProgress(
+            event.getEmployeeId(),
+            MissionType.AI_SCORE,
+            event.getCapabilityScore(),
+            true
+        );
     }
 
     private void publishSnapshotAfterCommit(PerformancePoint performancePoint, LocalDateTime occurredAt) {
