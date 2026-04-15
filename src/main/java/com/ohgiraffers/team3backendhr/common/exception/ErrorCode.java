@@ -29,7 +29,7 @@ public enum ErrorCode {
     EVALUATION_NOT_SUBMITTED(HttpStatus.BAD_REQUEST, "CONFLICT_010", "제출된 평가에만 분석 결과를 반영할 수 있습니다."),
     EVALUATION_LEVEL1_NOT_SUBMITTED(HttpStatus.BAD_REQUEST, "CONFLICT_011", "1차 평가가 제출되지 않아 2차 평가를 진행할 수 없습니다."),
     EVALUATION_LEVEL2_NOT_SUBMITTED(HttpStatus.BAD_REQUEST, "CONFLICT_012", "2차 평가가 제출되지 않아 최종 확정을 진행할 수 없습니다."),
-    EVALUATION_NOT_CONFIRMED(HttpStatus.BAD_REQUEST, "CONFLICT_013", "확정된 평가에 대해서만 이의신청할 수 있습니다."),
+    EVALUATION_LEVEL2_NOT_SUBMITTED_FOR_APPEAL(HttpStatus.BAD_REQUEST, "CONFLICT_013", "2차 평가가 제출된 건에 대해서만 이의신청할 수 있습니다."),
     INVALID_COMMENT_LENGTH(HttpStatus.BAD_REQUEST, "BAD_REQUEST_003", "평가 코멘트는 최소 20자 이상이어야 합니다."),
 
     /* 평가 기준 (TierCriteria) */
@@ -39,11 +39,12 @@ public enum ErrorCode {
 
     /* 이의신청 (Appeal) */
     APPEAL_NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND_004", "이의신청을 찾을 수 없습니다."),
-    APPEAL_EXPIRED(HttpStatus.BAD_REQUEST, "CONFLICT_014", "결과 통보 후 7일이 지나 이의신청할 수 없습니다."),
+    APPEAL_EXPIRED(HttpStatus.BAD_REQUEST, "CONFLICT_014", "2차 평가 제출 후 7일이 지나 이의신청할 수 없습니다."),
     APPEAL_NOT_RECEIVABLE(HttpStatus.BAD_REQUEST, "CONFLICT_015", "접수 중인 이의신청만 수정할 수 있습니다."),
     APPEAL_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "CONFLICT_016", "완료된 이의신청은 취소할 수 없습니다."),
     APPEAL_ALREADY_REVIEWING(HttpStatus.BAD_REQUEST, "CONFLICT_017", "이미 검토 중인 이의신청입니다."),
     APPEAL_NOT_REVIEWING(HttpStatus.BAD_REQUEST, "CONFLICT_018", "검토 중인 이의신청만 처리할 수 있습니다."),
+    APPEAL_ALREADY_EXISTS(HttpStatus.CONFLICT, "CONFLICT_019", "해당 평가 기간에 이미 이의신청이 존재합니다."),
 
     /* 승급 (Promotion) */
     PROMOTION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND_005", "승급 이력을 찾을 수 없습니다."),

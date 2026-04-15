@@ -25,4 +25,12 @@ public class EvaluationDetailResponse {
     private String inputMethod;
     private String status;
     private LocalDateTime createdAt;
+
+    // 1차 평가 (TL)
+    private String firstStageComment;
+    private Double firstStageScore;
+
+    // 2차 평가 (DL)
+    private String secondStageComment;
+    private Double secondStageScore;
 }

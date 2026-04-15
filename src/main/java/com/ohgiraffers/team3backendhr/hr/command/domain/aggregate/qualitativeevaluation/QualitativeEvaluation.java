@@ -125,6 +125,10 @@ public class QualitativeEvaluation {
         this.score = rawScore;
     }
 
+    public void updateScore(Double score) {
+        this.score = score;
+    }
+
     public void applyNormalizationResult(Double sQual, Grade grade) {
         this.sQual = sQual;
         this.grade = grade;
@@ -142,5 +146,13 @@ public class QualitativeEvaluation {
         this.inputMethod = inputMethod;
         this.status = QualEvalStatus.CONFIRMED;
         this.confirmedAt = LocalDateTime.now();
+    }
+
+    public void reopenForAppealReview() {
+        if (this.status != QualEvalStatus.SUBMITTED && this.status != QualEvalStatus.CONFIRMED) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "이의신청 검토로 재오픈할 수 없는 평가 상태입니다.");
+        }
+        this.status = QualEvalStatus.DRAFT;
+        this.confirmedAt = null;
     }
 }

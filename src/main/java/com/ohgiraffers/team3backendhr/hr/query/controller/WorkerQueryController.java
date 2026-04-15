@@ -6,6 +6,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.MissionResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointHistoryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
@@ -142,6 +143,16 @@ public class WorkerQueryController {
             @RequestParam(required = false) Long periodId) {
         return ResponseEntity.ok(ApiResponse.success(
                 workerEvaluationQueryService.getFeedback(userDetails.getEmployeeId(), periodId)));
+    }
+
+    /* HR-EVAL-NEW: 이의신청용 1차·2차 평가 결과 조회 */
+    @GetMapping("/evaluations/review")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<WorkerEvalReviewResponse>> getEvalReview(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long periodId) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getEvalReview(userDetails.getEmployeeId(), periodId)));
     }
 
     /* HR-EVAL-011: 평가 이력 목록 — 이의신청 대상 선택용 */

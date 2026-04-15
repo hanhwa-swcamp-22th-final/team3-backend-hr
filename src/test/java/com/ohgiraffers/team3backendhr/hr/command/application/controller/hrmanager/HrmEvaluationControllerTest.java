@@ -53,7 +53,7 @@ class HrmEvaluationControllerTest {
                 5L, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when & then
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/101/confirm")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/hr/hr-manager/evaluations/101")
                         .with(csrf())
                         .with(user(hrmUser()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +72,7 @@ class HrmEvaluationControllerTest {
                 5L, null, InputMethod.TEXT);
 
         // when & then
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/101/confirm")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/hr/hr-manager/evaluations/101")
                         .with(csrf())
                         .with(user(hrmUser()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +88,7 @@ class HrmEvaluationControllerTest {
                 5L, "짧은코멘트", InputMethod.TEXT);
 
         // when & then
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/101/confirm")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/hr/hr-manager/evaluations/101")
                         .with(csrf())
                         .with(user(hrmUser()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -107,7 +107,7 @@ class HrmEvaluationControllerTest {
                 .when(service).confirmFinal(any(), any(), any());
 
         // when & then
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/101/confirm")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch("/api/v1/hr/hr-manager/evaluations/101")
                         .with(csrf())
                         .with(user(hrmUser()))
                         .contentType(MediaType.APPLICATION_JSON)

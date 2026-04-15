@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,8 +44,8 @@ public class LocalFileStorage implements FileStorage {
         }
 
         try {
-            // 2. 저장 경로 생성 (예: ./uploads/notices)
-            Path root = Paths.get(uploadDir, directory);
+            Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path root = resolveTargetDirectory(uploadRoot, directory);
             if (!Files.exists(root)) {
                 Files.createDirectories(root);
             }
@@ -55,10 +56,13 @@ public class LocalFileStorage implements FileStorage {
                 dotExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
             }
             String savedFileName = UUID.randomUUID().toString() + dotExtension;
-            Path targetPath = root.resolve(savedFileName);
+            Path targetPath = root.resolve(savedFileName).normalize();
+            if (!targetPath.startsWith(root)) {
+                throw new BusinessException(ErrorCode.INVALID_INPUT, "유효하지 않은 파일 경로입니다.");
+            }
 
             // 4. 파일 저장
-            Files.copy(file.getInputStream(), targetPath);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
             return new FileDetail(
                     originalFileName,
@@ -69,6 +73,18 @@ public class LocalFileStorage implements FileStorage {
         } catch (IOException e) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "파일 저장 중 오류가 발생했습니다.");
         }
+    }
+
+    private Path resolveTargetDirectory(Path uploadRoot, String directory) {
+        if (directory == null || directory.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "저장 디렉터리는 필수입니다.");
+        }
+
+        Path resolved = uploadRoot.resolve(directory).normalize();
+        if (!resolved.startsWith(uploadRoot)) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "유효하지 않은 저장 경로입니다.");
+        }
+        return resolved;
     }
 
     @Override

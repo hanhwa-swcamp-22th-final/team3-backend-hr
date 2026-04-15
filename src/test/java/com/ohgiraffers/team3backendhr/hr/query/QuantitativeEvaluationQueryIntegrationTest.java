@@ -69,7 +69,8 @@ class QuantitativeEvaluationQueryIntegrationTest {
         long periodId = insertPeriod(2099, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
 
-        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative"))
+        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())

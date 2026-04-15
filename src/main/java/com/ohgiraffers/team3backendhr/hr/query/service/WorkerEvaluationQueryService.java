@@ -4,6 +4,8 @@ import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
 import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
@@ -50,6 +52,30 @@ public class WorkerEvaluationQueryService {
             throw new BusinessException(ErrorCode.EVALUATION_NOT_FOUND);
         }
         return result;
+    }
+
+    /** HR-EVAL-NEW: 이의신청용 1차·2차 평가 결과 조회 */
+    public WorkerEvalReviewResponse getEvalReview(Long employeeId, Long periodId) {
+        Long resolvedPeriodId = resolvePeriodId(periodId);
+        List<WorkerEvalReviewItem> items = mapper.findEvalReviewItems(employeeId, resolvedPeriodId);
+
+        WorkerEvalReviewItem firstEval = items.stream()
+                .filter(i -> i.getEvaluationLevel() == 1)
+                .findFirst().orElse(null);
+        WorkerEvalReviewItem secondEval = items.stream()
+                .filter(i -> i.getEvaluationLevel() == 2)
+                .findFirst().orElse(null);
+
+        // period 정보는 어느 item이든 동일하므로 첫 번째 것에서 추출
+        WorkerEvalReviewItem any = items.isEmpty() ? null : items.get(0);
+        return new WorkerEvalReviewResponse(
+                any != null ? any.getEvalPeriodId() : null,
+                any != null ? any.getEvalYear() : null,
+                any != null ? any.getEvalSequence() : null,
+                firstEval,
+                secondEval,
+                firstEval != null && secondEval != null
+        );
     }
 
     /** HR-EVAL-010: 분기별 성장 피드백·코멘트 (TL/DL/HRM 각 레벨) */

@@ -58,7 +58,7 @@ class AppealQueryMapperTest {
     void tearDown() {
         jdbcTemplate.execute("DELETE FROM score_modification_log WHERE score_evaluatee_id = " + WORKER_ID);
         jdbcTemplate.execute("DELETE FROM evaluation_appeal WHERE appeal_employee_id = " + WORKER_ID);
-        jdbcTemplate.execute("DELETE FROM attachment_file_group WHERE reference_id = " + EVAL_ID);
+        jdbcTemplate.execute("DELETE FROM attachment_file_group WHERE reference_type = 'APPEAL'");
         jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE qualitative_evaluation_id = " + EVAL_ID);
         jdbcTemplate.execute("DELETE FROM evaluation_period WHERE eval_period_id = " + PERIOD_ID);
         jdbcTemplate.execute("DELETE FROM employee WHERE employee_id IN (" + WORKER_ID + "," + HRM_ID + ")");
@@ -77,8 +77,8 @@ class AppealQueryMapperTest {
         long fileGroupId = insertFileGroup();
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_appeal(appeal_id, qualitative_evaluation_id, appeal_employee_id, appeal_type, title, content, status, review_result, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','appeal title','appeal content long enough for query tests',?,?,0,?,?)",
-                id, EVAL_ID, WORKER_ID, status, reviewResult, LocalDateTime.now(), fileGroupId);
+                "INSERT INTO evaluation_appeal(appeal_id, appeal_employee_id, evaluation_period_id, appeal_type, title, content, status, review_result, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,?,?,?,?)",
+                id, WORKER_ID, PERIOD_ID, status, reviewResult, EVAL_ID, LocalDateTime.now(), fileGroupId);
         return id;
     }
 
@@ -128,6 +128,10 @@ class AppealQueryMapperTest {
     @Test
     @DisplayName("findAppeals applies completed status filter")
     void findAppeals_completedFilter() {
+        // given
+        jdbcTemplate.update(
+                "UPDATE qualitative_evaluation SET status = 'SUBMITTED' WHERE qualitative_evaluation_id = ?",
+                EVAL_ID);
         insertAppeal("COMPLETED", "ACKNOWLEDGE");
 
         List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", 10, 0);
@@ -135,6 +139,24 @@ class AppealQueryMapperTest {
         assertThat(result).isNotEmpty();
         assertThat(result).allMatch(r -> r.getStatus().equals("COMPLETED"));
     }
+
+    @Test
+    @DisplayName("상태 필터 COMPLETED — 기각 완료 건도 조회된다")
+    void findAppeals_completedFilter_includesDismissed() {
+        // given
+        insertAppeal("COMPLETED", "DISMISS");
+
+        // when
+        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", 10, 0);
+
+        // then
+        assertThat(result).isNotEmpty();
+        assertThat(result).anyMatch(r ->
+                "COMPLETED".equals(r.getStatus()) && "DISMISS".equals(r.getReviewResult()));
+    }
+
+    /* ── countAppeals ──────────────────────────────────────────────── */
+
 
     @Test
     @DisplayName("countAppeals counts filtered rows")

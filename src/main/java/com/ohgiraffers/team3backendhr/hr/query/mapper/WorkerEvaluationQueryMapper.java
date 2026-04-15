@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.query.mapper;
 
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
@@ -23,6 +24,11 @@ public interface WorkerEvaluationQueryMapper {
 
     /** HR-EVAL-009: 내 정성 평가 카테고리별 점수 (level 3, HRM 확정본) */
     WorkerQualitativeResponse findQualitative(
+            @Param("employeeId") Long employeeId,
+            @Param("periodId") Long periodId);
+
+    /** HR-EVAL-NEW: 이의신청용 1차(TL)·2차(DL) 평가 결과 (SUBMITTED 상태만) */
+    List<WorkerEvalReviewItem> findEvalReviewItems(
             @Param("employeeId") Long employeeId,
             @Param("periodId") Long periodId);
 

@@ -12,11 +12,12 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualita
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcomment.EvaluationComment;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
@@ -53,6 +54,7 @@ public class QualitativeEvaluationCommandService {
     private final EvaluationCommentRepository evaluationCommentRepository;
     private final AdminClient adminClient;
     private final IdGenerator idGenerator;
+    private final ScoreModificationLogRepository scoreLogRepository;
     private final QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
     private final ObjectMapper objectMapper;
     private final NotificationCommandService notificationCommandService;
@@ -165,8 +167,27 @@ public class QualitativeEvaluationCommandService {
 
     public void confirmFinal(Long evaluatorId, Long evaluateeId, QualitativeEvaluationConfirmRequest request) {
         validateLevel2Submitted(evaluateeId, request.getEvaluationPeriodId());
+        QualitativeEvaluation level1 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 1L);
+        QualitativeEvaluation level2 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 3L);
+        Double originalLevel3Score = eval.getScore();
+        Double modifiedLevel3Score = BigDecimal.valueOf(
+                requireScore(level1, "1차") + requireScore(level2, "2차")
+        ).setScale(4, RoundingMode.HALF_UP).doubleValue();
+
+        eval.updateScore(modifiedLevel3Score);
+        level1.confirmFinal(level1.getEvaluatorId(), level1.getEvalComment(), level1.getInputMethod());
+        level2.confirmFinal(level2.getEvaluatorId(), level2.getEvalComment(), level2.getInputMethod());
         eval.confirmFinal(evaluatorId, request.getEvalComment(), request.getInputMethod());
+        scoreLogRepository.save(ScoreModificationLog.builder()
+                .scoreModificationLogId(idGenerator.generate())
+                .scoreEvaluateeId(evaluateeId)
+                .scoreModifierId(evaluatorId)
+                .scoreOriginalScore(originalLevel3Score)
+                .scoreModifiedScore(modifiedLevel3Score)
+                .scoreReason(request.getEvalComment())
+                .scoreModifiedAt(LocalDateTime.now())
+                .build());
     }
 
     private void replaceEvaluationComments(QualitativeEvaluationAnalyzedEvent event) {
@@ -222,6 +243,16 @@ public class QualitativeEvaluationCommandService {
     private QualitativeEvaluation findByLevel(Long evaluateeId, Long evaluationPeriodId, Long level) {
         return repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(evaluateeId, evaluationPeriodId, level)
             .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
+    }
+
+    private Double requireScore(QualitativeEvaluation evaluation, String label) {
+        if (evaluation.getScore() == null) {
+            throw new BusinessException(
+                ErrorCode.INVALID_INPUT,
+                label + " 평가 점수가 산출되지 않아 최종 확정을 진행할 수 없습니다."
+            );
+        }
+        return evaluation.getScore();
     }
 
     private void publishSubmittedEventAfterCommit(QualitativeEvaluation evaluation) {

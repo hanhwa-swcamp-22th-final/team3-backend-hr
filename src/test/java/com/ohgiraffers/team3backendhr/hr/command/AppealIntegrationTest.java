@@ -2,7 +2,8 @@ package com.ohgiraffers.team3backendhr.hr.command;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealRegisterRequest;
-import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealReviewRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealProcessRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealStatusUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.ReferenceType;
@@ -73,9 +74,12 @@ class AppealIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.execute("DELETE FROM evaluation_appeal");
+        jdbcTemplate.execute("DELETE FROM attachment_file_group");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id = " + PERIOD_ID);
         jdbcTemplate.update(
-                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluation_period_id, evaluation_level, status, score, confirmed_at) VALUES (?,?,?,?,'CONFIRMED',80.0,NOW())",
-                EVAL_ID, WORKER_ID, PERIOD_ID, 3);
+                "INSERT INTO qualitative_evaluation(qualitative_evaluation_id, evaluatee_id, evaluator_id, evaluation_period_id, evaluation_level, status, score, updated_at) VALUES (?,?,?,?,?,'SUBMITTED',80.0,NOW())",
+                EVAL_ID, WORKER_ID, HRM_ID, PERIOD_ID, 2);
     }
 
     @AfterEach
@@ -89,8 +93,8 @@ class AppealIntegrationTest {
                         .build());
         return appealRepository.save(EvaluationAppeal.builder()
                 .appealId(idGenerator.generate())
-                .qualitativeEvaluationId(EVAL_ID)
                 .appealEmployeeId(WORKER_ID)
+                .evaluationPeriodId(PERIOD_ID)
                 .appealType(AppealType.SCORE_ERRORS)
                 .title("점수 오류 이의신청")
                 .content("평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.")
@@ -104,7 +108,7 @@ class AppealIntegrationTest {
     @DisplayName("이의신청을 등록하면 DB에 저장된다")
     void register_success() throws Exception {
         AppealRegisterRequest request = new AppealRegisterRequest(
-                EVAL_ID, AppealType.SCORE_ERRORS,
+                PERIOD_ID, AppealType.SCORE_ERRORS,
                 "점수 오류 이의신청", "평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.");
 
         mockMvc.perform(post("/api/v1/hr/appeals")
@@ -118,9 +122,9 @@ class AppealIntegrationTest {
     }
 
     @Test
-    @DisplayName("이의신청을 수정하면 내용이 변경된다")
+    @DisplayName("제출된 이의신청 수정 요청은 거절된다")
     void update_success() throws Exception {
-        EvaluationAppeal appeal = saveAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = saveAppeal(AppealStatus.SUBMITTED);
         AppealUpdateRequest request = new AppealUpdateRequest(
                 AppealType.MISSING_ITEMS, "수정된 이의신청 제목", "수정된 내용입니다. 충분히 길게 작성합니다.");
 
@@ -128,12 +132,11 @@ class AppealIntegrationTest {
                         .with(csrf()).with(authentication(workerAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(status().isBadRequest());
 
         EvaluationAppeal updated = appealRepository.findById(appeal.getAppealId()).orElseThrow();
-        assertThat(updated.getTitle()).isEqualTo("수정된 이의신청 제목");
-        assertThat(updated.getAppealType()).isEqualTo(AppealType.MISSING_ITEMS);
+        assertThat(updated.getTitle()).isEqualTo("점수 오류 이의신청");
+        assertThat(updated.getAppealType()).isEqualTo(AppealType.SCORE_ERRORS);
     }
 
     @Test
@@ -153,10 +156,10 @@ class AppealIntegrationTest {
     @DisplayName("승인하면 이의신청이 COMPLETED·ACKNOWLEDGE로 변경된다")
     void approve_success() throws Exception {
         EvaluationAppeal appeal = saveAppeal(AppealStatus.REVIEWING);
-        AppealReviewRequest request = new AppealReviewRequest(
-                ReviewResult.ACKNOWLEDGE, 90.0, "점수 오류 확인됨. 재산정 완료.");
+        AppealStatusUpdateRequest request = new AppealStatusUpdateRequest(
+                AppealStatus.COMPLETED, ReviewResult.ACKNOWLEDGE, 90.0, "점수 오류 확인됨. 재산정 완료.");
 
-        mockMvc.perform(post("/api/v1/hr/appeals/" + appeal.getAppealId() + "/approve")
+        mockMvc.perform(patch("/api/v1/hr/appeals/" + appeal.getAppealId())
                         .with(csrf()).with(authentication(hrmAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -171,10 +174,14 @@ class AppealIntegrationTest {
     @Test
     @DisplayName("반려하면 이의신청이 COMPLETED·DISMISS로 변경된다")
     void reject_success() throws Exception {
-        EvaluationAppeal appeal = saveAppeal(AppealStatus.REVIEWING);
+        EvaluationAppeal appeal = saveAppeal(AppealStatus.SUBMITTED);
+        AppealProcessRequest request = new AppealProcessRequest(
+                null, "검토 결과 반려 사유를 남깁니다.");
 
-        mockMvc.perform(post("/api/v1/hr/appeals/" + appeal.getAppealId() + "/reject")
-                        .with(csrf()).with(authentication(hrmAuth())))
+        mockMvc.perform(patch("/api/v1/hr/appeals/" + appeal.getAppealId() + "/reject")
+                        .with(csrf()).with(authentication(hrmAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         EvaluationAppeal updated = appealRepository.findById(appeal.getAppealId()).orElseThrow();
@@ -185,10 +192,14 @@ class AppealIntegrationTest {
     @Test
     @DisplayName("보류하면 이의신청이 REVIEWING 상태를 유지한다")
     void hold_success() throws Exception {
-        EvaluationAppeal appeal = saveAppeal(AppealStatus.REVIEWING);
+        EvaluationAppeal appeal = saveAppeal(AppealStatus.SUBMITTED);
+        AppealStatusUpdateRequest request = new AppealStatusUpdateRequest(
+                AppealStatus.REVIEWING, null, null, null);
 
-        mockMvc.perform(post("/api/v1/hr/appeals/" + appeal.getAppealId() + "/hold")
-                        .with(csrf()).with(authentication(hrmAuth())))
+        mockMvc.perform(patch("/api/v1/hr/appeals/" + appeal.getAppealId())
+                        .with(csrf()).with(authentication(hrmAuth()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         EvaluationAppeal updated = appealRepository.findById(appeal.getAppealId()).orElseThrow();

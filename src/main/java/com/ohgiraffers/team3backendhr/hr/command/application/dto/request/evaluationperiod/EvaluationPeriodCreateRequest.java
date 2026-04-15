@@ -19,7 +19,6 @@ public class EvaluationPeriodCreateRequest {
     @NotNull(message = "평가 차수는 필수입니다.")
     private final Integer evalSequence;
 
-    @NotNull(message = "평가 유형은 필수입니다.")
     @NotNull(message = "시작일은 필수입니다.")
     private final LocalDate startDate;
 

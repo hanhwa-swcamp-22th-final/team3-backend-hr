@@ -31,6 +31,8 @@ class EvaluationPeriodRepositoryTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation");
+        jdbcTemplate.execute("DELETE FROM evaluation_period");
     }
 
     @AfterEach

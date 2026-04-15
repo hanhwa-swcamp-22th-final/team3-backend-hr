@@ -82,8 +82,8 @@ class AppealQueryIntegrationTest {
                 fileGroupId, EVAL_ID);
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_appeal(appeal_id, qualitative_evaluation_id, appeal_employee_id, appeal_type, title, content, status, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','appeal title','appeal content long enough for query tests',?,0,?,?)",
-                id, EVAL_ID, WORKER_ID, status, LocalDateTime.now(), fileGroupId);
+                "INSERT INTO evaluation_appeal(appeal_id, appeal_employee_id, evaluation_period_id, appeal_type, title, content, status, anonymized_comparison, filed_at, file_group_id) VALUES (?,?,?,'SCORE_ERRORS','점수 오류 이의신청','20자 이상의 내용입니다. 재검토 요청드립니다.',?,?,?,?)",
+                id, WORKER_ID, PERIOD_ID, status, EVAL_ID, LocalDateTime.now(), fileGroupId);
         return id;
     }
 

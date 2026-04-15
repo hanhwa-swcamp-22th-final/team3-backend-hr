@@ -23,6 +23,31 @@
         LIMIT 1
     </select>
 
+    <!-- HR-EVAL-NEW: 이의신청용 1차·2차 평가 결과 조회
+         - level=1(TL), level=2(DL) 중 SUBMITTED 상태인 것만 반환
+         - 현재 진행 중인 기간 기준으로만 조회 (periodId 필수) -->
+    <select id="findEvalReviewItems"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem">
+        SELECT
+            qe.qualitative_evaluation_id    AS qualitativeEvaluationId,
+            qe.evaluation_level             AS evaluationLevel,
+            qe.grade,
+            qe.score,
+            qe.eval_items                   AS evalItems,
+            qe.eval_comment                 AS evalComment,
+            qe.status,
+            ep.eval_period_id               AS evalPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+        FROM qualitative_evaluation qe
+        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
+        WHERE qe.evaluatee_id = #{employeeId}
+          AND qe.evaluation_period_id = #{periodId}
+          AND qe.evaluation_level IN (1, 2)
+          AND qe.status = 'SUBMITTED'
+        ORDER BY qe.evaluation_level ASC
+    </select>
+
     <!-- HR-EVAL-008: 내 정량 평가 점수 -->
     <select id="findQuantitative"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse">
@@ -84,28 +109,55 @@
         ORDER BY qe.evaluation_level ASC
     </select>
 
-    <!-- HR-EVAL-011: 평가 이력 목록 (level 3 확정본 기준, 이의신청 대상 선택용) -->
+    <!-- HR-EVAL-011: 평가 이력 목록 (이의신청 대상 선택용)
+         - level=2 제출본 기준
+         - level=3 확정본이 있으면 그 값을 우선 사용
+         - 1차(TL)·2차(DL) 점수 및 정량 점수 함께 반환
+         - RECEIVING 상태 이의신청 존재 시 underReview=true -->
     <select id="findEvalHistory"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryItem">
         SELECT
-            qe.qualitative_evaluation_id    AS qualitativeEvaluationId,
+            COALESCE(qe3.qualitative_evaluation_id, qe2.qualitative_evaluation_id) AS qualitativeEvaluationId,
             ep.eval_period_id               AS evalPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            qe.grade,
-            qe.score,
-            qe.status,
-            qe.confirmed_at                 AS confirmedAt,
+            COALESCE(qe3.grade, qe2.grade)  AS grade,
+            COALESCE(qe3.score, qe2.score)  AS score,
+            COALESCE(qe3.status, qe2.status) AS status,
+            qe3.confirmed_at                AS confirmedAt,
+            qe1.score                       AS firstScore,
+            qe2.score                       AS secondScore,
+            qn.t_score                      AS quantScore,
+            CASE WHEN ea.appeal_id IS NOT NULL THEN TRUE ELSE FALSE END AS underReview,
             CASE
-                WHEN qe.confirmed_at IS NOT NULL
-                     AND qe.confirmed_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY
+                WHEN ea.appeal_id IS NOT NULL THEN FALSE
+                WHEN qe3.confirmed_at IS NOT NULL
+                     AND qe3.confirmed_at >= UTC_TIMESTAMP() - INTERVAL 7 DAY
+                THEN TRUE
+                WHEN qe2.status = 'SUBMITTED'
                 THEN TRUE
                 ELSE FALSE
             END AS appealable
-        FROM qualitative_evaluation qe
-        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
-        WHERE qe.evaluatee_id = #{employeeId}
-          AND qe.evaluation_level = 3
+        FROM qualitative_evaluation qe2
+        JOIN evaluation_period ep
+            ON ep.eval_period_id = qe2.evaluation_period_id
+        LEFT JOIN qualitative_evaluation qe1
+            ON qe1.evaluatee_id = qe2.evaluatee_id
+            AND qe1.evaluation_period_id = qe2.evaluation_period_id
+            AND qe1.evaluation_level = 1
+        LEFT JOIN qualitative_evaluation qe3
+            ON qe3.evaluatee_id = qe2.evaluatee_id
+            AND qe3.evaluation_period_id = qe2.evaluation_period_id
+            AND qe3.evaluation_level = 3
+        LEFT JOIN quantitative_evaluation qn
+            ON qn.employee_id = qe2.evaluatee_id
+            AND qn.eval_period_id = qe2.evaluation_period_id
+        LEFT JOIN evaluation_appeal ea
+            ON ea.appeal_employee_id = qe2.evaluatee_id
+            AND ea.evaluation_period_id = qe2.evaluation_period_id
+        WHERE qe2.evaluatee_id = #{employeeId}
+          AND qe2.evaluation_level = 2
+          AND qe2.status = 'SUBMITTED'
         ORDER BY ep.eval_year DESC, ep.eval_sequence DESC
         LIMIT #{size} OFFSET #{offset}
     </select>
@@ -114,7 +166,8 @@
         SELECT COUNT(*)
         FROM qualitative_evaluation qe
         WHERE qe.evaluatee_id = #{employeeId}
-          AND qe.evaluation_level = 3
+          AND qe.evaluation_level = 2
+          AND qe.status = 'SUBMITTED'
     </select>
 
     <!-- 현재 IN_PROGRESS 기간 ID -->

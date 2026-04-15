@@ -1,7 +1,8 @@
 package com.ohgiraffers.team3backendhr.hr.query.service;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
-
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.DlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.EvaluationDetailResponse;
@@ -18,7 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,8 +33,22 @@ class QualitativeEvaluationQueryServiceTest {
     @Mock
     private QualitativeEvaluationQueryMapper mapper;
 
+    @Mock
+    private EvaluationPeriodRepository evaluationPeriodRepository;
+
     @InjectMocks
     private QualitativeEvaluationQueryService service;
+
+    private EvaluationPeriod buildPeriod(Long id) {
+        return EvaluationPeriod.builder()
+                .evalPeriodId(id)
+                .algorithmVersionId(1L)
+                .evalYear(2026)
+                .evalSequence(1)
+                .startDate(LocalDate.of(2026, 1, 1))
+                .endDate(LocalDate.of(2026, 3, 31))
+                .build();
+    }
 
     /* ── getTlTargets ─────────────────────────────────────────────────── */
 
@@ -42,6 +59,7 @@ class QualitativeEvaluationQueryServiceTest {
         TlEvaluationTargetItem item = new TlEvaluationTargetItem();
         item.setEvaluateeId(101L);
         given(mapper.findTlTargets(200L, 5L)).willReturn(List.of(item));
+        given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(buildPeriod(5L)));
 
         // when
         TlEvaluationTargetResponse result = service.getTlTargets(200L, 5L);
@@ -57,6 +75,7 @@ class QualitativeEvaluationQueryServiceTest {
         // given
         given(mapper.findCurrentPeriodId()).willReturn(10L);
         given(mapper.findTlTargets(200L, 10L)).willReturn(List.of());
+        given(evaluationPeriodRepository.findById(10L)).willReturn(Optional.of(buildPeriod(10L)));
 
         // when
         TlEvaluationTargetResponse result = service.getTlTargets(200L, null);
@@ -87,6 +106,7 @@ class QualitativeEvaluationQueryServiceTest {
         item.setEvaluateeId(101L);
         item.setFirstStageScore(85.0);
         given(mapper.findDlTargets(300L, 5L)).willReturn(List.of(item));
+        given(evaluationPeriodRepository.findById(5L)).willReturn(Optional.of(buildPeriod(5L)));
 
         // when
         DlEvaluationTargetResponse result = service.getDlTargets(300L, 5L);
@@ -102,6 +122,7 @@ class QualitativeEvaluationQueryServiceTest {
         // given
         given(mapper.findCurrentPeriodId()).willReturn(10L);
         given(mapper.findDlTargets(300L, 10L)).willReturn(List.of());
+        given(evaluationPeriodRepository.findById(10L)).willReturn(Optional.of(buildPeriod(10L)));
 
         // when
         DlEvaluationTargetResponse result = service.getDlTargets(300L, null);
@@ -118,7 +139,7 @@ class QualitativeEvaluationQueryServiceTest {
         // given
         EvaluationSummaryItem item = new EvaluationSummaryItem();
         item.setEvalId(1L);
-        given(mapper.findEvaluations(5L, null, null, 10, 0)).willReturn(List.of(item));
+        given(mapper.findEvaluations(5L, null, null, 10, 10)).willReturn(List.of(item));
         given(mapper.countEvaluations(5L, null, null)).willReturn(25L);
 
         // when
@@ -135,7 +156,7 @@ class QualitativeEvaluationQueryServiceTest {
     void getEvaluations_withNullPeriodId_resolvesToCurrent() {
         // given
         given(mapper.findCurrentPeriodId()).willReturn(7L);
-        given(mapper.findEvaluations(7L, null, null, 10, 0)).willReturn(List.of());
+        given(mapper.findEvaluations(7L, null, null, 10, 10)).willReturn(List.of());
         given(mapper.countEvaluations(7L, null, null)).willReturn(0L);
 
         // when

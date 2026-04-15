@@ -18,4 +18,7 @@ public class EvaluationSummaryItem {
     private String grade;           // S | A | B | C | null
     private Double score;
     private String status;          // NO_INPUT | DRAFT | SUBMITTED | CONFIRMED
+    private String teamName;        // 직속 부서(팀)
+    private String departmentName;  // 상위 부서
+    private String inputMethod;
 }

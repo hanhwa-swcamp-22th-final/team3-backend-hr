@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.hr.query.controller;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodDeadlineResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.evaluationperiod.EvaluationPeriodListResponse;
 import com.ohgiraffers.team3backendhr.hr.query.service.EvaluationPeriodQueryService;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.jwt.JwtTokenProvider;
 import com.ohgiraffers.team3backendhr.jwt.RestAccessDeniedHandler;
 import com.ohgiraffers.team3backendhr.jwt.RestAuthenticationEntryPoint;
@@ -52,6 +53,9 @@ class EvaluationPeriodQueryControllerTest {
 
     @MockitoBean
     private RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+
+    @MockitoBean
+    private AdminClient adminClient;
 
     /* ── GET /evaluation-periods ──────────────────────────────────────── */
 

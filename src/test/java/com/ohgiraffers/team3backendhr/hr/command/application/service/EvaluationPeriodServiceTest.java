@@ -89,15 +89,17 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("create fails when another period is already in progress")
+    @DisplayName("create fails when year and sequence already exist")
     void create_fail_alreadyInProgress() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
                 1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
-        assertBusinessError(() -> service.create(request), ErrorCode.EVAL_PERIOD_ALREADY_IN_PROGRESS);
+        assertThatThrownBy(() -> service.create(request))
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("동일한 연도·차수의 평가 기간이 이미 존재합니다.");
     }
 
     @Test
@@ -107,7 +109,6 @@ class EvaluationPeriodServiceTest {
                 1L, 2026, 1,
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
         given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
         assertBusinessError(() -> service.create(request), ErrorCode.EVAL_PERIOD_DUPLICATE);
@@ -120,7 +121,6 @@ class EvaluationPeriodServiceTest {
                 1L, 2026, 2,
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 5, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
         given(repository.existsByEvalYearAndEvalSequence(2026, 2)).willReturn(false);
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1))).willReturn(true);
