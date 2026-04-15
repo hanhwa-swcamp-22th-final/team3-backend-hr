@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHis
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import org.apache.ibatis.annotations.Mapper;
@@ -14,8 +15,8 @@ import java.util.List;
 @Mapper
 public interface WorkerEvaluationQueryMapper {
 
-    /** HR-EVAL-007: 현재 진행 중인 기간의 내 평가 완료 여부·분기 정보 */
-    WorkerEvalStatusResponse findCurrentEvalStatus(@Param("employeeId") Long employeeId);
+    /** HR-EVAL-007: 현재 진행 중인 기간, 없으면 최근 확정 기간의 내 평가 완료 여부·분기 정보 */
+    WorkerEvalStatusResponse findPreferredEvalStatus(@Param("employeeId") Long employeeId);
 
     /** HR-EVAL-008: 내 정량 평가 점수·항목별 상세 */
     WorkerQuantitativeResponse findQuantitative(
@@ -45,6 +46,8 @@ public interface WorkerEvaluationQueryMapper {
 
     long countEvalHistory(@Param("employeeId") Long employeeId);
 
-    /** 현재 IN_PROGRESS 기간 ID */
-    Long findCurrentPeriodId();
+    List<WorkerGrowthTrendItem> findGrowthTrend(@Param("employeeId") Long employeeId);
+
+    /** 현재 IN_PROGRESS 기간, 없으면 최근 CONFIRMED 기간 ID */
+    Long findPreferredPeriodId();
 }

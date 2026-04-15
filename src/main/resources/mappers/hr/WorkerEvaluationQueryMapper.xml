@@ -3,11 +3,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.WorkerEvaluationQueryMapper">
 
-    <!-- HR-EVAL-007: 현재 진행 중인 기간 + level 3 정성 평가 상태
-         - 기간 없음: 0행 반환 → mapper null → 서비스에서 EVAL_PERIOD_NOT_IN_PROGRESS
-         - 기간 있음 + 평가 레코드 없음: COALESCE로 'NO_INPUT' 반환 (null 혼용 방지)
-         - IN_PROGRESS 기간 2개 이상 존재 시 임의 선택됨 (DB UNIQUE 제약 추가 필요) -->
-    <select id="findCurrentEvalStatus"
+    <!-- HR-EVAL-007: 현재 진행 중인 기간, 없으면 최근 확정 기간 + level 3 정성 평가 상태 -->
+    <select id="findPreferredEvalStatus"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse">
         SELECT
             ep.eval_period_id               AS evalPeriodId,
@@ -19,7 +16,16 @@
             ON qe.evaluation_period_id = ep.eval_period_id
             AND qe.evaluatee_id = #{employeeId}
             AND qe.evaluation_level = 3
-        WHERE ep.status = 'IN_PROGRESS'
+        WHERE ep.status IN ('IN_PROGRESS', 'CONFIRMED')
+        ORDER BY
+            CASE
+                WHEN ep.status = 'IN_PROGRESS' THEN 0
+                WHEN ep.status = 'CONFIRMED' THEN 1
+                ELSE 2
+            END,
+            ep.eval_year DESC,
+            ep.eval_sequence DESC,
+            ep.eval_period_id DESC
         LIMIT 1
     </select>
 
@@ -170,11 +176,52 @@
           AND qe.status = 'SUBMITTED'
     </select>
 
-    <!-- 현재 IN_PROGRESS 기간 ID -->
-    <select id="findCurrentPeriodId" resultType="long">
+    <select id="findGrowthTrend"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem">
+        SELECT
+            ep.eval_period_id AS evalPeriodId,
+            ep.eval_year AS evalYear,
+            ep.eval_sequence AS evalSequence,
+            qe_self.score AS myScore,
+            ROUND((
+                SELECT AVG(qe_team.score)
+                FROM qualitative_evaluation qe_team
+                JOIN employee e_team ON e_team.employee_id = qe_team.evaluatee_id
+                WHERE qe_team.evaluation_period_id = ep.eval_period_id
+                  AND qe_team.evaluation_level = 3
+                  AND qe_team.status = 'CONFIRMED'
+                  AND e_team.department_id = e_self.department_id
+            ), 1) AS teamAverageScore,
+            ROUND((
+                SELECT AVG(qe_all.score)
+                FROM qualitative_evaluation qe_all
+                WHERE qe_all.evaluation_period_id = ep.eval_period_id
+                  AND qe_all.evaluation_level = 3
+                  AND qe_all.status = 'CONFIRMED'
+            ), 1) AS companyAverageScore
+        FROM qualitative_evaluation qe_self
+        JOIN evaluation_period ep ON ep.eval_period_id = qe_self.evaluation_period_id
+        JOIN employee e_self ON e_self.employee_id = qe_self.evaluatee_id
+        WHERE qe_self.evaluatee_id = #{employeeId}
+          AND qe_self.evaluation_level = 3
+          AND qe_self.status = 'CONFIRMED'
+        ORDER BY ep.eval_year ASC, ep.eval_sequence ASC, ep.eval_period_id ASC
+    </select>
+
+    <!-- 현재 IN_PROGRESS 기간 ID, 없으면 최근 CONFIRMED 기간 ID -->
+    <select id="findPreferredPeriodId" resultType="long">
         SELECT eval_period_id
         FROM evaluation_period
-        WHERE status = 'IN_PROGRESS'
+        WHERE status IN ('IN_PROGRESS', 'CONFIRMED')
+        ORDER BY
+            CASE
+                WHEN status = 'IN_PROGRESS' THEN 0
+                WHEN status = 'CONFIRMED' THEN 1
+                ELSE 2
+            END,
+            eval_year DESC,
+            eval_sequence DESC,
+            eval_period_id DESC
         LIMIT 1
     </select>
 

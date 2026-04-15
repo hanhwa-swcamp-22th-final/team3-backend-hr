@@ -9,6 +9,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHis
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem;
@@ -164,5 +165,13 @@ public class WorkerQueryController {
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
                 workerEvaluationQueryService.getEvalHistory(userDetails.getEmployeeId(), page, size)));
+    }
+
+    @GetMapping("/evaluations/growth-trend")
+    @PreAuthorize("hasAuthority('WORKER')")
+    public ResponseEntity<ApiResponse<List<WorkerGrowthTrendItem>>> getGrowthTrend(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                workerEvaluationQueryService.getGrowthTrend(userDetails.getEmployeeId())));
     }
 }

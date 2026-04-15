@@ -9,6 +9,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalRev
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.WorkerEvaluationQueryMapper;
@@ -27,7 +28,7 @@ public class WorkerEvaluationQueryService {
 
     /** HR-EVAL-007: 현재 진행 중인 기간의 평가 완료 여부·분기 정보 */
     public WorkerEvalStatusResponse getEvalStatus(Long employeeId) {
-        WorkerEvalStatusResponse result = mapper.findCurrentEvalStatus(employeeId);
+        WorkerEvalStatusResponse result = mapper.findPreferredEvalStatus(employeeId);
         if (result == null) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }
@@ -101,9 +102,14 @@ public class WorkerEvaluationQueryService {
         return new WorkerEvalHistoryResponse(content, totalCount);
     }
 
+    /** Worker 성장 추이 차트용 3차 최종 점수 vs 팀 평균 vs 전사 평균 */
+    public List<WorkerGrowthTrendItem> getGrowthTrend(Long employeeId) {
+        return mapper.findGrowthTrend(employeeId);
+    }
+
     private Long resolvePeriodId(Long periodId) {
         if (periodId != null) return periodId;
-        Long currentId = mapper.findCurrentPeriodId();
+        Long currentId = mapper.findPreferredPeriodId();
         if (currentId == null) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_NOT_IN_PROGRESS);
         }
