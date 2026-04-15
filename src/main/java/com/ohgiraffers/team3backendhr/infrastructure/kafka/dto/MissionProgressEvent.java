@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  * <ul>
  *   <li>HIGH_DIFFICULTY_WORK — SCM이 D4·D5 난이도 작업 완료 시 progressValue=1 로 발행</li>
  *   <li>KMS_CONTRIBUTION    — KMS가 지식 문서 승인 시 progressValue=1 로 발행</li>
- *   <li>AI_SCORE            — AI 배치가 역량 지수 계산 후 절댓값(absolute=true)으로 발행</li>
+ *   <li>AI_SCORE            — 정산/점수 이벤트의 capabilityScore 로 HR 내부에서 반영</li>
  * </ul>
  */
 @Getter
