@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHis
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import org.apache.ibatis.annotations.Mapper;
@@ -44,6 +45,8 @@ public interface WorkerEvaluationQueryMapper {
             @Param("offset") int offset);
 
     long countEvalHistory(@Param("employeeId") Long employeeId);
+
+    List<WorkerGrowthTrendItem> findGrowthTrend(@Param("employeeId") Long employeeId);
 
     /** 현재 IN_PROGRESS 기간, 없으면 최근 CONFIRMED 기간 ID */
     Long findPreferredPeriodId();
