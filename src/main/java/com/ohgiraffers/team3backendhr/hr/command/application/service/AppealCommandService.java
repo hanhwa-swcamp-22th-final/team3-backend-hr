@@ -15,11 +15,9 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachment.Fil
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.AttachmentFileGroup;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.attachmentfilegroup.ReferenceType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.EvaluationAppeal;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
@@ -44,7 +42,6 @@ public class AppealCommandService {
     private final AppealRepository appealRepository;
     private final AttachmentFileGroupRepository fileGroupRepository;
     private final AttachmentRepository attachmentRepository;
-    private final ScoreModificationLogRepository scoreLogRepository;
     private final QualitativeEvaluationRepository qualitativeEvaluationRepository;
     private final FileStorage fileStorage;
     private final IdGenerator idGenerator;
@@ -242,29 +239,6 @@ public class AppealCommandService {
 
     private void approve(EvaluationAppeal appeal, Long reviewerId, AppealReviewRequest request) {
         appeal.approve(reviewerId, request.getReviewResult());
-
-        if (request.getModifiedScore() != null) {
-            List<QualitativeEvaluation> evaluations = findAppealTargetEvaluations(
-                appeal.getAppealEmployeeId(),
-                appeal.getEvaluationPeriodId()
-            );
-            double originalAverage = evaluations.stream()
-                .map(QualitativeEvaluation::getScore)
-                .filter(Objects::nonNull)
-                .mapToDouble(Double::doubleValue)
-                .average()
-                .orElse(0.0);
-
-            scoreLogRepository.save(ScoreModificationLog.builder()
-                    .scoreModificationLogId(idGenerator.generate())
-                    .scoreEvaluateeId(appeal.getAppealEmployeeId())
-                    .scoreModifierId(reviewerId)
-                    .scoreOriginalScore(originalAverage)
-                    .scoreModifiedScore(request.getModifiedScore())
-                    .scoreReason(request.getReason())
-                    .scoreModifiedAt(LocalDateTime.now())
-                    .build());
-        }
     }
 
     /* 반려 */

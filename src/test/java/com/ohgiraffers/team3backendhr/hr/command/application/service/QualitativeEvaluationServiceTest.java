@@ -10,9 +10,11 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeeva
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import java.time.LocalDate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
@@ -49,6 +51,9 @@ class QualitativeEvaluationServiceTest {
 
     @Mock
     private IdGenerator idGenerator;
+
+    @Mock
+    private ScoreModificationLogRepository scoreLogRepository;
 
     @Mock
     private QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
@@ -343,6 +348,7 @@ class QualitativeEvaluationServiceTest {
                 .evaluatorId(200L)
                 .evalComment("1차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
                 .inputMethod(InputMethod.TEXT)
+                .score(80.0)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
@@ -353,6 +359,7 @@ class QualitativeEvaluationServiceTest {
                 .evaluatorId(300L)
                 .evalComment("2차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
                 .inputMethod(InputMethod.TEXT)
+                .score(90.0)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level3 = QualitativeEvaluation.builder()
@@ -360,6 +367,7 @@ class QualitativeEvaluationServiceTest {
                 .evaluateeId(101L)
                 .evaluationPeriodId(5L)
                 .evaluationLevel(3L)
+                .score(70.0)
                 .status(QualEvalStatus.NO_INPUT)
                 .build();
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
@@ -368,6 +376,7 @@ class QualitativeEvaluationServiceTest {
                 eq(101L), eq(5L), eq(2L))).willReturn(Optional.of(level2));
         given(repository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
                 eq(101L), eq(5L), eq(3L))).willReturn(Optional.of(level3));
+        given(idGenerator.generate()).willReturn(999L);
 
         QualitativeEvaluationConfirmRequest request = new QualitativeEvaluationConfirmRequest(
                 5L, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
@@ -378,6 +387,13 @@ class QualitativeEvaluationServiceTest {
         // then
         assertThat(level3.getStatus()).isEqualTo(QualEvalStatus.CONFIRMED);
         assertThat(level3.getEvaluatorId()).isEqualTo(400L);
+        assertThat(level3.getScore()).isEqualTo(170.0);
+        verify(scoreLogRepository).save(argThat((ScoreModificationLog log) ->
+                log.getScoreOriginalScore().equals(70.0)
+                        && log.getScoreModifiedScore().equals(170.0)
+                        && log.getScoreEvaluateeId().equals(101L)
+                        && log.getScoreModifierId().equals(400L)
+        ));
     }
 
     @Test
@@ -415,6 +431,7 @@ class QualitativeEvaluationServiceTest {
                 .evaluatorId(200L)
                 .evalComment("1차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
                 .inputMethod(InputMethod.TEXT)
+                .score(80.0)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level2 = QualitativeEvaluation.builder()
@@ -425,6 +442,7 @@ class QualitativeEvaluationServiceTest {
                 .evaluatorId(300L)
                 .evalComment("2차 평가 코멘트입니다. 충분히 길게 작성했습니다.")
                 .inputMethod(InputMethod.TEXT)
+                .score(90.0)
                 .status(QualEvalStatus.SUBMITTED)
                 .build();
         QualitativeEvaluation level3 = QualitativeEvaluation.builder()

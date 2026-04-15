@@ -125,6 +125,10 @@ public class QualitativeEvaluation {
         this.score = rawScore;
     }
 
+    public void updateScore(Double score) {
+        this.score = score;
+    }
+
     public void applyNormalizationResult(Double sQual, Grade grade) {
         this.sQual = sQual;
         this.grade = grade;

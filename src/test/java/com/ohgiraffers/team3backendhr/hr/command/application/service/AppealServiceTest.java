@@ -12,11 +12,9 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappe
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.EvaluationAppeal;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationappeal.ReviewResult;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AppealRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentFileGroupRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.AttachmentRepository;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
@@ -45,7 +43,6 @@ class AppealServiceTest {
     @Mock private AppealRepository appealRepository;
     @Mock private AttachmentFileGroupRepository fileGroupRepository;
     @Mock private AttachmentRepository attachmentRepository;
-    @Mock private ScoreModificationLogRepository scoreLogRepository;
     @Mock private QualitativeEvaluationRepository qualitativeEvaluationRepository;
     @Mock private FileStorage fileStorage;
     @Mock private IdGenerator idGenerator;
@@ -201,32 +198,17 @@ class AppealServiceTest {
     }
 
     @Test
-    @DisplayName("승인 시 점수 수정 이력이 저장되고 평가 점수가 변경된다")
+    @DisplayName("승인 시 이의신청이 완료 상태로 변경된다")
     void approve_success() {
         EvaluationAppeal appeal = buildAppeal(AppealStatus.REVIEWING);
-        QualitativeEvaluation eval = QualitativeEvaluation.builder()
-                .qualitativeEvaluationId(10L)
-                .evaluateeId(100L)
-                .evaluationPeriodId(5L)
-                .evaluationLevel(1L)
-                .score(70.0)
-                .build();
 
         given(appealRepository.findById(1L)).willReturn(Optional.of(appeal));
-        given(qualitativeEvaluationRepository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(100L, 5L, 1L))
-                .willReturn(Optional.of(eval));
-        given(qualitativeEvaluationRepository.findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(100L, 5L, 2L))
-                .willReturn(Optional.empty());
-        given(idGenerator.generate()).willReturn(777L);
-        given(scoreLogRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
-
         AppealReviewRequest request = new AppealReviewRequest(ReviewResult.ACKNOWLEDGE, 85.0, "점수 오류 확인됨");
 
         service.approve(1L, 200L, request);
 
         assertThat(appeal.getStatus()).isEqualTo(AppealStatus.COMPLETED);
         assertThat(appeal.getReviewResult()).isEqualTo(ReviewResult.ACKNOWLEDGE);
-        verify(scoreLogRepository).save(any(ScoreModificationLog.class));
     }
 
     @Test
