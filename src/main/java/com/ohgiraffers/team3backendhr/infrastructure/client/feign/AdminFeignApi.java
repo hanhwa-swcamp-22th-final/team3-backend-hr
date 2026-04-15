@@ -3,6 +3,7 @@ package com.ohgiraffers.team3backendhr.infrastructure.client.feign;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
@@ -54,6 +55,17 @@ public interface AdminFeignApi {
     @GetMapping("/api/v1/admin/employees/{leaderId}/team-members")
     AdminApiResponse<List<Long>> getTeamMemberIds(@PathVariable Long leaderId);
 
+    /* 티어별 활성 작업자 ID 목록 */
+    @GetMapping("/api/v1/admin/employees/workers/active")
+    AdminApiResponse<List<Long>> getActiveWorkerIdsByTier(@RequestParam String tier);
+
+    /* 활성 작업자/티어 검증 */
+    @GetMapping("/api/v1/admin/employees/{employeeId}/active-worker")
+    AdminApiResponse<Boolean> existsActiveWorkerByIdAndTier(
+        @PathVariable Long employeeId,
+        @RequestParam String tier
+    );
+
     /* 티어 변경: Admin 구현 예정 계약 */
     @PatchMapping("/api/v1/admin/employees/{employeeId}/tier")
     void updateEmployeeTier(@PathVariable Long employeeId, @RequestBody TierUpdateRequest request);
@@ -66,6 +78,11 @@ public interface AdminFeignApi {
     @GetMapping("/api/v1/algorithm-version/{algorithmVersionId}")
     AdminApiResponse<AlgorithmVersionSnapshotResponse> getAlgorithmVersionDetail(
         @PathVariable Long algorithmVersionId
+    );
+
+    @GetMapping("/api/v1/algorithm-version")
+    AdminApiResponse<List<AlgorithmVersionSnapshotResponse>> getAlgorithmVersionList(
+        @RequestParam(required = false) Boolean isActive
     );
 
     /* 조직도 트리 */
@@ -119,4 +136,11 @@ public interface AdminFeignApi {
     /* 팀원 제거 */
     @DeleteMapping("/api/v1/admin/org/teams/{teamId}/members/{employeeId}")
     void removeTeamMember(@PathVariable Long teamId, @PathVariable Long employeeId);
+
+    /* 부서장 지정 */
+    @PutMapping("/api/v1/admin/org/departments/{departmentId}/leader")
+    AdminApiResponse<Long> assignDepartmentLeader(
+        @PathVariable Long departmentId,
+        @RequestBody DepartmentLeaderAssignRequest request
+    );
 }

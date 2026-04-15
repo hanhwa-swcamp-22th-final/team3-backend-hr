@@ -9,4 +9,6 @@ public interface JpaQualitativeEvaluationRepository extends JpaRepository<Qualit
 
     Optional<QualitativeEvaluation> findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
             Long evaluateeId, Long evaluationPeriodId, Long evaluationLevel);
+
+    void deleteByEvaluationPeriodId(Long evaluationPeriodId);
 }

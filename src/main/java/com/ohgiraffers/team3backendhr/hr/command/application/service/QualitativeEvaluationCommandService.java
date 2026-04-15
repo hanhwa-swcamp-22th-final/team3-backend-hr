@@ -12,11 +12,12 @@ import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.qualita
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationcomment.EvaluationComment;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.scoremodificationlog.ScoreModificationLog;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationCommentRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.ScoreModificationLogRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Grade;
 
 @Service
@@ -52,8 +54,14 @@ public class QualitativeEvaluationCommandService {
     private final EvaluationCommentRepository evaluationCommentRepository;
     private final AdminClient adminClient;
     private final IdGenerator idGenerator;
+    private final ScoreModificationLogRepository scoreLogRepository;
     private final QualitativeEvaluationEventPublisher qualitativeEvaluationEventPublisher;
     private final ObjectMapper objectMapper;
+    private final NotificationCommandService notificationCommandService;
+
+    public void deleteByPeriodId(Long periodId) {
+        repository.deleteByEvaluationPeriodId(periodId);
+    }
 
     public void createRecordsForPeriod(Long periodId) {
         List<WorkerResponse> workers = adminClient.getWorkers();
@@ -137,6 +145,15 @@ public class QualitativeEvaluationCommandService {
             .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
         eval.applyAnalysisResult(rawScore.doubleValue());
         replaceEvaluationComments(event);
+
+        if (eval.getEvaluatorId() != null) {
+            notificationCommandService.create(
+                NotificationType.RESULTS,
+                "평가 분석 결과 도착",
+                eval.getEvaluateeId() + "번 직원의 정성 평가 분석이 완료되었습니다.",
+                List.of(eval.getEvaluatorId())
+            );
+        }
     }
 
     public void applyNormalizedResult(QualitativeEvaluationNormalizedEvent event) {
@@ -150,8 +167,27 @@ public class QualitativeEvaluationCommandService {
 
     public void confirmFinal(Long evaluatorId, Long evaluateeId, QualitativeEvaluationConfirmRequest request) {
         validateLevel2Submitted(evaluateeId, request.getEvaluationPeriodId());
+        QualitativeEvaluation level1 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 1L);
+        QualitativeEvaluation level2 = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 2L);
         QualitativeEvaluation eval = findByLevel(evaluateeId, request.getEvaluationPeriodId(), 3L);
+        Double originalLevel3Score = eval.getScore();
+        Double modifiedLevel3Score = BigDecimal.valueOf(
+                requireScore(level1, "1차") + requireScore(level2, "2차")
+        ).setScale(4, RoundingMode.HALF_UP).doubleValue();
+
+        eval.updateScore(modifiedLevel3Score);
+        level1.confirmFinal(level1.getEvaluatorId(), level1.getEvalComment(), level1.getInputMethod());
+        level2.confirmFinal(level2.getEvaluatorId(), level2.getEvalComment(), level2.getInputMethod());
         eval.confirmFinal(evaluatorId, request.getEvalComment(), request.getInputMethod());
+        scoreLogRepository.save(ScoreModificationLog.builder()
+                .scoreModificationLogId(idGenerator.generate())
+                .scoreEvaluateeId(evaluateeId)
+                .scoreModifierId(evaluatorId)
+                .scoreOriginalScore(originalLevel3Score)
+                .scoreModifiedScore(modifiedLevel3Score)
+                .scoreReason(request.getEvalComment())
+                .scoreModifiedAt(LocalDateTime.now())
+                .build());
     }
 
     private void replaceEvaluationComments(QualitativeEvaluationAnalyzedEvent event) {
@@ -209,6 +245,16 @@ public class QualitativeEvaluationCommandService {
             .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
     }
 
+    private Double requireScore(QualitativeEvaluation evaluation, String label) {
+        if (evaluation.getScore() == null) {
+            throw new BusinessException(
+                ErrorCode.INVALID_INPUT,
+                label + " 평가 점수가 산출되지 않아 최종 확정을 진행할 수 없습니다."
+            );
+        }
+        return evaluation.getScore();
+    }
+
     private void publishSubmittedEventAfterCommit(QualitativeEvaluation evaluation) {
         EvaluationPeriod evaluationPeriod = evaluationPeriodRepository.findById(evaluation.getEvaluationPeriodId())
             .orElseThrow(() -> new IllegalArgumentException("Evaluation period was not found."));
@@ -261,7 +307,10 @@ public class QualitativeEvaluationCommandService {
         );
         Double baseScore = firstEvaluation.getScore();
         if (baseScore == null) {
-            throw new IllegalStateException("Level 1 raw score is required before submitting level 2 qualitative evaluation.");
+            throw new BusinessException(
+                ErrorCode.INVALID_INPUT,
+                "1차 평가 점수가 산출되지 않아 2차 평가를 제출할 수 없습니다."
+            );
         }
         return BigDecimal.valueOf(baseScore).setScale(4, RoundingMode.HALF_UP);
     }

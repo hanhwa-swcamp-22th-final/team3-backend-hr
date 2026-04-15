@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeSkillResponse;
@@ -36,11 +37,17 @@ public interface AdminClient {
                 .toList();
     }
 
+    List<Long> getActiveWorkerIdsByTier(String tier);
+
+    boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier);
+
     void updateEmployeeTier(Long employeeId, Grade newTier);
 
     List<DomainKeywordRuleResponse> getActiveDomainKeywordRules();
 
     AlgorithmVersionSnapshotResponse getAlgorithmVersionSnapshot(Long algorithmVersionId);
+
+    AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion();
 
     OrgUnitTreeResponse getOrgTree();
 
@@ -65,4 +72,6 @@ public interface AdminClient {
     void addTeamMembers(Long teamId, TeamMemberAddRequest request);
 
     void removeTeamMember(Long teamId, Long employeeId);
+
+    Long assignDepartmentLeader(Long departmentId, DepartmentLeaderAssignRequest request);
 }

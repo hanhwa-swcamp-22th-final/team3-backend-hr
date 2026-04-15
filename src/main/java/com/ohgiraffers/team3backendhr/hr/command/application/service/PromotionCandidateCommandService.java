@@ -1,14 +1,19 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.notification.NotificationType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionHistory;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.promotionhistory.PromotionStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.PromotionHistoryRepository;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PromotionCandidateEvaluatedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.PromotionHistorySnapshotEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.PromotionEventPublisher;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,8 @@ public class PromotionCandidateCommandService {
     private final PromotionHistoryRepository promotionHistoryRepository;
     private final IdGenerator idGenerator;
     private final PromotionEventPublisher promotionEventPublisher;
+    private final QualitativeEvaluationRepository qualitativeEvaluationRepository;
+    private final NotificationCommandService notificationCommandService;
 
     public void applyCandidate(PromotionCandidateEvaluatedEvent event) {
         PromotionStatus requestedStatus = event.getPromotionStatus() == null
@@ -53,7 +60,31 @@ public class PromotionCandidateCommandService {
         );
 
         PromotionHistory saved = promotionHistoryRepository.save(promotionHistory);
+        sendPromotionNotification(event);
         publishSnapshotAfterCommit(saved, event.getOccurredAt());
+    }
+
+    private void sendPromotionNotification(PromotionCandidateEvaluatedEvent event) {
+        List<Long> recipients = new ArrayList<>();
+        qualitativeEvaluationRepository
+            .findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                event.getEmployeeId(), event.getEvaluationPeriodId(), 1L)
+            .map(QualitativeEvaluation::getEvaluatorId)
+            .ifPresent(recipients::add);
+        qualitativeEvaluationRepository
+            .findByEvaluateeIdAndEvaluationPeriodIdAndEvaluationLevel(
+                event.getEmployeeId(), event.getEvaluationPeriodId(), 2L)
+            .map(QualitativeEvaluation::getEvaluatorId)
+            .ifPresent(recipients::add);
+
+        if (!recipients.isEmpty()) {
+            notificationCommandService.create(
+                NotificationType.PROMOTION,
+                "승급 후보 확정",
+                event.getEmployeeId() + "번 직원이 " + event.getCurrentTier() + " → " + event.getTargetTier() + " 승급 후보로 선정되었습니다.",
+                recipients
+            );
+        }
     }
 
     private void publishSnapshotAfterCommit(PromotionHistory promotionHistory, LocalDateTime occurredAt) {

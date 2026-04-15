@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.hasItem;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -47,16 +48,17 @@ class QuantitativeEvaluationQueryIntegrationTest {
     private long insertPeriod(int year, int seq, String status) {
         long id = idGenerator.generate();
         jdbcTemplate.update(
-                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, eval_type, start_date, end_date, status) VALUES (?,1,?,?,'QUANTITATIVE',?,?,?)",
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,1,?,?,?,?,?)",
                 id, year, seq, year + "-01-01", year + "-03-31", status);
         return id;
     }
 
     private long insertQuantEval(long periodId, String status) {
         long id = idGenerator.generate();
+        Double tScore = "CONFIRMED".equals(status) ? 91.0 : null;
         jdbcTemplate.update(
-                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,91.0,false,?)",
-                id, WORKER_ID, periodId, EQUIPMENT_ID, status);
+                "INSERT INTO quantitative_evaluation(quantitative_evaluation_id, employee_id, eval_period_id, equipment_id, uph_score, yield_score, lead_time_score, actual_error, s_quant, t_score, material_shielding, status) VALUES (?,?,?,?,90.0,85.0,88.0,0.02,87.5,?,false,?)",
+                id, WORKER_ID, periodId, EQUIPMENT_ID, tScore, status);
         return id;
     }
 
@@ -64,14 +66,15 @@ class QuantitativeEvaluationQueryIntegrationTest {
     @WithMockUser(authorities = "HRM")
     @DisplayName("정량 평가 목록을 조회하면 저장된 데이터를 반환한다")
     void getList_success() throws Exception {
-        long periodId = insertPeriod(2026, 1, "IN_PROGRESS");
+        long periodId = insertPeriod(2099, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
 
-        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative"))
+        mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.content").isArray())
-                .andExpect(jsonPath("$.data.content[0].employeeId").value(WORKER_ID));
+                .andExpect(jsonPath("$.data.content[*].employeeId", hasItem(WORKER_ID.intValue())));
     }
 
     @Test
@@ -94,11 +97,12 @@ class QuantitativeEvaluationQueryIntegrationTest {
     @WithMockUser(authorities = "HRM")
     @DisplayName("status 필터로 CONFIRMED 상태만 조회한다")
     void getList_filterByStatus() throws Exception {
-        long periodId = insertPeriod(2026, 1, "IN_PROGRESS");
+        long periodId = insertPeriod(2098, 1, "IN_PROGRESS");
         insertQuantEval(periodId, "TEMPORARY");
         insertQuantEval(periodId, "CONFIRMED");
 
         mockMvc.perform(get("/api/v1/hr/evaluations/quantitative")
+                        .param("periodId", String.valueOf(periodId))
                         .param("status", "CONFIRMED"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.totalCount").value(1))

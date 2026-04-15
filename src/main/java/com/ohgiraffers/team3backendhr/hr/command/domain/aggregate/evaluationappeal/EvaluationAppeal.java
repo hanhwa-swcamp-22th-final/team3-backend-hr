@@ -26,11 +26,11 @@ public class EvaluationAppeal {
     @Column(name = "appeal_id")
     private Long appealId;
 
-    @Column(name = "qualitative_evaluation_id", nullable = false)
-    private Long qualitativeEvaluationId;
-
     @Column(name = "appeal_employee_id", nullable = false)
     private Long appealEmployeeId;
+
+    @Column(name = "evaluation_period_id", nullable = false)
+    private Long evaluationPeriodId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "appeal_type", nullable = false)
@@ -45,7 +45,7 @@ public class EvaluationAppeal {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     @Builder.Default
-    private AppealStatus status = AppealStatus.RECEIVING;
+    private AppealStatus status = AppealStatus.SUBMITTED;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "review_result")
@@ -86,9 +86,9 @@ public class EvaluationAppeal {
     @Column(name = "updated_by")
     private Long updatedBy;
 
-    /* 수정 — RECEIVING 상태에서만 가능 */
+    /* 수정 — SUBMITTED 상태에서만 가능 */
     public void update(AppealType appealType, String title, String content) {
-        if (this.status != AppealStatus.RECEIVING) {
+        if (this.status != AppealStatus.SUBMITTED) {
             throw new BusinessException(ErrorCode.APPEAL_NOT_RECEIVABLE);
         }
         validateTitle(title);
@@ -105,27 +105,36 @@ public class EvaluationAppeal {
         }
     }
 
-    /* 검토 시작 — RECEIVING → REVIEWING */
+    /* HRM 접수 — SUBMITTED → RECEIVING */
+    public void receive(Long reviewerId) {
+        if (this.status != AppealStatus.SUBMITTED) {
+            throw new BusinessException(ErrorCode.APPEAL_ALREADY_REVIEWING);
+        }
+        this.status = AppealStatus.RECEIVING;
+        this.reviewerId = reviewerId;
+    }
+
+    /* TL 승인 후 DL 검토 단계 진입 — RECEIVING → REVIEWING */
     public void startReview(Long reviewerId) {
         if (this.status != AppealStatus.RECEIVING) {
-            throw new BusinessException(ErrorCode.APPEAL_ALREADY_REVIEWING);
+            throw new BusinessException(ErrorCode.APPEAL_NOT_REVIEWING);
         }
         this.status = AppealStatus.REVIEWING;
         this.reviewerId = reviewerId;
     }
 
-    /* 승인 — REVIEWING → COMPLETED */
+    /* 승인 — 진행 중 상태 → COMPLETED */
     public void approve(Long reviewedBy, ReviewResult reviewResult) {
-        validateReviewing();
+        validateProcessable();
         this.status = AppealStatus.COMPLETED;
         this.reviewResult = reviewResult;
         this.reviewedBy = reviewedBy;
         this.reviewedAt = LocalDateTime.now();
     }
 
-    /* 반려 — REVIEWING → COMPLETED + DISMISS */
+    /* 반려 — 진행 중 상태 → COMPLETED + DISMISS */
     public void reject(Long reviewedBy) {
-        validateReviewing();
+        validateProcessable();
         this.status = AppealStatus.COMPLETED;
         this.reviewResult = ReviewResult.DISMISS;
         this.reviewedBy = reviewedBy;
@@ -134,11 +143,15 @@ public class EvaluationAppeal {
 
     /* 보류 — REVIEWING 상태 유지 (검토자 기록만) */
     public void hold() {
-        validateReviewing();
+        if (this.status != AppealStatus.RECEIVING && this.status != AppealStatus.REVIEWING) {
+            throw new BusinessException(ErrorCode.APPEAL_NOT_REVIEWING);
+        }
     }
 
-    private void validateReviewing() {
-        if (this.status != AppealStatus.REVIEWING) {
+    private void validateProcessable() {
+        if (this.status != AppealStatus.SUBMITTED
+            && this.status != AppealStatus.RECEIVING
+            && this.status != AppealStatus.REVIEWING) {
             throw new BusinessException(ErrorCode.APPEAL_NOT_REVIEWING);
         }
     }

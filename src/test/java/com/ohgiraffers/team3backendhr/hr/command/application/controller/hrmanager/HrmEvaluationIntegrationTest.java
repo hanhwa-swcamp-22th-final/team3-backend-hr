@@ -28,7 +28,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -119,7 +119,7 @@ class HrmEvaluationIntegrationTest {
                 PERIOD_ID, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/" + EVALUATEE_ID + "/confirm")
+        mockMvc.perform(patch("/api/v1/hr/hr-manager/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(hrmAuth()))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,7 +153,7 @@ class HrmEvaluationIntegrationTest {
                 PERIOD_ID, "3차 최종 확정 코멘트입니다. 충분히 길게 작성했습니다.", InputMethod.TEXT);
 
         // when & then
-        mockMvc.perform(post("/api/v1/hr/hr-manager/evaluations/" + EVALUATEE_ID + "/confirm")
+        mockMvc.perform(patch("/api/v1/hr/hr-manager/evaluations/" + EVALUATEE_ID)
                         .with(csrf())
                         .with(authentication(hrmAuth()))
                         .contentType(MediaType.APPLICATION_JSON)

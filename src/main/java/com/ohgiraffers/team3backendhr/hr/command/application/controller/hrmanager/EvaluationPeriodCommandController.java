@@ -39,6 +39,13 @@ public class EvaluationPeriodCommandController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
     @PostMapping("/snapshots/republish")
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<Integer>> republishSnapshots() {

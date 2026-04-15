@@ -124,7 +124,7 @@ class AppealQueryServiceTest {
         // given
         AppealSummaryResponse item = new AppealSummaryResponse();
         item.setStatus("RECEIVING");
-        given(mapper.findAppeals("RECEIVING", 10, 0)).willReturn(List.of(item));
+        given(mapper.findAppeals("RECEIVING", 10, 10)).willReturn(List.of(item));
         given(mapper.countAppeals("RECEIVING")).willReturn(1L);
 
         // when
@@ -132,7 +132,7 @@ class AppealQueryServiceTest {
 
         // then
         assertThat(result.getContent()).allMatch(r -> "RECEIVING".equals(r.getStatus()));
-        verify(mapper).findAppeals("RECEIVING", 10, 0);
+        verify(mapper).findAppeals("RECEIVING", 10, 10);
     }
 
     /* ── getMyAppeals ──────────────────────────────────────────────── */
@@ -164,6 +164,36 @@ class AppealQueryServiceTest {
 
         // then
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("TL 이의신청 조회 — 진행중과 완료 상태를 함께 반환하도록 조회한다")
+    void getTlAppeals_includesCompletedStatuses() {
+        // given
+        given(mapper.findReviewerAppeals(200L, 1L, List.of("RECEIVING", "REVIEWING", "COMPLETED")))
+                .willReturn(List.of(new AppealSummaryResponse()));
+
+        // when
+        List<AppealSummaryResponse> result = service.getTlAppeals(200L);
+
+        // then
+        assertThat(result).hasSize(1);
+        verify(mapper).findReviewerAppeals(200L, 1L, List.of("RECEIVING", "REVIEWING", "COMPLETED"));
+    }
+
+    @Test
+    @DisplayName("DL 이의신청 조회 — 검토중과 완료 상태를 함께 반환하도록 조회한다")
+    void getDlAppeals_includesCompletedStatuses() {
+        // given
+        given(mapper.findReviewerAppeals(300L, 2L, List.of("REVIEWING", "COMPLETED")))
+                .willReturn(List.of(new AppealSummaryResponse()));
+
+        // when
+        List<AppealSummaryResponse> result = service.getDlAppeals(300L);
+
+        // then
+        assertThat(result).hasSize(1);
+        verify(mapper).findReviewerAppeals(300L, 2L, List.of("REVIEWING", "COMPLETED"));
     }
 
 

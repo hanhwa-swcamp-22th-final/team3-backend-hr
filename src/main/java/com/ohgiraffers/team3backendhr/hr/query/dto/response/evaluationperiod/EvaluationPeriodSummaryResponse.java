@@ -14,7 +14,6 @@ public class EvaluationPeriodSummaryResponse {
     private Long evalPeriodId;
     private Integer evalYear;
     private Integer evalSequence;
-    private String evalType;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;

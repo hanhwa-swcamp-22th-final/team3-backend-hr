@@ -26,8 +26,8 @@ public class AppealQueryController {
     private final AppealQueryService service;
 
     /* HRM·Worker — 이의신청 상세 조회 (Worker는 본인 것만) */
-    @GetMapping("/appeals/{appealId}")
-    @PreAuthorize("hasAnyAuthority('HRM', 'WORKER')")
+    @GetMapping("/appeals/{appealId:\\d+}")
+    @PreAuthorize("hasAnyAuthority('HRM', 'WORKER', 'TL', 'DL')")
     public ResponseEntity<ApiResponse<AppealDetailResponse>> getAppeal(
             @PathVariable Long appealId,
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
@@ -50,6 +50,20 @@ public class AppealQueryController {
     public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getMyAppeals(
             @AuthenticationPrincipal EmployeeUserDetails userDetails) {
         return ResponseEntity.ok(ApiResponse.success(service.getMyAppeals(userDetails.getEmployeeId())));
+    }
+
+    @GetMapping("/team-leader/appeals")
+    @PreAuthorize("hasAuthority('TL')")
+    public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getTlAppeals(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(service.getTlAppeals(userDetails.getEmployeeId())));
+    }
+
+    @GetMapping("/department-leader/appeals")
+    @PreAuthorize("hasAuthority('DL')")
+    public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getDlAppeals(
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(service.getDlAppeals(userDetails.getEmployeeId())));
     }
 
 

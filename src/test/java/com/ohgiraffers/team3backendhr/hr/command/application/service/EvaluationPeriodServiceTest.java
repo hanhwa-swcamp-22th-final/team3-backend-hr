@@ -1,15 +1,17 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.service;
 
 import com.ohgiraffers.team3backendhr.common.exception.BusinessException;
+import com.ohgiraffers.team3backendhr.common.exception.ErrorCode;
 import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
-import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
-import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.EvaluationReferenceEventPublisher;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
-import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
+import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
+import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.EvaluationReferenceEventPublisher;
+import java.time.LocalDate;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,10 +19,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -51,7 +52,6 @@ class EvaluationPeriodServiceTest {
                 .algorithmVersionId(1L)
                 .evalYear(2026)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(2026, 1, 1))
                 .endDate(LocalDate.of(2026, 3, 31))
                 .status(status)
@@ -59,13 +59,16 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("평가 기간을 생성하고 Admin에서 WORKER 조회 후 level 1·2·3 레코드를 선생성한다")
+    @DisplayName("create succeeds")
     void create_success() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
         given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(false);
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                LocalDate.of(2026, 3, 31), LocalDate.of(2026, 1, 1))).willReturn(false);
         given(idGenerator.generate()).willReturn(123456L);
         given(repository.save(any())).willAnswer(inv -> inv.getArgument(0));
 
@@ -75,67 +78,58 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("종료일이 시작일보다 이전이면 생성 시 예외가 발생한다")
+    @DisplayName("create fails when end date is before start date")
     void create_fail_endDateBeforeStartDate() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 3, 31), LocalDate.of(2026, 1, 1)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
 
-        assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("종료일은 시작일보다 이후여야 합니다.");
+        assertBusinessError(() -> service.create(request), ErrorCode.INVALID_DATE_RANGE);
     }
 
     @Test
-    @DisplayName("이미 진행 중인 평가 기간이 있으면 생성 시 예외가 발생한다")
+    @DisplayName("create fails when year and sequence already exist")
     void create_fail_alreadyInProgress() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(true);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
         assertThatThrownBy(() -> service.create(request))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("이미 진행 중인 평가 기간이 있습니다.");
+                .hasMessage("동일한 연도·차수의 평가 기간이 이미 존재합니다.");
     }
 
     @Test
-    @DisplayName("동일한 연도·차수·유형의 평가 기간이 이미 존재하면 생성 시 예외가 발생한다")
+    @DisplayName("create fails when year and sequence already exist")
     void create_fail_duplicateSequence() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
-        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 1, EvalType.QUALITATIVE)).willReturn(true);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 1)).willReturn(true);
 
-        assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("동일한 연도·차수·평가 유형의 평가 기간이 이미 존재합니다.");
+        assertBusinessError(() -> service.create(request), ErrorCode.EVAL_PERIOD_DUPLICATE);
     }
 
     @Test
-    @DisplayName("날짜가 기존 평가 기간과 겹치면 생성 시 예외가 발생한다")
+    @DisplayName("create fails when date range overlaps")
     void create_fail_dateOverlap() {
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 2, EvalType.QUALITATIVE,
+                1L, 2026, 2,
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 5, 31)
         );
-        given(repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)).willReturn(false);
-        given(repository.existsByEvalYearAndEvalSequenceAndEvalType(2026, 2, EvalType.QUALITATIVE)).willReturn(false);
+        given(repository.existsByEvalYearAndEvalSequence(2026, 2)).willReturn(false);
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1))).willReturn(true);
 
-        assertThatThrownBy(() -> service.create(request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
+        assertBusinessError(() -> service.create(request), ErrorCode.EVAL_PERIOD_DATE_OVERLAP);
     }
 
     @Test
-    @DisplayName("수정 시 날짜가 다른 평가 기간과 겹치면 예외가 발생한다")
+    @DisplayName("update fails when date range overlaps")
     void update_fail_dateOverlap() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -149,13 +143,11 @@ class EvaluationPeriodServiceTest {
         given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
                 LocalDate.of(2026, 5, 31), LocalDate.of(2026, 3, 1), 1L)).willReturn(true);
 
-        assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("기존 평가 기간과 날짜가 중복됩니다.");
+        assertBusinessError(() -> service.update(1L, request), ErrorCode.EVAL_PERIOD_DATE_OVERLAP);
     }
 
     @Test
-    @DisplayName("평가 기간을 마감한다")
+    @DisplayName("close succeeds")
     void close_success() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -166,17 +158,15 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 평가 기간 마감 시 예외가 발생한다")
+    @DisplayName("close fails when period is missing")
     void close_fail_notFound() {
         given(repository.findById(any())).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.close(999L))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("평가 기간을 찾을 수 없습니다.");
+        assertBusinessError(() -> service.close(999L), ErrorCode.EVAL_PERIOD_NOT_FOUND);
     }
 
     @Test
-    @DisplayName("평가 기간을 확정한다")
+    @DisplayName("confirm succeeds")
     void confirm_success() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.CLOSING);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -187,7 +177,7 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("수정 시 종료일이 시작일보다 이전이면 예외가 발생한다")
+    @DisplayName("update fails when end date is before start date")
     void update_fail_endDateBeforeStartDate() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -199,13 +189,11 @@ class EvaluationPeriodServiceTest {
                 null
         );
 
-        assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("종료일은 시작일보다 이후여야 합니다.");
+        assertBusinessError(() -> service.update(1L, request), ErrorCode.INVALID_DATE_RANGE);
     }
 
     @Test
-    @DisplayName("확정된 평가 기간 수정 시 예외가 발생한다")
+    @DisplayName("update fails when period is already confirmed")
     void update_fail_confirmed() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.CONFIRMED);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -217,13 +205,11 @@ class EvaluationPeriodServiceTest {
                 null
         );
 
-        assertThatThrownBy(() -> service.update(1L, request))
-                .isInstanceOf(BusinessException.class)
-                .hasMessage("확정된 평가 기간은 수정할 수 없습니다.");
+        assertBusinessError(() -> service.update(1L, request), ErrorCode.EVAL_PERIOD_ALREADY_CONFIRMED);
     }
 
     @Test
-    @DisplayName("날짜를 전달하지 않으면 기존 날짜를 유지한 채 algorithmVersionId만 수정한다")
+    @DisplayName("update keeps dates when request dates are null")
     void update_success_nullDatesKeepExisting() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
         given(repository.findById(any())).willReturn(Optional.of(period));
@@ -237,10 +223,12 @@ class EvaluationPeriodServiceTest {
     }
 
     @Test
-    @DisplayName("평가 기간을 수정한다")
+    @DisplayName("update succeeds")
     void update_success() {
         EvaluationPeriod period = buildPeriod(EvalPeriodStatus.IN_PROGRESS);
         given(repository.findById(any())).willReturn(Optional.of(period));
+        given(repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqualAndEvalPeriodIdNot(
+                LocalDate.of(2026, 4, 30), LocalDate.of(2026, 2, 1), 1L)).willReturn(false);
 
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
                 LocalDate.of(2026, 2, 1),
@@ -254,5 +242,11 @@ class EvaluationPeriodServiceTest {
         assertThat(period.getStartDate()).isEqualTo(LocalDate.of(2026, 2, 1));
         assertThat(period.getEndDate()).isEqualTo(LocalDate.of(2026, 4, 30));
         assertThat(period.getAlgorithmVersionId()).isEqualTo(2L);
+    }
+
+    private void assertBusinessError(Runnable action, ErrorCode errorCode) {
+        assertThatThrownBy(action::run)
+                .isInstanceOfSatisfying(BusinessException.class, ex ->
+                        assertThat(ex.getErrorCode()).isEqualTo(errorCode));
     }
 }

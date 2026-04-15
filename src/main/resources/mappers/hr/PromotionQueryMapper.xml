@@ -76,4 +76,23 @@
         WHERE ph.tier_promotion_id = #{candidateId}
     </select>
 
+    <!-- Worker — 본인 티어 성장 이력. 입사 티어 시작점은 서비스에서 profile.hireDate 기준으로 합성한다. -->
+    <select id="findWorkerTierHistory"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem">
+        SELECT
+            'PROMOTION'                 AS eventType,
+            tc_cur.tier_config_tier     AS fromTier,
+            tc_tgt.tier_config_tier     AS toTier,
+            ph.tier_accumulated_point   AS tierAccumulatedPoint,
+            tc_tgt.tier_config_promotion_point AS targetPromotionPoint,
+            ph.tier_promo_status        AS status,
+            NULL                        AS occurredDate,
+            COALESCE(ph.tier_reviewed_at, ph.created_at) AS occurredAt
+        FROM promotion_history ph
+        JOIN tier_config tc_cur ON tc_cur.tier_config_id = ph.current_tier_config_id
+        JOIN tier_config tc_tgt ON tc_tgt.tier_config_id = ph.target_tier_config_id
+        WHERE ph.employee_id = #{employeeId}
+        ORDER BY COALESCE(ph.tier_reviewed_at, ph.created_at) ASC, ph.created_at ASC
+    </select>
+
 </mapper>

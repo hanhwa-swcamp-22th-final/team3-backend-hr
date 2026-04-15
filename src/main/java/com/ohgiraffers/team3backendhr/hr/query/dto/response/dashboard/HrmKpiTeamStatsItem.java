@@ -7,14 +7,14 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class HrmTeamStatsItem {
+public class HrmKpiTeamStatsItem {
 
     private Long departmentId;
     private String departmentName;
     private int memberCount;
     private Double avgScore;
-    private int sTierCount;
-    private int aTierCount;
-    private int bTierCount;
-    private int cTierCount;
+    private int tierSCount;
+    private int tierACount;
+    private int tierBCount;
+    private int tierCCount;
 }

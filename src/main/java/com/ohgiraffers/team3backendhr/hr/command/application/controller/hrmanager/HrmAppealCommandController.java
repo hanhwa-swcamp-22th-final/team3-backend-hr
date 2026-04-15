@@ -1,6 +1,7 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.controller.hrmanager;
 
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealStatusUpdateRequest;
+import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.appeal.AppealProcessRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.service.AppealCommandService;
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import com.ohgiraffers.team3backendhr.common.dto.ApiResponse;
@@ -25,6 +26,25 @@ public class HrmAppealCommandController {
             @AuthenticationPrincipal EmployeeUserDetails userDetails,
             @RequestBody @Valid AppealStatusUpdateRequest request) {
         service.updateStatus(appealId, userDetails.getEmployeeId(), request);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PatchMapping("/{appealId}/receive")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Void>> receive(
+            @PathVariable Long appealId,
+            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
+        service.receiveByHrm(appealId, userDetails.getEmployeeId());
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @PatchMapping("/{appealId}/reject")
+    @PreAuthorize("hasAuthority('HRM')")
+    public ResponseEntity<ApiResponse<Void>> reject(
+            @PathVariable Long appealId,
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestBody @Valid AppealProcessRequest request) {
+        service.rejectByHrm(appealId, userDetails.getEmployeeId(), request.getReason());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

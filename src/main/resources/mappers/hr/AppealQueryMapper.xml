@@ -4,22 +4,85 @@
 <mapper namespace="com.ohgiraffers.team3backendhr.hr.query.mapper.AppealQueryMapper">
 
     <!-- HRM — 이의신청 상세 조회 -->
+    <resultMap id="appealDetailMap" type="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse">
+        <id property="appealId" column="appealId"/>
+        <result property="appealEmployeeId" column="appealEmployeeId"/>
+        <result property="evaluationPeriodId" column="evaluationPeriodId"/>
+        <result property="evalYear" column="evalYear"/>
+        <result property="evalSequence" column="evalSequence"/>
+        <result property="employeeName" column="employeeName"/>
+        <result property="employeeCode" column="employeeCode"/>
+        <result property="employeeTier" column="employeeTier"/>
+        <result property="teamName" column="teamName"/>
+        <result property="departmentName" column="departmentName"/>
+        <result property="appealType" column="appealType"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="status" column="status"/>
+        <result property="reviewResult" column="reviewResult"/>
+        <result property="firstScore" column="firstScore"/>
+        <result property="secondScore" column="secondScore"/>
+        <result property="averageScore" column="averageScore"/>
+        <result property="firstStageComment" column="firstStageComment"/>
+        <result property="secondStageComment" column="secondStageComment"/>
+        <result property="filedAt" column="filedAt"/>
+        <result property="reviewedAt" column="reviewedAt"/>
+        <collection property="attachments" ofType="com.ohgiraffers.team3backendhr.hr.query.dto.AttachmentResponse">
+            <id property="attachmentId" column="attachmentId"/>
+            <result property="fileName" column="fileName"/>
+            <result property="fileSize" column="fileSize"/>
+        </collection>
+    </resultMap>
+
     <select id="findAppealById"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealDetailResponse">
+            resultMap="appealDetailMap">
         SELECT
             a.appeal_id                     AS appealId,
-            a.qualitative_evaluation_id     AS qualitativeEvaluationId,
             a.appeal_employee_id            AS appealEmployeeId,
+            a.evaluation_period_id          AS evaluationPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
             e.employee_name                 AS employeeName,
+            e.employee_code                 AS employeeCode,
+            e.employee_tier                 AS employeeTier,
+            d.department_name               AS teamName,
+            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
             a.content,
             a.status,
             a.review_result                 AS reviewResult,
+            qe1.score                       AS firstScore,
+            qe2.score                       AS secondScore,
+            qe1.eval_comment                AS firstStageComment,
+            qe2.eval_comment                AS secondStageComment,
+            ROUND((
+                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
+            ) / NULLIF(
+                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
+              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
+            ), 2)                           AS averageScore,
             a.filed_at                      AS filedAt,
-            a.reviewed_at                   AS reviewedAt
+            a.reviewed_at                   AS reviewedAt,
+            at.attachment_id                AS attachmentId,
+            at.file_name                    AS fileName,
+            at.file_size                    AS fileSize
         FROM evaluation_appeal a
         JOIN employee e ON e.employee_id = a.appeal_employee_id
+        JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
+        LEFT JOIN department d ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        LEFT JOIN qualitative_evaluation qe1
+            ON qe1.evaluatee_id = a.appeal_employee_id
+            AND qe1.evaluation_period_id = a.evaluation_period_id
+            AND qe1.evaluation_level = 1
+        LEFT JOIN qualitative_evaluation qe2
+            ON qe2.evaluatee_id = a.appeal_employee_id
+            AND qe2.evaluation_period_id = a.evaluation_period_id
+            AND qe2.evaluation_level = 2
+        LEFT JOIN attachment at
+            ON at.file_group_id = a.file_group_id
+            AND at.is_deleted = 0
         WHERE a.appeal_id = #{appealId}
     </select>
 
@@ -28,17 +91,47 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse">
         SELECT
             a.appeal_id                     AS appealId,
-            a.qualitative_evaluation_id     AS qualitativeEvaluationId,
             a.appeal_employee_id            AS appealEmployeeId,
+            a.evaluation_period_id          AS evaluationPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
             e.employee_name                 AS employeeName,
+            e.employee_code                 AS employeeCode,
+            e.employee_tier                 AS employeeTier,
+            d.department_name               AS teamName,
+            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
+            a.content,
             a.status,
             a.review_result                 AS reviewResult,
+            qe1.score                       AS firstScore,
+            qe2.score                       AS secondScore,
+            ROUND((
+                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
+            ) / NULLIF(
+                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
+              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
+            ), 2)                           AS averageScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
         JOIN employee e ON e.employee_id = a.appeal_employee_id
+        JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
+        LEFT JOIN department d ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        LEFT JOIN qualitative_evaluation qe1
+            ON qe1.evaluatee_id = a.appeal_employee_id
+            AND qe1.evaluation_period_id = a.evaluation_period_id
+            AND qe1.evaluation_level = 1
+        LEFT JOIN qualitative_evaluation qe2
+            ON qe2.evaluatee_id = a.appeal_employee_id
+            AND qe2.evaluation_period_id = a.evaluation_period_id
+            AND qe2.evaluation_level = 2
+        LEFT JOIN qualitative_evaluation qe3
+            ON qe3.evaluatee_id = a.appeal_employee_id
+            AND qe3.evaluation_period_id = a.evaluation_period_id
+            AND qe3.evaluation_level = 3
         <where>
             <if test="status != null">AND a.status = #{status}</if>
         </where>
@@ -48,9 +141,13 @@
 
     <select id="countAppeals" resultType="long">
         SELECT COUNT(*)
-        FROM evaluation_appeal
+        FROM evaluation_appeal a
+        LEFT JOIN qualitative_evaluation qe3
+            ON qe3.evaluatee_id = a.appeal_employee_id
+            AND qe3.evaluation_period_id = a.evaluation_period_id
+            AND qe3.evaluation_level = 3
         <where>
-            <if test="status != null">AND status = #{status}</if>
+            <if test="status != null">AND a.status = #{status}</if>
         </where>
     </select>
 
@@ -59,19 +156,141 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse">
         SELECT
             a.appeal_id                     AS appealId,
-            a.qualitative_evaluation_id     AS qualitativeEvaluationId,
             a.appeal_employee_id            AS appealEmployeeId,
+            a.evaluation_period_id          AS evaluationPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
             e.employee_name                 AS employeeName,
+            e.employee_code                 AS employeeCode,
+            e.employee_tier                 AS employeeTier,
+            d.department_name               AS teamName,
+            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
+            a.content,
             a.status,
             a.review_result                 AS reviewResult,
+            qe1.score                       AS firstScore,
+            qe2.score                       AS secondScore,
+            ROUND((
+                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
+            ) / NULLIF(
+                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
+              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
+            ), 2)                           AS averageScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
         JOIN employee e ON e.employee_id = a.appeal_employee_id
+        JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
+        LEFT JOIN department d ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        LEFT JOIN qualitative_evaluation qe1
+            ON qe1.evaluatee_id = a.appeal_employee_id
+            AND qe1.evaluation_period_id = a.evaluation_period_id
+            AND qe1.evaluation_level = 1
+        LEFT JOIN qualitative_evaluation qe2
+            ON qe2.evaluatee_id = a.appeal_employee_id
+            AND qe2.evaluation_period_id = a.evaluation_period_id
+            AND qe2.evaluation_level = 2
         WHERE a.appeal_employee_id = #{employeeId}
         ORDER BY a.filed_at DESC
+    </select>
+
+    <select id="findReviewerAppeals"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse">
+        SELECT
+            a.appeal_id                     AS appealId,
+            a.appeal_employee_id            AS appealEmployeeId,
+            a.evaluation_period_id          AS evaluationPeriodId,
+            ep.eval_year                    AS evalYear,
+            ep.eval_sequence                AS evalSequence,
+            e.employee_name                 AS employeeName,
+            e.employee_code                 AS employeeCode,
+            e.employee_tier                 AS employeeTier,
+            d.department_name               AS teamName,
+            pd.department_name              AS departmentName,
+            a.appeal_type                   AS appealType,
+            a.title,
+            a.content,
+            a.status,
+            a.review_result                 AS reviewResult,
+            qe1.score                       AS firstScore,
+            qe2.score                       AS secondScore,
+            ROUND((
+                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
+            ) / NULLIF(
+                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
+              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
+            ), 2)                           AS averageScore,
+            a.filed_at                      AS filedAt,
+            a.reviewed_at                   AS reviewedAt
+        FROM evaluation_appeal a
+        JOIN employee e ON e.employee_id = a.appeal_employee_id
+        JOIN employee reviewer ON reviewer.employee_id = #{reviewerId}
+        JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
+        LEFT JOIN department d ON d.department_id = e.department_id
+        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
+        JOIN qualitative_evaluation qer
+            ON qer.evaluatee_id = a.appeal_employee_id
+            AND qer.evaluation_period_id = a.evaluation_period_id
+            AND qer.evaluation_level = #{evaluationLevel}
+        LEFT JOIN qualitative_evaluation qe1
+            ON qe1.evaluatee_id = a.appeal_employee_id
+            AND qe1.evaluation_period_id = a.evaluation_period_id
+            AND qe1.evaluation_level = 1
+        LEFT JOIN qualitative_evaluation qe2
+            ON qe2.evaluatee_id = a.appeal_employee_id
+            AND qe2.evaluation_period_id = a.evaluation_period_id
+            AND qe2.evaluation_level = 2
+        WHERE
+        <choose>
+            <when test="evaluationLevel == 1">
+                e.department_id = reviewer.department_id
+            </when>
+            <otherwise>
+                d.parent_department_id = reviewer.department_id
+            </otherwise>
+        </choose>
+          <if test="statuses != null and statuses.size() > 0">
+              AND a.status IN
+              <foreach collection="statuses" item="status" open="(" separator="," close=")">
+                  #{status}
+              </foreach>
+          </if>
+        ORDER BY
+            CASE a.status
+                WHEN 'SUBMITTED' THEN 1
+                WHEN 'RECEIVING' THEN 1
+                WHEN 'REVIEWING' THEN 2
+                WHEN 'COMPLETED' THEN 3
+                ELSE 4
+            END,
+            a.filed_at DESC
+    </select>
+
+    <select id="existsReviewerAppealAccess" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1
+            FROM evaluation_appeal a
+            JOIN employee e ON e.employee_id = a.appeal_employee_id
+            JOIN employee reviewer ON reviewer.employee_id = #{reviewerId}
+            LEFT JOIN department d ON d.department_id = e.department_id
+            JOIN qualitative_evaluation qe
+                ON qe.evaluatee_id = a.appeal_employee_id
+                AND qe.evaluation_period_id = a.evaluation_period_id
+                AND qe.evaluation_level = #{evaluationLevel}
+            WHERE a.appeal_id = #{appealId}
+              AND
+            <choose>
+                <when test="evaluationLevel == 1">
+                    e.department_id = reviewer.department_id
+                </when>
+                <otherwise>
+                    d.parent_department_id = reviewer.department_id
+                </otherwise>
+            </choose>
+        )
     </select>
 
 

@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -29,18 +30,30 @@ public class KpiQueryService {
 
         List<Long> memberIds = profiles.stream()
                 .map(EmployeeProfileResponse::getEmployeeId)
+                .distinct()
                 .toList();
-        Map<Long, KpiMemberSummaryResponse> scoreMap = quantitativeEvaluationQueryMapper
+        Map<Long, KpiMemberSummaryResponse> currentScoreMap = quantitativeEvaluationQueryMapper
                 .findTeamKpiSummary(memberIds, year, evalSequence)
                 .stream()
-                .collect(java.util.stream.Collectors.toMap(
+                .collect(Collectors.toMap(
+                        KpiMemberSummaryResponse::getEmployeeId,
+                        Function.identity(),
+                        (left, right) -> left
+                ));
+        Map<Long, KpiMemberSummaryResponse> latestScoreMap = quantitativeEvaluationQueryMapper
+                .findLatestTeamKpiSummary(memberIds)
+                .stream()
+                .collect(Collectors.toMap(
                         KpiMemberSummaryResponse::getEmployeeId,
                         Function.identity(),
                         (left, right) -> left
                 ));
 
         return profiles.stream()
-                .map(profile -> mergeKpiSummary(profile, scoreMap.get(profile.getEmployeeId())))
+                .map(profile -> mergeKpiSummary(
+                        profile,
+                        currentScoreMap.getOrDefault(profile.getEmployeeId(), latestScoreMap.get(profile.getEmployeeId()))
+                ))
                 .sorted(Comparator.comparing(KpiMemberSummaryResponse::getEmployeeName, Comparator.nullsLast(String::compareTo)))
                 .toList();
     }
@@ -49,6 +62,9 @@ public class KpiQueryService {
     public List<KpiMemberDetailResponse> getMemberKpiDetail(Long employeeId, int year, int evalSequence) {
         EmployeeProfileResponse profile = adminClient.getWorkerProfile(employeeId);
         List<KpiMemberDetailResponse> details = quantitativeEvaluationQueryMapper.findMemberKpiDetail(employeeId, year, evalSequence);
+        if (details.isEmpty()) {
+            details = quantitativeEvaluationQueryMapper.findLatestMemberKpiDetail(employeeId);
+        }
         details.forEach(detail -> detail.setEmployeeName(profile == null ? null : profile.getEmployeeName()));
         return details;
     }

@@ -17,12 +17,12 @@ public class EvaluationPeriodSnapshotEvent {
     private Long algorithmVersionId;
     private Integer evaluationYear;
     private Integer evaluationSequence;
-    private String evaluationType;
     private LocalDate startDate;
     private LocalDate endDate;
     private String status;
     private String algorithmVersionNo;
     private String algorithmImplementationKey;
+    private String policyConfig;
     private String parameters;
     private String referenceValues;
     private LocalDateTime occurredAt;

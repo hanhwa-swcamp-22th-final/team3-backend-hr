@@ -92,6 +92,40 @@
         ORDER BY qn.employee_id ASC
     </select>
 
+    <select id="findLatestTeamKpiSummary"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberSummaryResponse">
+        SELECT
+            qn.employee_id                  AS employeeId,
+            AVG(qn.uph_score)               AS uphScore,
+            AVG(qn.yield_score)             AS yieldScore,
+            AVG(qn.lead_time_score)         AS leadTimeScore,
+            AVG(qn.s_quant)                 AS sQuant,
+            AVG(qn.t_score)                 AS tScore,
+            COALESCE(MAX(qn.status), 'NO_DATA') AS status
+        FROM quantitative_evaluation qn
+        WHERE qn.employee_id IN
+            <foreach item="id" collection="employeeIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+          AND qn.eval_period_id = (
+              SELECT qn2.eval_period_id
+                FROM quantitative_evaluation qn2
+                JOIN evaluation_period ep2
+                  ON ep2.eval_period_id = qn2.eval_period_id
+               WHERE qn2.employee_id IN
+                  <foreach item="id" collection="employeeIds" open="(" separator="," close=")">
+                      #{id}
+                  </foreach>
+               GROUP BY qn2.eval_period_id, ep2.eval_year, ep2.eval_sequence
+               ORDER BY MAX(CASE WHEN qn2.status = 'CONFIRMED' THEN 1 ELSE 0 END) DESC,
+                        ep2.eval_year DESC,
+                        ep2.eval_sequence DESC
+               LIMIT 1
+          )
+        GROUP BY qn.employee_id
+        ORDER BY qn.employee_id ASC
+    </select>
+
     <!-- HR-011: 특정 팀원 정량 점수 상세 (설비별 행) -->
     <select id="findMemberKpiDetail"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberDetailResponse">
@@ -112,6 +146,38 @@
         WHERE qn.employee_id = #{employeeId}
           AND ep.eval_year = #{year}
           AND ep.eval_sequence = #{evalSequence}
+        ORDER BY qn.equipment_id ASC
+    </select>
+
+    <select id="findLatestMemberKpiDetail"
+            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberDetailResponse">
+        SELECT
+            qn.employee_id                  AS employeeId,
+            ep.eval_year                    AS year,
+            ep.eval_sequence                AS evalSequence,
+            qn.equipment_id                 AS equipmentId,
+            qn.uph_score                    AS uphScore,
+            qn.yield_score                  AS yieldScore,
+            qn.lead_time_score              AS leadTimeScore,
+            qn.actual_error                 AS actualError,
+            qn.s_quant                      AS sQuant,
+            qn.t_score                      AS tScore,
+            qn.status
+        FROM quantitative_evaluation qn
+        JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
+        WHERE qn.employee_id = #{employeeId}
+          AND qn.eval_period_id = (
+              SELECT qn2.eval_period_id
+                FROM quantitative_evaluation qn2
+                JOIN evaluation_period ep2
+                  ON ep2.eval_period_id = qn2.eval_period_id
+               WHERE qn2.employee_id = #{employeeId}
+               GROUP BY qn2.eval_period_id, ep2.eval_year, ep2.eval_sequence
+               ORDER BY MAX(CASE WHEN qn2.status = 'CONFIRMED' THEN 1 ELSE 0 END) DESC,
+                        ep2.eval_year DESC,
+                        ep2.eval_sequence DESC
+               LIMIT 1
+          )
         ORDER BY qn.equipment_id ASC
     </select>
 

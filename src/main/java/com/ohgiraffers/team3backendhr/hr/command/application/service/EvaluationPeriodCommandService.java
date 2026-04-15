@@ -37,14 +37,14 @@ public class EvaluationPeriodCommandService {
     private final IdGenerator idGenerator;
 
     public void create(EvaluationPeriodCreateRequest request) {
-        if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
-            throw new BusinessException(ErrorCode.EVAL_PERIOD_ALREADY_IN_PROGRESS);
-        }
         if (!request.getEndDate().isAfter(request.getStartDate())) {
             throw new BusinessException(ErrorCode.INVALID_DATE_RANGE);
         }
-        if (repository.existsByEvalYearAndEvalSequenceAndEvalType(
-                request.getEvalYear(), request.getEvalSequence(), request.getEvalType())) {
+        if (repository.existsByStatus(EvalPeriodStatus.IN_PROGRESS)) {
+            throw new BusinessException(ErrorCode.EVAL_PERIOD_ALREADY_IN_PROGRESS);
+        }
+        if (repository.existsByEvalYearAndEvalSequence(
+                request.getEvalYear(), request.getEvalSequence())) {
             throw new BusinessException(ErrorCode.EVAL_PERIOD_DUPLICATE);
         }
         if (repository.existsByStartDateLessThanEqualAndEndDateGreaterThanEqual(
@@ -56,13 +56,19 @@ public class EvaluationPeriodCommandService {
                 .algorithmVersionId(request.getAlgorithmVersionId())
                 .evalYear(request.getEvalYear())
                 .evalSequence(request.getEvalSequence())
-                .evalType(request.getEvalType())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .build();
         repository.save(period);
         qualitativeEvaluationService.createRecordsForPeriod(period.getEvalPeriodId());
         publishPeriodSnapshotAfterCommit(period);
+    }
+
+    public void delete(Long evalPeriodId) {
+        EvaluationPeriod period = repository.findById(evalPeriodId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.EVAL_PERIOD_NOT_FOUND));
+        qualitativeEvaluationService.deleteByPeriodId(evalPeriodId);
+        repository.delete(period);
     }
 
     public void close(Long evalPeriodId) {
@@ -151,12 +157,12 @@ public class EvaluationPeriodCommandService {
             .algorithmVersionId(period.getAlgorithmVersionId())
             .evaluationYear(period.getEvalYear())
             .evaluationSequence(period.getEvalSequence())
-            .evaluationType(period.getEvalType().name())
             .startDate(period.getStartDate())
             .endDate(period.getEndDate())
             .status(period.getStatus().name())
             .algorithmVersionNo(snapshot != null ? snapshot.getVersionNo() : null)
             .algorithmImplementationKey(snapshot != null ? snapshot.getImplementationKey() : null)
+            .policyConfig(snapshot != null ? snapshot.getPolicyConfig() : null)
             .parameters(snapshot != null ? snapshot.getParameters() : null)
             .referenceValues(snapshot != null ? snapshot.getReferenceValues() : null)
             .occurredAt(LocalDateTime.now())

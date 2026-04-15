@@ -5,7 +5,6 @@ import com.ohgiraffers.team3backendhr.common.idgenerator.IdGenerator;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodCreateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod.EvaluationPeriodUpdateRequest;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalPeriodStatus;
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvaluationPeriod;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.EvaluationPeriodRepository;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
@@ -84,7 +83,6 @@ class EvaluationPeriodIntegrationTest {
                 .algorithmVersionId(1L)
                 .evalYear(2026)
                 .evalSequence(1)
-                .evalType(EvalType.QUALITATIVE)
                 .startDate(LocalDate.of(2026, 1, 1))
                 .endDate(LocalDate.of(2026, 3, 31))
                 .status(status)
@@ -98,7 +96,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         given(adminClient.getWorkers()).willReturn(List.of(buildWorker(101L)));
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 1, EvalType.QUALITATIVE,
+                1L, 2026, 1,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 3, 31));
         long beforeCount = qualitativeEvaluationRepository.count();
 
@@ -122,7 +120,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
         EvaluationPeriodCreateRequest request = new EvaluationPeriodCreateRequest(
-                1L, 2026, 2, EvalType.QUALITATIVE,
+                1L, 2026, 2,
                 LocalDate.of(2026, 4, 1), LocalDate.of(2026, 6, 30));
 
         // when & then
@@ -139,10 +137,14 @@ class EvaluationPeriodIntegrationTest {
     void close_success() throws Exception {
         // given
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                null, null, null, EvalPeriodStatus.CLOSING);
 
         // when
-        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId() + "/close")
-                        .with(csrf()))
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -157,10 +159,14 @@ class EvaluationPeriodIntegrationTest {
     void confirm_success() throws Exception {
         // given
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.CLOSING));
+        EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
+                null, null, null, EvalPeriodStatus.CONFIRMED);
 
         // when
-        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId() + "/confirm")
-                        .with(csrf()))
+        mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
 
@@ -176,7 +182,7 @@ class EvaluationPeriodIntegrationTest {
         // given
         EvaluationPeriod period = repository.save(buildPeriod(EvalPeriodStatus.IN_PROGRESS));
         EvaluationPeriodUpdateRequest request = new EvaluationPeriodUpdateRequest(
-                LocalDate.of(2026, 2, 1), LocalDate.of(2026, 4, 30), 2L, null);
+                LocalDate.of(2026, 10, 1), LocalDate.of(2026, 12, 31), 2L, null);
 
         // when
         mockMvc.perform(patch("/api/v1/hr/evaluation-periods/" + period.getEvalPeriodId())
@@ -188,8 +194,8 @@ class EvaluationPeriodIntegrationTest {
 
         // then
         EvaluationPeriod updated = repository.findById(period.getEvalPeriodId()).orElseThrow();
-        assertThat(updated.getStartDate()).isEqualTo(LocalDate.of(2026, 2, 1));
-        assertThat(updated.getEndDate()).isEqualTo(LocalDate.of(2026, 4, 30));
+        assertThat(updated.getStartDate()).isEqualTo(LocalDate.of(2026, 10, 1));
+        assertThat(updated.getEndDate()).isEqualTo(LocalDate.of(2026, 12, 31));
         assertThat(updated.getAlgorithmVersionId()).isEqualTo(2L);
     }
 }

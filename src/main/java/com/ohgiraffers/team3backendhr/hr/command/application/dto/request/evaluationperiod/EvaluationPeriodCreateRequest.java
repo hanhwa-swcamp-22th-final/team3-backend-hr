@@ -1,6 +1,5 @@
 package com.ohgiraffers.team3backendhr.hr.command.application.dto.request.evaluationperiod;
 
-import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.evaluationperiod.EvalType;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +18,6 @@ public class EvaluationPeriodCreateRequest {
 
     @NotNull(message = "평가 차수는 필수입니다.")
     private final Integer evalSequence;
-
-    @NotNull(message = "평가 유형은 필수입니다.")
-    private final EvalType evalType;
 
     @NotNull(message = "시작일은 필수입니다.")
     private final LocalDate startDate;

@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
@@ -65,6 +66,18 @@ public class AdminFeignClient implements AdminClient {
     }
 
     @Override
+    public List<Long> getActiveWorkerIdsByTier(String tier) {
+        AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByTier(tier);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier) {
+        AdminApiResponse<Boolean> response = adminFeignApi.existsActiveWorkerByIdAndTier(employeeId, tier);
+        return response != null && Boolean.TRUE.equals(response.getData());
+    }
+
+    @Override
     public void updateEmployeeTier(Long employeeId, Grade newTier) {
         adminFeignApi.updateEmployeeTier(employeeId, new TierUpdateRequest(newTier));
         log.info("[AdminFeignClient] Tier updated. employeeId={}, newTier={}", employeeId, newTier);
@@ -81,6 +94,16 @@ public class AdminFeignClient implements AdminClient {
         AdminApiResponse<AlgorithmVersionSnapshotResponse> response =
             adminFeignApi.getAlgorithmVersionDetail(algorithmVersionId);
         return response != null ? response.getData() : null;
+    }
+
+    @Override
+    public AlgorithmVersionSnapshotResponse getActiveAlgorithmVersion() {
+        AdminApiResponse<List<AlgorithmVersionSnapshotResponse>> response =
+            adminFeignApi.getAlgorithmVersionList(true);
+        if (response == null || response.getData() == null || response.getData().isEmpty()) {
+            return null;
+        }
+        return response.getData().get(0);
     }
 
     @Override
@@ -150,5 +173,11 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public void removeTeamMember(Long teamId, Long employeeId) {
         adminFeignApi.removeTeamMember(teamId, employeeId);
+    }
+
+    @Override
+    public Long assignDepartmentLeader(Long departmentId, DepartmentLeaderAssignRequest request) {
+        AdminApiResponse<Long> response = adminFeignApi.assignDepartmentLeader(departmentId, request);
+        return response != null ? response.getData() : request.getEmployeeId();
     }
 }

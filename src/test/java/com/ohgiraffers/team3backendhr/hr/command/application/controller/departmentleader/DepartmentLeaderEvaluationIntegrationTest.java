@@ -9,6 +9,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeeva
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualEvalStatus;
 import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.qualitativeevaluation.QualitativeEvaluation;
 import com.ohgiraffers.team3backendhr.hr.command.domain.repository.QualitativeEvaluationRepository;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,12 +21,15 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -52,6 +56,9 @@ class DepartmentLeaderEvaluationIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @MockitoBean
+    private AdminClient adminClient;
+
     private static final Long TL_ID = 100L;
     private static final Long DL_ID = 200L;
     private static final Long EVALUATEE_ID = 101L;
@@ -67,6 +74,12 @@ class DepartmentLeaderEvaluationIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id = " + PERIOD_ID);
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE eval_period_id = " + PERIOD_ID);
+        jdbcTemplate.update(
+                "INSERT INTO evaluation_period(eval_period_id, algorithm_version_id, eval_year, eval_sequence, start_date, end_date, status) VALUES (?,?,?,?,?,?,?)",
+                PERIOD_ID, 1L, 2026, 1, java.sql.Date.valueOf("2026-01-01"), java.sql.Date.valueOf("2026-03-31"), "IN_PROGRESS");
+        given(adminClient.getActiveDomainKeywordRules()).willReturn(Collections.emptyList());
 
         // level 1 — TL이 이미 제출한 상태
         repository.save(QualitativeEvaluation.builder()

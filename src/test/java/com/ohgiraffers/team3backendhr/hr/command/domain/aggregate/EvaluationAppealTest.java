@@ -15,8 +15,8 @@ class EvaluationAppealTest {
     private EvaluationAppeal buildAppeal(AppealStatus status) {
         return EvaluationAppeal.builder()
                 .appealId(1L)
-                .qualitativeEvaluationId(10L)
                 .appealEmployeeId(100L)
+                .evaluationPeriodId(5L)
                 .appealType(AppealType.SCORE_ERRORS)
                 .title("점수 오류 이의신청")
                 .content("평가 점수에 명백한 오류가 있습니다. 재검토 요청드립니다.")
@@ -28,9 +28,9 @@ class EvaluationAppealTest {
     /* ───── update ───── */
 
     @Test
-    @DisplayName("RECEIVING 상태에서 내용을 수정할 수 있다")
+    @DisplayName("SUBMITTED 상태에서 내용을 수정할 수 있다")
     void update_success() {
-        EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.SUBMITTED);
 
         appeal.update(AppealType.MISSING_ITEMS, "수정된 제목입니다", "수정된 내용입니다. 20자 이상 작성합니다.");
 
@@ -51,7 +51,7 @@ class EvaluationAppealTest {
     @Test
     @DisplayName("제목이 5자 미만이면 예외가 발생한다")
     void update_fail_titleTooShort() {
-        EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.SUBMITTED);
 
         assertThatThrownBy(() -> appeal.update(AppealType.OTHERS, "짧음", "20자 이상의 수정 내용입니다."))
                 .isInstanceOf(BusinessException.class)
@@ -61,7 +61,7 @@ class EvaluationAppealTest {
     @Test
     @DisplayName("내용이 20자 미만이면 예외가 발생한다")
     void update_fail_contentTooShort() {
-        EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.SUBMITTED);
 
         assertThatThrownBy(() -> appeal.update(AppealType.OTHERS, "정상적인 제목", "짧은 내용"))
                 .isInstanceOf(BusinessException.class)
@@ -112,7 +112,7 @@ class EvaluationAppealTest {
 
         assertThatThrownBy(() -> appeal.startReview(200L))
                 .isInstanceOf(BusinessException.class)
-                .hasMessage("이미 검토 중인 이의신청입니다.");
+                .hasMessage("검토 중인 이의신청만 처리할 수 있습니다.");
     }
 
     /* ───── approve ───── */
@@ -131,9 +131,9 @@ class EvaluationAppealTest {
     }
 
     @Test
-    @DisplayName("RECEIVING 상태에서 승인 시 예외가 발생한다")
+    @DisplayName("COMPLETED 상태에서 승인 시 예외가 발생한다")
     void approve_fail_notReviewing() {
-        EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.COMPLETED);
 
         assertThatThrownBy(() -> appeal.approve(200L, ReviewResult.ACKNOWLEDGE))
                 .isInstanceOf(BusinessException.class)
@@ -166,9 +166,9 @@ class EvaluationAppealTest {
     }
 
     @Test
-    @DisplayName("RECEIVING 상태에서 보류 시 예외가 발생한다")
+    @DisplayName("SUBMITTED 상태에서 보류 시 예외가 발생한다")
     void hold_fail_notReviewing() {
-        EvaluationAppeal appeal = buildAppeal(AppealStatus.RECEIVING);
+        EvaluationAppeal appeal = buildAppeal(AppealStatus.SUBMITTED);
 
         assertThatThrownBy(() -> appeal.hold())
                 .isInstanceOf(BusinessException.class)

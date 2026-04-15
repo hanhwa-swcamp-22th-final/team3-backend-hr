@@ -7,8 +7,8 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboar
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.DlDashboardTeamItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiDetailItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiSummaryResponse;
+import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTeamStatsItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmKpiTrendItem;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.HrmTeamStatsItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardMemberItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.dashboard.TlDashboardSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.DashboardQueryMapper;
@@ -57,13 +57,13 @@ public class DashboardQueryService {
         return mapper.findHrmKpiTrends(year);
     }
 
-    public List<HrmTeamStatsItem> getHrmTeamStats(int year, int evalSequence) {
+    public List<HrmKpiTeamStatsItem> getHrmKpiTeamStats(int year, int evalSequence) {
         return getHrmKpiDetailItems(year, evalSequence).stream()
                 .collect(Collectors.groupingBy(item -> item.getDepartmentName() == null ? "미지정" : item.getDepartmentName()))
                 .entrySet()
                 .stream()
-                .map(entry -> toHrmTeamStatsItem(entry.getKey(), entry.getValue()))
-                .sorted(Comparator.comparing(HrmTeamStatsItem::getDepartmentName, Comparator.nullsLast(String::compareTo)))
+                .map(entry -> toHrmKpiTeamStatsItem(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparing(HrmKpiTeamStatsItem::getDepartmentName, Comparator.nullsLast(String::compareTo)))
                 .toList();
     }
 
@@ -183,15 +183,15 @@ public class DashboardQueryService {
         summary.setAvgScore(round1(avgScore));
         summary.setEvaluationRate(round1(evaluatedCount * 100.0 / details.size()));
         summary.setUnevaluatedCount((int) (details.size() - evaluatedCount));
-        summary.setSTierCount(countHrmTier(details, "S"));
-        summary.setATierCount(countHrmTier(details, "A"));
-        summary.setBTierCount(countHrmTier(details, "B"));
-        summary.setCTierCount(countHrmTier(details, "C"));
+        summary.setTierSCount(countHrmTier(details, "S"));
+        summary.setTierACount(countHrmTier(details, "A"));
+        summary.setTierBCount(countHrmTier(details, "B"));
+        summary.setTierCCount(countHrmTier(details, "C"));
         return summary;
     }
 
-    private HrmTeamStatsItem toHrmTeamStatsItem(String departmentName, List<HrmKpiDetailItem> details) {
-        HrmTeamStatsItem item = new HrmTeamStatsItem();
+    private HrmKpiTeamStatsItem toHrmKpiTeamStatsItem(String departmentName, List<HrmKpiDetailItem> details) {
+        HrmKpiTeamStatsItem item = new HrmKpiTeamStatsItem();
         item.setDepartmentName(departmentName);
         item.setMemberCount(details.size());
         item.setAvgScore(round1(details.stream()
@@ -200,10 +200,10 @@ public class DashboardQueryService {
                 .mapToDouble(Double::doubleValue)
                 .average()
                 .orElse(0.0)));
-        item.setSTierCount(countHrmTier(details, "S"));
-        item.setATierCount(countHrmTier(details, "A"));
-        item.setBTierCount(countHrmTier(details, "B"));
-        item.setCTierCount(countHrmTier(details, "C"));
+        item.setTierSCount(countHrmTier(details, "S"));
+        item.setTierACount(countHrmTier(details, "A"));
+        item.setTierBCount(countHrmTier(details, "B"));
+        item.setTierCCount(countHrmTier(details, "C"));
         return item;
     }
 
@@ -313,10 +313,10 @@ public class DashboardQueryService {
         summary.setDeptAvgScore(round1(average));
         summary.setEvaluationRate(round1((members.size() - unevaluatedCount) * 100.0 / members.size()));
         summary.setUnevaluatedCount((int) unevaluatedCount);
-        summary.setSTierCount(countDlTier(members, "S"));
-        summary.setATierCount(countDlTier(members, "A"));
-        summary.setBTierCount(countDlTier(members, "B"));
-        summary.setCTierCount(countDlTier(members, "C"));
+        summary.setTierSCount(countDlTier(members, "S"));
+        summary.setTierACount(countDlTier(members, "A"));
+        summary.setTierBCount(countDlTier(members, "B"));
+        summary.setTierCCount(countDlTier(members, "C"));
         return summary;
     }
 
@@ -384,10 +384,10 @@ public class DashboardQueryService {
         summary.setTeamAvgScore(round1(average));
         summary.setEvaluationRate(round1(evaluatedCount * 100.0 / members.size()));
         summary.setCompletedCount((int) completedCount);
-        summary.setSTierCount(countTier(members, "S"));
-        summary.setATierCount(countTier(members, "A"));
-        summary.setBTierCount(countTier(members, "B"));
-        summary.setCTierCount(countTier(members, "C"));
+        summary.setTierSCount(countTier(members, "S"));
+        summary.setTierACount(countTier(members, "A"));
+        summary.setTierBCount(countTier(members, "B"));
+        summary.setTierCCount(countTier(members, "C"));
         return summary;
     }
 
