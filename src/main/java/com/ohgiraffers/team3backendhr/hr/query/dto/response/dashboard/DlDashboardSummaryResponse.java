@@ -12,8 +12,8 @@ public class DlDashboardSummaryResponse {
     private Double deptAvgScore;
     private Double evaluationRate;
     private int unevaluatedCount;
-    private int sTierCount;
-    private int aTierCount;
-    private int bTierCount;
-    private int cTierCount;
+    private int tierSCount;
+    private int tierACount;
+    private int tierBCount;
+    private int tierCCount;
 }

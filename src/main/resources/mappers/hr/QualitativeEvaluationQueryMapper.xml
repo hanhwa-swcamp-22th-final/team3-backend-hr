@@ -111,7 +111,11 @@
         JOIN employee dl   ON dl.employee_id = #{dlId}
         WHERE qe2.evaluation_period_id = #{periodId}
           AND qe2.evaluation_level = 2
-          AND d.parent_department_id = dl.department_id
+          AND (
+              e.department_id = dl.department_id
+              OR d.parent_department_id = dl.department_id
+          )
+          AND COALESCE(d.is_deleted, 0) = 0
           AND e.employee_role = 'WORKER'
         ORDER BY e.employee_name
     </select>
@@ -201,7 +205,11 @@
           AND qe.evaluation_period_id = #{periodId}
           AND qe.evaluation_level = 1
           AND qe.status = 'SUBMITTED'
-          AND d.parent_department_id = dl.department_id
+          AND (
+              e.department_id = dl.department_id
+              OR d.parent_department_id = dl.department_id
+          )
+          AND COALESCE(d.is_deleted, 0) = 0
     </select>
 
     <!-- HRM 평가 상세 조회 -->

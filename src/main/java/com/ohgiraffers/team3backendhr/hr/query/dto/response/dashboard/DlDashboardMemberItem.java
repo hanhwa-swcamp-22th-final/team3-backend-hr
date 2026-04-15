@@ -10,8 +10,10 @@ import lombok.Setter;
 public class DlDashboardMemberItem {
 
     private Long employeeId;
+    private String employeeCode;
     private String employeeName;
     private String employeeTier;
+    private String teamName;
     private Double qualitativeScore;
     private String grade;
     private String evalStatus;

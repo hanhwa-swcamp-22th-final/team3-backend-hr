@@ -4,6 +4,7 @@ import com.ohgiraffers.team3backendhr.hr.command.domain.aggregate.tierconfig.Gra
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AdminApiResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.AlgorithmVersionSnapshotResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentCreateRequest;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentLeaderAssignRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentUpdateRequest;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DepartmentDetailResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.DomainKeywordRuleResponse;
@@ -62,6 +63,18 @@ public class AdminFeignClient implements AdminClient {
     public List<Long> getTeamMemberIds(Long leaderId) {
         AdminApiResponse<List<Long>> response = adminFeignApi.getTeamMemberIds(leaderId);
         return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public List<Long> getActiveWorkerIdsByTier(String tier) {
+        AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByTier(tier);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier) {
+        AdminApiResponse<Boolean> response = adminFeignApi.existsActiveWorkerByIdAndTier(employeeId, tier);
+        return response != null && Boolean.TRUE.equals(response.getData());
     }
 
     @Override
@@ -160,5 +173,11 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public void removeTeamMember(Long teamId, Long employeeId) {
         adminFeignApi.removeTeamMember(teamId, employeeId);
+    }
+
+    @Override
+    public Long assignDepartmentLeader(Long departmentId, DepartmentLeaderAssignRequest request) {
+        AdminApiResponse<Long> response = adminFeignApi.assignDepartmentLeader(departmentId, request);
+        return response != null ? response.getData() : request.getEmployeeId();
     }
 }

@@ -22,11 +22,21 @@ public class KpiQueryService {
     public List<KpiMemberSummaryResponse> getTeamKpiSummary(Long leaderId, int year, int evalSequence) {
         List<Long> memberIds = adminClient.getTeamMemberIds(leaderId);
         if (memberIds.isEmpty()) return List.of();
-        return quantitativeEvaluationQueryMapper.findTeamKpiSummary(memberIds, year, evalSequence);
+        List<KpiMemberSummaryResponse> rows =
+                quantitativeEvaluationQueryMapper.findTeamKpiSummary(memberIds, year, evalSequence);
+        if (rows.size() == memberIds.size()) {
+            return rows;
+        }
+        return quantitativeEvaluationQueryMapper.findLatestTeamKpiSummary(memberIds);
     }
 
     /* HR-011: 특정 팀원 정량 점수 산출 상세 조회 */
     public List<KpiMemberDetailResponse> getMemberKpiDetail(Long employeeId, int year, int evalSequence) {
-        return quantitativeEvaluationQueryMapper.findMemberKpiDetail(employeeId, year, evalSequence);
+        List<KpiMemberDetailResponse> rows =
+                quantitativeEvaluationQueryMapper.findMemberKpiDetail(employeeId, year, evalSequence);
+        if (!rows.isEmpty()) {
+            return rows;
+        }
+        return quantitativeEvaluationQueryMapper.findLatestMemberKpiDetail(employeeId);
     }
 }

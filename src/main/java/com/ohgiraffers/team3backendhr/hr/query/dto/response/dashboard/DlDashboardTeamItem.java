@@ -11,6 +11,7 @@ public class DlDashboardTeamItem {
 
     private Long tlId;
     private String tlName;
+    private String teamName;
     private int memberCount;
     private Double teamAvgScore;
     private String evaluationStatus;
