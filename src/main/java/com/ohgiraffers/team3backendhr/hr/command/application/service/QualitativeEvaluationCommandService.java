@@ -25,13 +25,16 @@ import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvalua
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationNormalizedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeEvaluationSubmittedEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeKeywordRuleEvent;
+import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.MatchedKeywordDetailEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.dto.QualitativeSentenceAnalysisEvent;
 import com.ohgiraffers.team3backendhr.infrastructure.kafka.publisher.QualitativeEvaluationEventPublisher;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -152,6 +155,7 @@ public class QualitativeEvaluationCommandService {
         QualitativeEvaluation eval = repository.findById(event.getQualitativeEvaluationId())
             .orElseThrow(() -> new BusinessException(ErrorCode.EVALUATION_NOT_FOUND));
         eval.applyAnalysisResult(rawScore.doubleValue());
+        eval.updateEvalItems(buildEvalItemsFromAnalyzedEvent(event, rawScore));
         replaceEvaluationComments(event);
 
         if (eval.getEvaluatorId() != null) {
@@ -232,6 +236,74 @@ public class QualitativeEvaluationCommandService {
             .createdAt(occurredAt)
             .updatedAt(occurredAt)
             .build();
+    }
+
+    private String buildEvalItemsFromAnalyzedEvent(QualitativeEvaluationAnalyzedEvent event, BigDecimal rawScore) {
+        Map<String, BigDecimal> categoryWeights = new LinkedHashMap<>();
+        if (event.getSentenceAnalyses() != null) {
+            for (QualitativeSentenceAnalysisEvent sentenceAnalysis : event.getSentenceAnalyses()) {
+                if (sentenceAnalysis == null || sentenceAnalysis.getMatchedKeywordDetails() == null) {
+                    continue;
+                }
+                for (MatchedKeywordDetailEvent detail : sentenceAnalysis.getMatchedKeywordDetails()) {
+                    if (detail == null) {
+                        continue;
+                    }
+                    String category = normalizeDomainCategory(detail.getDomainCompetencyCategory());
+                    if (category == null) {
+                        continue;
+                    }
+                    BigDecimal weight = detail.getScoreWeight() == null
+                        ? BigDecimal.ZERO
+                        : detail.getScoreWeight().max(BigDecimal.ZERO).setScale(4, RoundingMode.HALF_UP);
+                    if (weight.compareTo(BigDecimal.ZERO) <= 0) {
+                        continue;
+                    }
+                    categoryWeights.merge(category, weight, BigDecimal::add);
+                }
+            }
+        }
+
+        if (categoryWeights.isEmpty()) {
+            return "{}";
+        }
+
+        BigDecimal totalWeight = categoryWeights.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (totalWeight.compareTo(BigDecimal.ZERO) <= 0) {
+            return "{}";
+        }
+
+        BigDecimal displayScore = rawScore.max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal assigned = BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        int lastIndex = categoryWeights.size() - 1;
+        int currentIndex = 0;
+        Map<String, BigDecimal> evalItems = new LinkedHashMap<>();
+
+        for (Map.Entry<String, BigDecimal> entry : categoryWeights.entrySet()) {
+            BigDecimal value;
+            if (currentIndex == lastIndex) {
+                value = displayScore.subtract(assigned).max(BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP);
+            } else {
+                value = displayScore.multiply(entry.getValue())
+                    .divide(totalWeight, 2, RoundingMode.HALF_UP);
+                assigned = assigned.add(value).setScale(2, RoundingMode.HALF_UP);
+            }
+            evalItems.put(entry.getKey(), value);
+            currentIndex++;
+        }
+
+        try {
+            return objectMapper.writeValueAsString(evalItems);
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Failed to serialize eval items.", exception);
+        }
+    }
+
+    private String normalizeDomainCategory(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toUpperCase();
     }
 
     private void validateLevel2Submitted(Long evaluateeId, Long evaluationPeriodId) {
