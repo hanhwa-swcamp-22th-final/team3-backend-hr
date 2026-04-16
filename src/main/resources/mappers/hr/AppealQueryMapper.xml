@@ -22,7 +22,7 @@
         <result property="reviewResult" column="reviewResult"/>
         <result property="firstScore" column="firstScore"/>
         <result property="secondScore" column="secondScore"/>
-        <result property="averageScore" column="averageScore"/>
+        <result property="finalScore" column="finalScore"/>
         <result property="firstStageComment" column="firstStageComment"/>
         <result property="secondStageComment" column="secondStageComment"/>
         <result property="filedAt" column="filedAt"/>
@@ -56,12 +56,7 @@
             qe2.score                       AS secondScore,
             qe1.eval_comment                AS firstStageComment,
             qe2.eval_comment                AS secondStageComment,
-            ROUND((
-                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
-            ) / NULLIF(
-                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
-              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
-            ), 2)                           AS averageScore,
+            COALESCE(qe2.score, qe1.score)  AS finalScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt,
             at.attachment_id                AS attachmentId,
@@ -107,12 +102,7 @@
             a.review_result                 AS reviewResult,
             qe1.score                       AS firstScore,
             qe2.score                       AS secondScore,
-            ROUND((
-                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
-            ) / NULLIF(
-                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
-              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
-            ), 2)                           AS averageScore,
+            COALESCE(qe2.score, qe1.score)  AS finalScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
@@ -172,12 +162,7 @@
             a.review_result                 AS reviewResult,
             qe1.score                       AS firstScore,
             qe2.score                       AS secondScore,
-            ROUND((
-                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
-            ) / NULLIF(
-                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
-              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
-            ), 2)                           AS averageScore,
+            COALESCE(qe2.score, qe1.score)  AS finalScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
@@ -217,12 +202,7 @@
             a.review_result                 AS reviewResult,
             qe1.score                       AS firstScore,
             qe2.score                       AS secondScore,
-            ROUND((
-                COALESCE(qe1.score, 0) + COALESCE(qe2.score, 0)
-            ) / NULLIF(
-                (CASE WHEN qe1.score IS NOT NULL THEN 1 ELSE 0 END)
-              + (CASE WHEN qe2.score IS NOT NULL THEN 1 ELSE 0 END), 0
-            ), 2)                           AS averageScore,
+            COALESCE(qe2.score, qe1.score)  AS finalScore,
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a

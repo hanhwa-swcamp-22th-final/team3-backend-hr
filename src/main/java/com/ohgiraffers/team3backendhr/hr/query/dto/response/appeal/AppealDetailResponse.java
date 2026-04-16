@@ -30,7 +30,7 @@ public class AppealDetailResponse {
     private String reviewResult;
     private Double firstScore;
     private Double secondScore;
-    private Double averageScore;
+    private Double finalScore;
     private String firstStageComment;
     private String secondStageComment;
     private LocalDateTime filedAt;
