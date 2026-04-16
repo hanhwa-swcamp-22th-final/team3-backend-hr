@@ -55,6 +55,7 @@ public class SecurityConfig {
                              .accessDeniedHandler(restAccessDeniedHandler))
             .authorizeHttpRequests(auth ->
                     auth.requestMatchers("/error").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

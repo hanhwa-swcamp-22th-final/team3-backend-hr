@@ -54,6 +54,15 @@ feign:
   scm:
     url: ${FEIGN_SCM_URL:http://localhost:8082}
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 # Scheduler
 scheduler:
   notice-publish-cron: "0 * * * * *"
