@@ -19,4 +19,17 @@ public class NotificationResponse {
     private LocalDateTime notificationSentAt;
     private Boolean notificationIsRead;
     private LocalDateTime notificationReadAt;
+
+    public NotificationResponse withDisplayText(String title, String content) {
+        return new NotificationResponse(
+                notificationRecipientId,
+                notificationId,
+                notificationType,
+                title,
+                content,
+                notificationSentAt,
+                notificationIsRead,
+                notificationReadAt
+        );
+    }
 }

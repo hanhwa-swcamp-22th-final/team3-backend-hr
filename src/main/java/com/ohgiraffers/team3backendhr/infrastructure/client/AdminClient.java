@@ -16,6 +16,7 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddReq
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import java.util.List;
+import java.util.Objects;
 
 public interface AdminClient {
 
@@ -28,6 +29,13 @@ public interface AdminClient {
     List<TierChartPointResponse> getTierChart(Long employeeId);
 
     List<Long> getTeamMemberIds(Long leaderId);
+
+    default List<EmployeeProfileResponse> getTeamMemberProfiles(Long leaderId) {
+        return getTeamMemberIds(leaderId).stream()
+                .map(this::getWorkerProfile)
+                .filter(Objects::nonNull)
+                .toList();
+    }
 
     List<Long> getActiveWorkerIdsByTier(String tier);
 

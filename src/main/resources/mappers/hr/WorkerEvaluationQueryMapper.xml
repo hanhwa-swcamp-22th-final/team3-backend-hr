@@ -44,7 +44,7 @@
             qe.status,
             ep.eval_period_id               AS evalPeriodId,
             ep.eval_year                    AS evalYear,
-            ep.eval_sequence                AS evalSequence,
+            ep.eval_sequence                AS evalSequence
         FROM qualitative_evaluation qe
         JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
         WHERE qe.evaluatee_id = #{employeeId}

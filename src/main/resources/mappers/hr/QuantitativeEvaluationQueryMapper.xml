@@ -74,8 +74,6 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberSummaryResponse">
         SELECT
             qn.employee_id                  AS employeeId,
-            e.employee_name                 AS employeeName,
-            e.employee_tier                 AS employeeTier,
             AVG(qn.uph_score)               AS uphScore,
             AVG(qn.yield_score)             AS yieldScore,
             AVG(qn.lead_time_score)         AS leadTimeScore,
@@ -83,7 +81,6 @@
             AVG(qn.t_score)                 AS tScore,
             MAX(qn.status)                  AS status
         FROM quantitative_evaluation qn
-        JOIN employee e ON e.employee_id = qn.employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
         WHERE qn.employee_id IN
             <foreach item="id" collection="employeeIds" open="(" separator="," close=")">
@@ -91,26 +88,26 @@
             </foreach>
           AND ep.eval_year = #{year}
           AND ep.eval_sequence = #{evalSequence}
-        GROUP BY qn.employee_id, e.employee_name, e.employee_tier
-        ORDER BY e.employee_name ASC
+        GROUP BY qn.employee_id
+        ORDER BY qn.employee_id ASC
     </select>
 
     <select id="findLatestTeamKpiSummary"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberSummaryResponse">
         SELECT
-            e.employee_id                   AS employeeId,
-            e.employee_name                 AS employeeName,
-            e.employee_tier                 AS employeeTier,
+            qn.employee_id                  AS employeeId,
             AVG(qn.uph_score)               AS uphScore,
             AVG(qn.yield_score)             AS yieldScore,
             AVG(qn.lead_time_score)         AS leadTimeScore,
             AVG(qn.s_quant)                 AS sQuant,
             AVG(qn.t_score)                 AS tScore,
             COALESCE(MAX(qn.status), 'NO_DATA') AS status
-        FROM employee e
-        LEFT JOIN quantitative_evaluation qn
-          ON qn.employee_id = e.employee_id
-         AND qn.eval_period_id = (
+        FROM quantitative_evaluation qn
+        WHERE qn.employee_id IN
+            <foreach item="id" collection="employeeIds" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+          AND qn.eval_period_id = (
               SELECT qn2.eval_period_id
                 FROM quantitative_evaluation qn2
                 JOIN evaluation_period ep2
@@ -125,12 +122,8 @@
                         ep2.eval_sequence DESC
                LIMIT 1
           )
-        WHERE e.employee_id IN
-            <foreach item="id" collection="employeeIds" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        GROUP BY e.employee_id, e.employee_name, e.employee_tier
-        ORDER BY e.employee_name ASC
+        GROUP BY qn.employee_id
+        ORDER BY qn.employee_id ASC
     </select>
 
     <!-- HR-011: 특정 팀원 정량 점수 상세 (설비별 행) -->
@@ -138,7 +131,6 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberDetailResponse">
         SELECT
             qn.employee_id                  AS employeeId,
-            e.employee_name                 AS employeeName,
             ep.eval_year                    AS year,
             ep.eval_sequence                AS evalSequence,
             qn.equipment_id                 AS equipmentId,
@@ -150,7 +142,6 @@
             qn.t_score                      AS tScore,
             qn.status
         FROM quantitative_evaluation qn
-        JOIN employee e ON e.employee_id = qn.employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
         WHERE qn.employee_id = #{employeeId}
           AND ep.eval_year = #{year}
@@ -162,7 +153,6 @@
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.KpiMemberDetailResponse">
         SELECT
             qn.employee_id                  AS employeeId,
-            e.employee_name                 AS employeeName,
             ep.eval_year                    AS year,
             ep.eval_sequence                AS evalSequence,
             qn.equipment_id                 AS equipmentId,
@@ -174,7 +164,6 @@
             qn.t_score                      AS tScore,
             qn.status
         FROM quantitative_evaluation qn
-        JOIN employee e ON e.employee_id = qn.employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
         WHERE qn.employee_id = #{employeeId}
           AND qn.eval_period_id = (
