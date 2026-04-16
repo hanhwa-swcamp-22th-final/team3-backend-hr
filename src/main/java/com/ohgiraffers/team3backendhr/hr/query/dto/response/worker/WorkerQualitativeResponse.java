@@ -17,5 +17,7 @@ public class WorkerQualitativeResponse {
     private Double score;
     /** JSON 문자열 — {"카테고리": 점수} */
     private String evalItems;
+    private String firstEvaluatorName;
+    private String secondEvaluatorName;
     private String status;
 }

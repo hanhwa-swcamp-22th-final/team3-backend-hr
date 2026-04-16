@@ -7,9 +7,6 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHis
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.WorkerEvaluationQueryMapper;
@@ -79,32 +76,12 @@ public class WorkerEvaluationQueryService {
         );
     }
 
-    /** HR-EVAL-010: 분기별 성장 피드백·코멘트 (TL/DL/HRM 각 레벨) */
-    public WorkerFeedbackResponse getFeedback(Long employeeId, Long periodId) {
-        Long resolvedPeriodId = resolvePeriodId(periodId);
-        List<WorkerFeedbackItem> items = mapper.findFeedbackItems(employeeId, resolvedPeriodId);
-
-        WorkerFeedbackResponse response = new WorkerFeedbackResponse();
-        response.setEvalPeriodId(resolvedPeriodId);
-        response.setFeedbackItems(items);
-        if (!items.isEmpty()) {
-            response.setEvalYear(items.get(0).getEvalYear());
-            response.setEvalSequence(items.get(0).getEvalSequence());
-        }
-        return response;
-    }
-
     /** HR-EVAL-011: 평가 이력 목록 (이의신청 대상 선택용, 페이징) */
     public WorkerEvalHistoryResponse getEvalHistory(Long employeeId, int page, int size) {
         int offset = page * size;
         List<WorkerEvalHistoryItem> content = mapper.findEvalHistory(employeeId, size, offset);
         long totalCount = mapper.countEvalHistory(employeeId);
         return new WorkerEvalHistoryResponse(content, totalCount);
-    }
-
-    /** Worker 성장 추이 차트용 3차 최종 점수 vs 팀 평균 vs 전사 평균 */
-    public List<WorkerGrowthTrendItem> getGrowthTrend(Long employeeId) {
-        return mapper.findGrowthTrend(employeeId);
     }
 
     private Long resolvePeriodId(Long periodId) {

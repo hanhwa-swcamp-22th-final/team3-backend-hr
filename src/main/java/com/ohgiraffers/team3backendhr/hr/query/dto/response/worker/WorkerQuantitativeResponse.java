@@ -1,5 +1,6 @@
 package com.ohgiraffers.team3backendhr.hr.query.dto.response.worker;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,9 @@ public class WorkerQuantitativeResponse {
     private Double yieldScore;
     private Double leadTimeScore;
     private Double actualError;
+    @JsonProperty("sQuant")
     private Double sQuant;
+    @JsonProperty("tScore")
     private Double tScore;
     private Boolean materialShielding;
     private String status;

@@ -8,8 +8,6 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.PointSummaryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalHistoryResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalReviewResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerEvalStatusResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackResponse;
-import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQuantitativeResponse;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerTierHistoryItem;
@@ -136,16 +134,6 @@ public class WorkerQueryController {
                 workerEvaluationQueryService.getQualitative(userDetails.getEmployeeId(), periodId)));
     }
 
-    /* HR-EVAL-010: 분기별 성장 피드백·코멘트 */
-    @GetMapping("/evaluations/feedback")
-    @PreAuthorize("hasAuthority('WORKER')")
-    public ResponseEntity<ApiResponse<WorkerFeedbackResponse>> getFeedback(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails,
-            @RequestParam(required = false) Long periodId) {
-        return ResponseEntity.ok(ApiResponse.success(
-                workerEvaluationQueryService.getFeedback(userDetails.getEmployeeId(), periodId)));
-    }
-
     /* HR-EVAL-NEW: 이의신청용 1차·2차 평가 결과 조회 */
     @GetMapping("/evaluations/review")
     @PreAuthorize("hasAuthority('WORKER')")
@@ -167,11 +155,4 @@ public class WorkerQueryController {
                 workerEvaluationQueryService.getEvalHistory(userDetails.getEmployeeId(), page, size)));
     }
 
-    @GetMapping("/evaluations/growth-trend")
-    @PreAuthorize("hasAuthority('WORKER')")
-    public ResponseEntity<ApiResponse<List<WorkerGrowthTrendItem>>> getGrowthTrend(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(
-                workerEvaluationQueryService.getGrowthTrend(userDetails.getEmployeeId())));
-    }
 }

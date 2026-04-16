@@ -78,6 +78,12 @@ class WorkerEvaluationQueryIntegrationTest {
                 evalId, WORKER_ID, periodId, EQUIPMENT_ID);
     }
 
+    private void insertScore(long scoreId, long employeeId, long periodId, int totalPoints, String tier) {
+        jdbcTemplate.update(
+                "INSERT INTO score(score_id, employee_id, eval_period_id, capability_index, total_points, tier) VALUES (?,?,?,?,?,?)",
+                scoreId, employeeId, periodId, 80.0, totalPoints, tier);
+    }
+
     // HR-EVAL-007
     @Test
     @DisplayName("IN_PROGRESS 기간이 있으면 내 평가 상태를 반환한다")
@@ -91,6 +97,27 @@ class WorkerEvaluationQueryIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.evalPeriodId").value(periodId))
                 .andExpect(jsonPath("$.data.qualStatus").value("NO_INPUT"));
+    }
+
+    @Test
+    @DisplayName("같은 팀의 최신 score.total_points 기준 포인트 순위를 반환한다")
+    void getEvalStatus_success_withPointRank() throws Exception {
+        long periodId = insertPeriod("IN_PROGRESS");
+        insertQualEval(idGenerator.generate(), periodId, 3, "NO_INPUT");
+
+        long teammateId = 301L;
+        jdbcTemplate.update(
+                "INSERT INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'WORKER','ACTIVE','pw',false,0,false)",
+                teammateId, DEPT_ID, "W002", "동료");
+
+        insertScore(idGenerator.generate(), WORKER_ID, periodId, 87, "B");
+        insertScore(idGenerator.generate(), teammateId, periodId, 93, "A");
+
+        mockMvc.perform(get("/api/v1/hr/workers/me/evaluations/status")
+                        .with(authentication(workerAuth())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rank").value(2))
+                .andExpect(jsonPath("$.data.rankTotal").value(2));
     }
 
     @Test
@@ -141,22 +168,6 @@ class WorkerEvaluationQueryIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.grade").value("A"))
                 .andExpect(jsonPath("$.data.score").value(88.0));
-    }
-
-    // HR-EVAL-010
-    @Test
-    @DisplayName("피드백 목록을 TL/DL/HRM 레벨 순으로 반환한다")
-    void getFeedback_success() throws Exception {
-        long periodId = insertPeriod("CONFIRMED");
-        insertQualEval(idGenerator.generate(), periodId, 1, "SUBMITTED");
-        insertQualEval(idGenerator.generate(), periodId, 2, "SUBMITTED");
-        insertQualEval(idGenerator.generate(), periodId, 3, "CONFIRMED");
-
-        mockMvc.perform(get("/api/v1/hr/workers/me/evaluations/feedback")
-                        .param("periodId", String.valueOf(periodId))
-                        .with(authentication(workerAuth())))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.feedbackItems.length()").value(3));
     }
 
     // HR-EVAL-011
