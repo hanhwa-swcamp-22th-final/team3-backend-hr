@@ -216,6 +216,12 @@
                   AND qx.evaluation_level IN (1, 2)
                 ORDER BY
                     CASE
+                        WHEN qx.status = 'CONFIRMED' THEN 0
+                        WHEN qx.status = 'SUBMITTED' THEN 1
+                        WHEN qx.status = 'DRAFT' THEN 2
+                        ELSE 3
+                    END,
+                    CASE
                         WHEN qx.evaluation_level = 2
                              AND qx.eval_items IS NOT NULL
                              AND qx.eval_items != ''
@@ -227,12 +233,6 @@
                         WHEN qx.evaluation_level = 2 THEN 2
                         WHEN qx.evaluation_level = 1 THEN 3
                         ELSE 4
-                    END,
-                    CASE
-                        WHEN qx.status = 'CONFIRMED' THEN 0
-                        WHEN qx.status = 'SUBMITTED' THEN 1
-                        WHEN qx.status = 'DRAFT' THEN 2
-                        ELSE 3
                     END,
                     COALESCE(qx.confirmed_at, qx.updated_at, qx.created_at) DESC,
                     qx.qualitative_evaluation_id DESC
