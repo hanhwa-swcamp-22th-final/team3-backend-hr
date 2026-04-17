@@ -129,6 +129,10 @@ public class QualitativeEvaluation {
         this.score = score;
     }
 
+    public void updateEvalItems(String evalItems) {
+        this.evalItems = evalItems;
+    }
+
     public void applyNormalizationResult(Double sQual, Grade grade) {
         this.sQual = sQual;
         this.grade = grade;
@@ -138,11 +142,12 @@ public class QualitativeEvaluation {
         if (this.status == QualEvalStatus.CONFIRMED) {
             throw new BusinessException(ErrorCode.EVALUATION_ALREADY_CONFIRMED);
         }
-        if (evalComment == null || evalComment.length() < 20) {
+        if (evalComment != null && !evalComment.isBlank()
+            && (evalComment.trim().length() < 20 || evalComment.trim().length() > 2000)) {
             throw new BusinessException(ErrorCode.INVALID_COMMENT_LENGTH);
         }
         this.evaluatorId = evaluatorId;
-        this.evalComment = evalComment;
+        this.evalComment = evalComment == null ? null : evalComment.trim();
         this.inputMethod = inputMethod;
         this.status = QualEvalStatus.CONFIRMED;
         this.confirmedAt = LocalDateTime.now();

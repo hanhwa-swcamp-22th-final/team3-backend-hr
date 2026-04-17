@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: team3-backend-hr
+  cloud:
+    openfeign:
+      okhttp:
+        enabled: true
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 

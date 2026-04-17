@@ -10,8 +10,73 @@
             ep.eval_period_id               AS evalPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            COALESCE(qe.status, 'NO_INPUT') AS qualStatus
+            COALESCE(qe.status, 'NO_INPUT') AS qualStatus,
+            CASE
+                WHEN self_score.total_points IS NULL THEN NULL
+                ELSE 1 + (
+                    SELECT COUNT(DISTINCT peer_score.total_points)
+                    FROM employee peer
+                    JOIN (
+                        SELECT s1.employee_id,
+                               s1.total_points
+                        FROM score s1
+                        JOIN (
+                            SELECT employee_id,
+                                   MAX(eval_period_id) AS max_eval_period_id
+                            FROM score
+                            GROUP BY employee_id
+                        ) latest_peer
+                            ON latest_peer.employee_id = s1.employee_id
+                           AND latest_peer.max_eval_period_id = s1.eval_period_id
+                    ) peer_score
+                        ON peer_score.employee_id = peer.employee_id
+                    WHERE peer.employee_role = 'WORKER'
+                      AND peer.employee_status = 'ACTIVE'
+                      AND peer.department_id = self_emp.department_id
+                      AND peer_score.total_points > self_score.total_points
+                )
+            END                             AS rank,
+            CASE
+                WHEN self_score.total_points IS NULL THEN NULL
+                ELSE (
+                    SELECT COUNT(*)
+                    FROM employee peer
+                    JOIN (
+                        SELECT s1.employee_id,
+                               s1.total_points
+                        FROM score s1
+                        JOIN (
+                            SELECT employee_id,
+                                   MAX(eval_period_id) AS max_eval_period_id
+                            FROM score
+                            GROUP BY employee_id
+                        ) latest_peer
+                            ON latest_peer.employee_id = s1.employee_id
+                           AND latest_peer.max_eval_period_id = s1.eval_period_id
+                    ) peer_score
+                        ON peer_score.employee_id = peer.employee_id
+                    WHERE peer.employee_role = 'WORKER'
+                      AND peer.employee_status = 'ACTIVE'
+                      AND peer.department_id = self_emp.department_id
+                )
+            END                             AS rankTotal
         FROM evaluation_period ep
+        JOIN employee self_emp
+            ON self_emp.employee_id = #{employeeId}
+        LEFT JOIN (
+            SELECT s1.employee_id,
+                   s1.total_points
+            FROM score s1
+            JOIN (
+                SELECT employee_id,
+                       MAX(eval_period_id) AS max_eval_period_id
+                FROM score
+                GROUP BY employee_id
+            ) latest_self
+                ON latest_self.employee_id = s1.employee_id
+               AND latest_self.max_eval_period_id = s1.eval_period_id
+        ) self_score
+            ON self_score.employee_id = self_emp.employee_id
         LEFT JOIN qualitative_evaluation qe
             ON qe.evaluation_period_id = ep.eval_period_id
             AND qe.evaluatee_id = #{employeeId}
@@ -74,10 +139,24 @@
         JOIN evaluation_period ep ON ep.eval_period_id = qn.eval_period_id
         WHERE qn.employee_id = #{employeeId}
           AND qn.eval_period_id = #{periodId}
-        LIMIT 1
+          AND qn.quantitative_evaluation_id = (
+                SELECT qx.quantitative_evaluation_id
+                FROM quantitative_evaluation qx
+                WHERE qx.employee_id = qn.employee_id
+                  AND qx.eval_period_id = qn.eval_period_id
+                ORDER BY
+                    CASE
+                        WHEN qx.status = 'CONFIRMED' THEN 0
+                        WHEN qx.status = 'TEMPORARY' THEN 1
+                        ELSE 2
+                    END,
+                    COALESCE(qx.updated_at, qx.created_at) DESC,
+                    qx.quantitative_evaluation_id DESC
+                LIMIT 1
+          )
     </select>
 
-    <!-- HR-EVAL-009: 내 정성 평가 (level 3 = HRM 최종 확정본) -->
+    <!-- HR-EVAL-009: 내 정성 평가 (level 2 우선, 없으면 level 1) -->
     <select id="findQualitative"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerQualitativeResponse">
         SELECT
@@ -88,31 +167,77 @@
             qe.grade,
             qe.score,
             qe.eval_items                   AS evalItems,
+            (
+                SELECT ev1.employee_name
+                FROM qualitative_evaluation q1
+                JOIN employee ev1 ON ev1.employee_id = q1.evaluator_id
+                WHERE q1.evaluatee_id = qe.evaluatee_id
+                  AND q1.evaluation_period_id = qe.evaluation_period_id
+                  AND q1.evaluation_level = 1
+                ORDER BY
+                    CASE
+                        WHEN q1.status = 'CONFIRMED' THEN 0
+                        WHEN q1.status = 'SUBMITTED' THEN 1
+                        WHEN q1.status = 'DRAFT' THEN 2
+                        ELSE 3
+                    END,
+                    COALESCE(q1.confirmed_at, q1.updated_at, q1.created_at) DESC,
+                    q1.qualitative_evaluation_id DESC
+                LIMIT 1
+            )                               AS firstEvaluatorName,
+            (
+                SELECT ev2.employee_name
+                FROM qualitative_evaluation q2
+                JOIN employee ev2 ON ev2.employee_id = q2.evaluator_id
+                WHERE q2.evaluatee_id = qe.evaluatee_id
+                  AND q2.evaluation_period_id = qe.evaluation_period_id
+                  AND q2.evaluation_level = 2
+                ORDER BY
+                    CASE
+                        WHEN q2.status = 'CONFIRMED' THEN 0
+                        WHEN q2.status = 'SUBMITTED' THEN 1
+                        WHEN q2.status = 'DRAFT' THEN 2
+                        ELSE 3
+                    END,
+                    COALESCE(q2.confirmed_at, q2.updated_at, q2.created_at) DESC,
+                    q2.qualitative_evaluation_id DESC
+                LIMIT 1
+            )                               AS secondEvaluatorName,
             qe.status
         FROM qualitative_evaluation qe
         JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
         WHERE qe.evaluatee_id = #{employeeId}
           AND qe.evaluation_period_id = #{periodId}
-          AND qe.evaluation_level = 3
-        LIMIT 1
-    </select>
-
-    <!-- HR-EVAL-010: 분기별 피드백 코멘트 (TL/DL/HRM) -->
-    <select id="findFeedbackItems"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerFeedbackItem">
-        SELECT
-            qe.evaluation_level     AS evaluationLevel,
-            qe.eval_comment         AS evalComment,
-            qe.input_method         AS inputMethod,
-            qe.status,
-            ep.eval_year            AS evalYear,
-            ep.eval_sequence        AS evalSequence
-        FROM qualitative_evaluation qe
-        JOIN evaluation_period ep ON ep.eval_period_id = qe.evaluation_period_id
-        WHERE qe.evaluatee_id = #{employeeId}
-          AND qe.evaluation_period_id = #{periodId}
-          AND qe.status IN ('SUBMITTED', 'CONFIRMED')
-        ORDER BY qe.evaluation_level ASC
+          AND qe.qualitative_evaluation_id = (
+                SELECT qx.qualitative_evaluation_id
+                FROM qualitative_evaluation qx
+                WHERE qx.evaluatee_id = qe.evaluatee_id
+                  AND qx.evaluation_period_id = qe.evaluation_period_id
+                  AND qx.evaluation_level IN (1, 2)
+                ORDER BY
+                    CASE
+                        WHEN qx.status = 'CONFIRMED' THEN 0
+                        WHEN qx.status = 'SUBMITTED' THEN 1
+                        WHEN qx.status = 'DRAFT' THEN 2
+                        ELSE 3
+                    END,
+                    CASE
+                        WHEN qx.evaluation_level = 2
+                             AND qx.eval_items IS NOT NULL
+                             AND qx.eval_items != ''
+                             AND qx.eval_items != '{}' THEN 0
+                        WHEN qx.evaluation_level = 1
+                             AND qx.eval_items IS NOT NULL
+                             AND qx.eval_items != ''
+                             AND qx.eval_items != '{}' THEN 1
+                        WHEN qx.evaluation_level = 2 THEN 2
+                        WHEN qx.evaluation_level = 1 THEN 3
+                        ELSE 4
+                    END,
+                    COALESCE(qx.confirmed_at, qx.updated_at, qx.created_at) DESC,
+                    qx.qualitative_evaluation_id DESC
+                LIMIT 1
+          )
     </select>
 
     <!-- HR-EVAL-011: 평가 이력 목록 (이의신청 대상 선택용)
@@ -174,38 +299,6 @@
         WHERE qe.evaluatee_id = #{employeeId}
           AND qe.evaluation_level = 2
           AND qe.status = 'SUBMITTED'
-    </select>
-
-    <select id="findGrowthTrend"
-            resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.worker.WorkerGrowthTrendItem">
-        SELECT
-            ep.eval_period_id AS evalPeriodId,
-            ep.eval_year AS evalYear,
-            ep.eval_sequence AS evalSequence,
-            qe_self.score AS myScore,
-            ROUND((
-                SELECT AVG(qe_team.score)
-                FROM qualitative_evaluation qe_team
-                JOIN employee e_team ON e_team.employee_id = qe_team.evaluatee_id
-                WHERE qe_team.evaluation_period_id = ep.eval_period_id
-                  AND qe_team.evaluation_level = 3
-                  AND qe_team.status = 'CONFIRMED'
-                  AND e_team.department_id = e_self.department_id
-            ), 1) AS teamAverageScore,
-            ROUND((
-                SELECT AVG(qe_all.score)
-                FROM qualitative_evaluation qe_all
-                WHERE qe_all.evaluation_period_id = ep.eval_period_id
-                  AND qe_all.evaluation_level = 3
-                  AND qe_all.status = 'CONFIRMED'
-            ), 1) AS companyAverageScore
-        FROM qualitative_evaluation qe_self
-        JOIN evaluation_period ep ON ep.eval_period_id = qe_self.evaluation_period_id
-        JOIN employee e_self ON e_self.employee_id = qe_self.evaluatee_id
-        WHERE qe_self.evaluatee_id = #{employeeId}
-          AND qe_self.evaluation_level = 3
-          AND qe_self.status = 'CONFIRMED'
-        ORDER BY ep.eval_year ASC, ep.eval_sequence ASC, ep.eval_period_id ASC
     </select>
 
     <!-- 현재 IN_PROGRESS 기간 ID, 없으면 최근 CONFIRMED 기간 ID -->
