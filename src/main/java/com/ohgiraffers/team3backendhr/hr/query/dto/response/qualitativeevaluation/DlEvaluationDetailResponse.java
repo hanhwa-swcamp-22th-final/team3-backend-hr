@@ -11,6 +11,7 @@ public class DlEvaluationDetailResponse {
 
     private Long evalId;
     private Long evaluateeId;
+    private Long evaluatorId;           // TL id — enrichment 시 evaluatorName 세팅
     private String employeeName;
     private String employeeTier;
     private String evaluatorName;       // TL 이름

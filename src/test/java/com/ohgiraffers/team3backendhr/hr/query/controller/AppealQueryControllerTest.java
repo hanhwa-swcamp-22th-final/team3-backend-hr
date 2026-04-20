@@ -106,7 +106,7 @@ class AppealQueryControllerTest {
     @DisplayName("이의신청 목록 조회 성공 — 200 OK")
     void getAppeals_success() throws Exception {
         // given
-        given(service.getAppeals(any(), anyInt(), anyInt()))
+        given(service.getAppeals(any(), any(), anyInt(), anyInt()))
                 .willReturn(new AppealListResponse(List.of(), 0L, 0L));
 
         // when & then
@@ -132,7 +132,7 @@ class AppealQueryControllerTest {
         // given
         AppealSummaryResponse item = new AppealSummaryResponse();
         item.setAppealId(1L);
-        given(service.getMyAppeals(anyLong())).willReturn(List.of(item));
+        given(service.getMyAppeals(anyLong(), any())).willReturn(List.of(item));
 
         EmployeeUserDetails workerDetails = new EmployeeUserDetails(
                 100L, "W001", "pw", List.of(new SimpleGrantedAuthority("WORKER")));

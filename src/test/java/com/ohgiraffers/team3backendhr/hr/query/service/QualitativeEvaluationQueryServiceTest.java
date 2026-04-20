@@ -12,6 +12,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.TlEvaluationTargetResponse;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.QualitativeEvaluationQueryMapper;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,9 @@ class QualitativeEvaluationQueryServiceTest {
 
     @Mock
     private EvaluationPeriodRepository evaluationPeriodRepository;
+
+    @Mock
+    private AdminClient adminClient;
 
     @InjectMocks
     private QualitativeEvaluationQueryService service;
@@ -256,8 +260,8 @@ class QualitativeEvaluationQueryServiceTest {
     }
 
     @Test
-    @DisplayName("DL 1차 평가 항목 조회 — 타 부서 직원이면 예외")
-    void getDlEvaluationDetail_otherDept_throwsException() {
+    @DisplayName("DL 1차 평가 항목 조회 — 평가가 없으면 not found 예외")
+    void getDlEvaluationDetail_notFound_throwsException() {
         // given
         given(mapper.findDlEvaluationDetail(200L, 999L, 5L)).willReturn(null);
 

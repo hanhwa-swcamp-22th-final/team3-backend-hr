@@ -17,23 +17,22 @@ public interface AppealQueryMapper {
     /* HRM — 이의신청 목록 (상태 필터, 페이징) */
     List<AppealSummaryResponse> findAppeals(
             @Param("status") String status,
+            @Param("evaluationPeriodId") Long evaluationPeriodId,
             @Param("size") int size,
             @Param("offset") int offset);
 
-    long countAppeals(@Param("status") String status);
+    long countAppeals(
+            @Param("status") String status,
+            @Param("evaluationPeriodId") Long evaluationPeriodId);
 
     /* Worker — 내 이의신청 목록 */
-    List<AppealSummaryResponse> findMyAppeals(@Param("employeeId") Long employeeId);
+    List<AppealSummaryResponse> findMyAppeals(
+            @Param("employeeId") Long employeeId,
+            @Param("evaluationPeriodId") Long evaluationPeriodId);
 
-    /* TL/DL — 본인이 담당하는 차수의 이의신청 목록 */
+    /* TL/DL — 담당 팀원 이의신청 목록 (memberIds 로 필터) */
     List<AppealSummaryResponse> findReviewerAppeals(
-            @Param("reviewerId") Long reviewerId,
-            @Param("evaluationLevel") Long evaluationLevel,
+            @Param("memberIds") List<Long> memberIds,
+            @Param("evaluationPeriodId") Long evaluationPeriodId,
             @Param("statuses") List<String> statuses);
-
-    /* TL/DL — 본인이 담당하는 차수의 이의신청 접근 권한 확인 */
-    boolean existsReviewerAppealAccess(
-            @Param("appealId") Long appealId,
-            @Param("reviewerId") Long reviewerId,
-            @Param("evaluationLevel") Long evaluationLevel);
 }

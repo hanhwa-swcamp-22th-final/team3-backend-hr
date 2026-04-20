@@ -16,13 +16,14 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TeamMemberAddReq
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.TierChartPointResponse;
 import com.ohgiraffers.team3backendhr.infrastructure.client.dto.WorkerResponse;
 import java.util.List;
-import java.util.Objects;
 
 public interface AdminClient {
 
     List<WorkerResponse> getWorkers();
 
     EmployeeProfileResponse getWorkerProfile(Long employeeId);
+
+    List<EmployeeProfileResponse> getWorkerProfiles(List<Long> ids);
 
     List<EmployeeSkillResponse> getWorkerSkills(Long employeeId);
 
@@ -31,13 +32,16 @@ public interface AdminClient {
     List<Long> getTeamMemberIds(Long leaderId);
 
     default List<EmployeeProfileResponse> getTeamMemberProfiles(Long leaderId) {
-        return getTeamMemberIds(leaderId).stream()
-                .map(this::getWorkerProfile)
-                .filter(Objects::nonNull)
-                .toList();
+        List<Long> ids = getTeamMemberIds(leaderId);
+        if (ids.isEmpty()) return List.of();
+        return getWorkerProfiles(ids);
     }
 
     List<Long> getActiveWorkerIdsByTier(String tier);
+
+    List<Long> getActiveWorkerIdsByDepartmentId(Long departmentId);
+
+    List<Long> getActiveWorkerIdsByRootDepartmentId(Long departmentId);
 
     boolean existsActiveWorkerByIdAndTier(Long employeeId, String tier);
 

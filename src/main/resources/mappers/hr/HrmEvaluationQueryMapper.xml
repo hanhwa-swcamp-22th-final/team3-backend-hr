@@ -9,7 +9,6 @@
         SELECT
             bc.bias_correction_id           AS biasCorrectionId,
             bc.evaluator_id                 AS evaluatorId,
-            e.employee_name                 AS evaluatorName,
             bc.qualitative_evaluation_id    AS qualitativeEvaluationId,
             bc.bias_type                    AS biasType,
             bc.evaluator_avg                AS evaluatorAvg,
@@ -19,7 +18,6 @@
             bc.corrected_score              AS correctedScore,
             bc.detected_at                  AS detectedAt
         FROM bias_correction bc
-        JOIN employee e ON e.employee_id = bc.evaluator_id
         ORDER BY bc.detected_at DESC
     </select>
 
@@ -29,7 +27,6 @@
         SELECT
             af.flag_id                  AS flagId,
             af.employee_id              AS employeeId,
-            e.employee_name             AS employeeName,
             af.production_speed_rank    AS productionSpeedRank,
             af.safety_keyword_rank      AS safetyKeywordRank,
             af.penalty_coefficient      AS penaltyCoefficient,
@@ -37,7 +34,6 @@
             af.target_period            AS targetPeriod,
             af.is_active                AS isActive
         FROM anti_gaming_flag af
-        JOIN employee e ON e.employee_id = af.employee_id
         ORDER BY af.target_year DESC, af.target_period DESC
     </select>
 

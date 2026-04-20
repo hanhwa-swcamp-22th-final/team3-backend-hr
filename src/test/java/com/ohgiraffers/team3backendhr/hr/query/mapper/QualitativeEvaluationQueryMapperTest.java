@@ -30,14 +30,14 @@ class QualitativeEvaluationQueryMapperTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
-        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
-        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED'))");
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED')");
     }
 
     @AfterEach
     void tearDown() {
-        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
-        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED'))");
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED')");
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
@@ -165,16 +165,16 @@ class QualitativeEvaluationQueryMapperTest {
     }
 
     @Test
-    @DisplayName("현재 기간 ID 조회 — IN_PROGRESS 기간 없으면 null 반환")
-    void findCurrentPeriodId_noInProgress() {
+    @DisplayName("현재 기간 ID 조회 — IN_PROGRESS 없으면 최신 CONFIRMED 반환")
+    void findCurrentPeriodId_fallsBackToConfirmed() {
         // given
-        insertPeriod(2025, 1, "CONFIRMED");
+        long confirmedId = insertPeriod(2025, 1, "CONFIRMED");
 
         // when
         Long result = mapper.findCurrentPeriodId();
 
-        // then — null 반환 → 서비스에서 예외 처리
-        assertThat(result).isNull();
+        // then
+        assertThat(result).isEqualTo(confirmedId);
     }
 
     /* ── findTlTargets / findDlTargets ────────────────────────────────── */

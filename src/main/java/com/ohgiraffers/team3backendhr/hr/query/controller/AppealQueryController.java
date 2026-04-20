@@ -39,31 +39,35 @@ public class AppealQueryController {
     @PreAuthorize("hasAuthority('HRM')")
     public ResponseEntity<ApiResponse<AppealListResponse>> getAppeals(
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long evaluationPeriodId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(ApiResponse.success(service.getAppeals(status, page, size)));
+        return ResponseEntity.ok(ApiResponse.success(service.getAppeals(status, evaluationPeriodId, page, size)));
     }
 
     /* Worker — 내 이의신청 목록 */
     @GetMapping("/appeals/me")
     @PreAuthorize("hasAuthority('WORKER')")
     public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getMyAppeals(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(service.getMyAppeals(userDetails.getEmployeeId())));
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long evaluationPeriodId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getMyAppeals(userDetails.getEmployeeId(), evaluationPeriodId)));
     }
 
     @GetMapping("/team-leader/appeals")
     @PreAuthorize("hasAuthority('TL')")
     public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getTlAppeals(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(service.getTlAppeals(userDetails.getEmployeeId())));
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long evaluationPeriodId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getTlAppeals(userDetails.getEmployeeId(), evaluationPeriodId)));
     }
 
     @GetMapping("/department-leader/appeals")
     @PreAuthorize("hasAuthority('DL')")
     public ResponseEntity<ApiResponse<List<AppealSummaryResponse>>> getDlAppeals(
-            @AuthenticationPrincipal EmployeeUserDetails userDetails) {
-        return ResponseEntity.ok(ApiResponse.success(service.getDlAppeals(userDetails.getEmployeeId())));
+            @AuthenticationPrincipal EmployeeUserDetails userDetails,
+            @RequestParam(required = false) Long evaluationPeriodId) {
+        return ResponseEntity.ok(ApiResponse.success(service.getDlAppeals(userDetails.getEmployeeId(), evaluationPeriodId)));
     }
 
 
