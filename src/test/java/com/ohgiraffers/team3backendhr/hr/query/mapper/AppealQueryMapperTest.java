@@ -92,7 +92,6 @@ class AppealQueryMapperTest {
         assertThat(result).isPresent();
         assertThat(result.get().getAppealId()).isEqualTo(appealId);
         assertThat(result.get().getContent()).isNotBlank();
-        assertThat(result.get().getEmployeeName()).isEqualTo("worker-user");
     }
 
     @Test
@@ -108,7 +107,7 @@ class AppealQueryMapperTest {
     void findAppeals_noFilter() {
         insertAppeal("RECEIVING", null);
 
-        List<AppealSummaryResponse> result = mapper.findAppeals(null, 10, 0);
+        List<AppealSummaryResponse> result = mapper.findAppeals(null, null, 10, 0);
 
         assertThat(result).hasSizeGreaterThanOrEqualTo(1);
         assertThat(result).anyMatch(r -> r.getAppealEmployeeId().equals(WORKER_ID));
@@ -120,7 +119,7 @@ class AppealQueryMapperTest {
         insertAppeal("RECEIVING", null);
         insertAppeal("COMPLETED", "DISMISS");
 
-        List<AppealSummaryResponse> result = mapper.findAppeals("RECEIVING", 10, 0);
+        List<AppealSummaryResponse> result = mapper.findAppeals("RECEIVING", null, 10, 0);
 
         assertThat(result).allMatch(r -> r.getStatus().equals("RECEIVING"));
     }
@@ -134,7 +133,7 @@ class AppealQueryMapperTest {
                 EVAL_ID);
         insertAppeal("COMPLETED", "ACKNOWLEDGE");
 
-        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", 10, 0);
+        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", null, 10, 0);
 
         assertThat(result).isNotEmpty();
         assertThat(result).allMatch(r -> r.getStatus().equals("COMPLETED"));
@@ -147,7 +146,7 @@ class AppealQueryMapperTest {
         insertAppeal("COMPLETED", "DISMISS");
 
         // when
-        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", 10, 0);
+        List<AppealSummaryResponse> result = mapper.findAppeals("COMPLETED", null, 10, 0);
 
         // then
         assertThat(result).isNotEmpty();
@@ -164,7 +163,7 @@ class AppealQueryMapperTest {
         insertAppeal("RECEIVING", null);
         insertAppeal("COMPLETED", "DISMISS");
 
-        long count = mapper.countAppeals("RECEIVING");
+        long count = mapper.countAppeals("RECEIVING", null);
 
         assertThat(count).isGreaterThanOrEqualTo(1);
     }
@@ -174,7 +173,7 @@ class AppealQueryMapperTest {
     void findMyAppeals_onlyMine() {
         insertAppeal("RECEIVING", null);
 
-        List<AppealSummaryResponse> result = mapper.findMyAppeals(WORKER_ID);
+        List<AppealSummaryResponse> result = mapper.findMyAppeals(WORKER_ID, null);
 
         assertThat(result).isNotEmpty();
         assertThat(result).allMatch(r -> r.getAppealEmployeeId().equals(WORKER_ID));
@@ -183,7 +182,7 @@ class AppealQueryMapperTest {
     @Test
     @DisplayName("findMyAppeals returns empty list when nothing exists")
     void findMyAppeals_empty() {
-        List<AppealSummaryResponse> result = mapper.findMyAppeals(999_999L);
+        List<AppealSummaryResponse> result = mapper.findMyAppeals(999_999L, null);
 
         assertThat(result).isEmpty();
     }

@@ -118,7 +118,7 @@ class NoticeQueryControllerTest {
     @DisplayName("공지 목록 조회 — 결과 200 OK")
     void getNotices_success() throws Exception {
         NoticeListResponse item = new NoticeListResponse(
-                1L, "공지 제목", 99L, "POSTING", 0, 10L,
+                1L, "공지 제목", 99L, "작성자", "POSTING", 0, 10L,
                 LocalDateTime.of(2026, 4, 1, 9, 0), null, null);
         given(noticeQueryService.getNotices(any(), any(), any(), eq(0), eq(20)))
                 .willReturn(List.of(item));
@@ -148,7 +148,7 @@ class NoticeQueryControllerTest {
     @DisplayName("공지 상세 조회 — 200 OK 및 조회수 증가 호출")
     void getNoticeDetail_success() throws Exception {
         NoticeDetailResponse response = new NoticeDetailResponse(
-                1L, "제목", "내용", 99L, "POSTING", 0, 5L,
+                1L, "제목", "내용", 99L, "작성자", "POSTING", 0, 5L,
                 LocalDateTime.of(2026, 4, 1, 9, 0), null, null, null);
         given(noticeQueryService.getNoticeDetail(1L)).willReturn(response);
 

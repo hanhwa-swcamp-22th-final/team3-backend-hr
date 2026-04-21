@@ -8,6 +8,7 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.HrmEvaluationQueryMapper;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +27,9 @@ class HrmEvaluationQueryServiceTest {
 
     @Mock
     private HrmEvaluationQueryMapper mapper;
+
+    @Mock
+    private AdminClient adminClient;
 
     @InjectMocks
     private HrmEvaluationQueryService service;

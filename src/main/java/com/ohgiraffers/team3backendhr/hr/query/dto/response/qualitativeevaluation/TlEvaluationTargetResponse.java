@@ -16,4 +16,5 @@ public class TlEvaluationTargetResponse {
     private final Integer evalSequence;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final String status;
 }

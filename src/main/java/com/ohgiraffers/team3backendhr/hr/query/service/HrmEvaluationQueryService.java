@@ -9,6 +9,8 @@ import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluatio
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.qualitativeevaluation.BiasReportItem;
 import com.ohgiraffers.team3backendhr.hr.query.dto.response.tierconfig.TierCriteriaItem;
 import com.ohgiraffers.team3backendhr.hr.query.mapper.HrmEvaluationQueryMapper;
+import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
+import com.ohgiraffers.team3backendhr.infrastructure.client.dto.EmployeeProfileResponse;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -16,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,15 +41,36 @@ public class HrmEvaluationQueryService {
     );
 
     private final HrmEvaluationQueryMapper mapper;
+    private final AdminClient adminClient;
 
     /* 편향 보정 이력 조회 */
     public List<BiasReportItem> getBiasReport() {
-        return mapper.findBiasReport();
+        List<BiasReportItem> list = mapper.findBiasReport();
+        if (!list.isEmpty()) {
+            List<Long> ids = list.stream().map(BiasReportItem::getEvaluatorId).distinct().toList();
+            Map<Long, EmployeeProfileResponse> profileMap = adminClient.getWorkerProfiles(ids).stream()
+                    .collect(Collectors.toMap(EmployeeProfileResponse::getEmployeeId, p -> p));
+            list.forEach(item -> {
+                EmployeeProfileResponse p = profileMap.get(item.getEvaluatorId());
+                if (p != null) item.setEvaluatorName(p.getEmployeeName());
+            });
+        }
+        return list;
     }
 
     /* 어뷰징 감지 목록 조회 */
     public List<AntiGamingFlagItem> getAntiGamingFlags() {
-        return mapper.findAntiGamingFlags();
+        List<AntiGamingFlagItem> list = mapper.findAntiGamingFlags();
+        if (!list.isEmpty()) {
+            List<Long> ids = list.stream().map(AntiGamingFlagItem::getEmployeeId).distinct().toList();
+            Map<Long, EmployeeProfileResponse> profileMap = adminClient.getWorkerProfiles(ids).stream()
+                    .collect(Collectors.toMap(EmployeeProfileResponse::getEmployeeId, p -> p));
+            list.forEach(item -> {
+                EmployeeProfileResponse p = profileMap.get(item.getEmployeeId());
+                if (p != null) item.setEmployeeName(p.getEmployeeName());
+            });
+        }
+        return list;
     }
 
     public List<TierCriteriaItem> getTierCriteria() {

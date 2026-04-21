@@ -36,7 +36,7 @@ class NoticeQueryServiceTest {
     void getNotices_delegatesToMapper() {
         // given
         NoticeListResponse item = new NoticeListResponse(
-                1L, "공지", 99L, "POSTING", 0, 0L,
+                1L, "공지", 99L, "작성자", "POSTING", 0, 0L,
                 LocalDateTime.now(), null, null);
         given(noticeQueryMapper.findNotices("키워드", "POSTING", null, 20, 10))
                 .willReturn(List.of(item));
@@ -54,7 +54,7 @@ class NoticeQueryServiceTest {
     void getNoticeDetail_found_returnsResponse() {
         // given
         NoticeDetailResponse response = new NoticeDetailResponse(
-                1L, "제목", "내용", 99L, "POSTING", 0, 5L,
+                1L, "제목", "내용", 99L, "작성자", "POSTING", 0, 5L,
                 LocalDateTime.now(), null, null, null);
         given(noticeQueryMapper.findById(1L)).willReturn(response);
 

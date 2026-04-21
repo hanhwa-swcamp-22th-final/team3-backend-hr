@@ -39,7 +39,8 @@ public class QualitativeEvaluationQueryService {
             period != null ? period.getEvalYear() : null,
             period != null ? period.getEvalSequence() : null,
             period != null ? period.getStartDate() : null,
-            period != null ? period.getEndDate() : null
+            period != null ? period.getEndDate() : null,
+            period != null && period.getStatus() != null ? period.getStatus().name() : null
         );
     }
 
@@ -54,7 +55,8 @@ public class QualitativeEvaluationQueryService {
             period != null ? period.getEvalYear() : null,
             period != null ? period.getEvalSequence() : null,
             period != null ? period.getStartDate() : null,
-            period != null ? period.getEndDate() : null
+            period != null ? period.getEndDate() : null,
+            period != null && period.getStatus() != null ? period.getStatus().name() : null
         );
     }
 

@@ -42,11 +42,6 @@
             a.evaluation_period_id          AS evaluationPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            e.employee_name                 AS employeeName,
-            e.employee_code                 AS employeeCode,
-            e.employee_tier                 AS employeeTier,
-            d.department_name               AS teamName,
-            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
             a.content,
@@ -63,10 +58,7 @@
             at.file_name                    AS fileName,
             at.file_size                    AS fileSize
         FROM evaluation_appeal a
-        JOIN employee e ON e.employee_id = a.appeal_employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
-        LEFT JOIN department d ON d.department_id = e.department_id
-        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
         LEFT JOIN qualitative_evaluation qe1
             ON qe1.evaluatee_id = a.appeal_employee_id
             AND qe1.evaluation_period_id = a.evaluation_period_id
@@ -90,11 +82,6 @@
             a.evaluation_period_id          AS evaluationPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            e.employee_name                 AS employeeName,
-            e.employee_code                 AS employeeCode,
-            e.employee_tier                 AS employeeTier,
-            d.department_name               AS teamName,
-            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
             a.content,
@@ -106,10 +93,7 @@
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
-        JOIN employee e ON e.employee_id = a.appeal_employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
-        LEFT JOIN department d ON d.department_id = e.department_id
-        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
         LEFT JOIN qualitative_evaluation qe1
             ON qe1.evaluatee_id = a.appeal_employee_id
             AND qe1.evaluation_period_id = a.evaluation_period_id
@@ -124,6 +108,7 @@
             AND qe3.evaluation_level = 3
         <where>
             <if test="status != null">AND a.status = #{status}</if>
+            <if test="evaluationPeriodId != null">AND a.evaluation_period_id = #{evaluationPeriodId}</if>
         </where>
         ORDER BY a.filed_at DESC
         LIMIT #{size} OFFSET #{offset}
@@ -138,6 +123,7 @@
             AND qe3.evaluation_level = 3
         <where>
             <if test="status != null">AND a.status = #{status}</if>
+            <if test="evaluationPeriodId != null">AND a.evaluation_period_id = #{evaluationPeriodId}</if>
         </where>
     </select>
 
@@ -150,11 +136,6 @@
             a.evaluation_period_id          AS evaluationPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            e.employee_name                 AS employeeName,
-            e.employee_code                 AS employeeCode,
-            e.employee_tier                 AS employeeTier,
-            d.department_name               AS teamName,
-            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
             a.content,
@@ -166,10 +147,7 @@
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
-        JOIN employee e ON e.employee_id = a.appeal_employee_id
         JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
-        LEFT JOIN department d ON d.department_id = e.department_id
-        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
         LEFT JOIN qualitative_evaluation qe1
             ON qe1.evaluatee_id = a.appeal_employee_id
             AND qe1.evaluation_period_id = a.evaluation_period_id
@@ -179,9 +157,13 @@
             AND qe2.evaluation_period_id = a.evaluation_period_id
             AND qe2.evaluation_level = 2
         WHERE a.appeal_employee_id = #{employeeId}
+        <if test="evaluationPeriodId != null">
+            AND a.evaluation_period_id = #{evaluationPeriodId}
+        </if>
         ORDER BY a.filed_at DESC
     </select>
 
+    <!-- TL/DL — 담당 팀원 이의신청 목록 (memberIds 로 필터) -->
     <select id="findReviewerAppeals"
             resultType="com.ohgiraffers.team3backendhr.hr.query.dto.response.appeal.AppealSummaryResponse">
         SELECT
@@ -190,11 +172,6 @@
             a.evaluation_period_id          AS evaluationPeriodId,
             ep.eval_year                    AS evalYear,
             ep.eval_sequence                AS evalSequence,
-            e.employee_name                 AS employeeName,
-            e.employee_code                 AS employeeCode,
-            e.employee_tier                 AS employeeTier,
-            d.department_name               AS teamName,
-            pd.department_name              AS departmentName,
             a.appeal_type                   AS appealType,
             a.title,
             a.content,
@@ -206,15 +183,7 @@
             a.filed_at                      AS filedAt,
             a.reviewed_at                   AS reviewedAt
         FROM evaluation_appeal a
-        JOIN employee e ON e.employee_id = a.appeal_employee_id
-        JOIN employee reviewer ON reviewer.employee_id = #{reviewerId}
         JOIN evaluation_period ep ON ep.eval_period_id = a.evaluation_period_id
-        LEFT JOIN department d ON d.department_id = e.department_id
-        LEFT JOIN department pd ON pd.department_id = d.parent_department_id
-        JOIN qualitative_evaluation qer
-            ON qer.evaluatee_id = a.appeal_employee_id
-            AND qer.evaluation_period_id = a.evaluation_period_id
-            AND qer.evaluation_level = #{evaluationLevel}
         LEFT JOIN qualitative_evaluation qe1
             ON qe1.evaluatee_id = a.appeal_employee_id
             AND qe1.evaluation_period_id = a.evaluation_period_id
@@ -223,15 +192,13 @@
             ON qe2.evaluatee_id = a.appeal_employee_id
             AND qe2.evaluation_period_id = a.evaluation_period_id
             AND qe2.evaluation_level = 2
-        WHERE
-        <choose>
-            <when test="evaluationLevel == 1">
-                e.department_id = reviewer.department_id
-            </when>
-            <otherwise>
-                d.parent_department_id = reviewer.department_id
-            </otherwise>
-        </choose>
+        WHERE a.appeal_employee_id IN
+        <foreach collection="memberIds" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+          <if test="evaluationPeriodId != null">
+              AND a.evaluation_period_id = #{evaluationPeriodId}
+          </if>
           <if test="statuses != null and statuses.size() > 0">
               AND a.status IN
               <foreach collection="statuses" item="status" open="(" separator="," close=")">
@@ -247,30 +214,6 @@
                 ELSE 4
             END,
             a.filed_at DESC
-    </select>
-
-    <select id="existsReviewerAppealAccess" resultType="boolean">
-        SELECT EXISTS(
-            SELECT 1
-            FROM evaluation_appeal a
-            JOIN employee e ON e.employee_id = a.appeal_employee_id
-            JOIN employee reviewer ON reviewer.employee_id = #{reviewerId}
-            LEFT JOIN department d ON d.department_id = e.department_id
-            JOIN qualitative_evaluation qe
-                ON qe.evaluatee_id = a.appeal_employee_id
-                AND qe.evaluation_period_id = a.evaluation_period_id
-                AND qe.evaluation_level = #{evaluationLevel}
-            WHERE a.appeal_id = #{appealId}
-              AND
-            <choose>
-                <when test="evaluationLevel == 1">
-                    e.department_id = reviewer.department_id
-                </when>
-                <otherwise>
-                    d.parent_department_id = reviewer.department_id
-                </otherwise>
-            </choose>
-        )
     </select>
 
 

@@ -43,6 +43,10 @@ public interface AdminFeignApi {
     @GetMapping("/api/v1/admin/employees/{employeeId}/profile")
     AdminApiResponse<EmployeeProfileResponse> getWorkerProfile(@PathVariable Long employeeId);
 
+    /* 직원 프로필 배치 조회 */
+    @PostMapping("/api/v1/admin/employees/profiles/batch")
+    AdminApiResponse<List<EmployeeProfileResponse>> getWorkerProfiles(@RequestBody List<Long> ids);
+
     /* 직원 보유 스킬: Admin 구현 예정 계약 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/skills")
     AdminApiResponse<List<EmployeeSkillResponse>> getWorkerSkills(@PathVariable Long employeeId);
@@ -58,6 +62,14 @@ public interface AdminFeignApi {
     /* 티어별 활성 작업자 ID 목록 */
     @GetMapping("/api/v1/admin/employees/workers/active")
     AdminApiResponse<List<Long>> getActiveWorkerIdsByTier(@RequestParam String tier);
+
+    /* 부서별 활성 워커 ID 목록 */
+    @GetMapping("/api/v1/admin/employees/workers/active-by-department")
+    AdminApiResponse<List<Long>> getActiveWorkerIdsByDepartmentId(@RequestParam Long departmentId);
+
+    /* 루트 부서 하위 전체 활성 워커 ID 목록 */
+    @GetMapping("/api/v1/admin/employees/workers/active-by-root-department")
+    AdminApiResponse<List<Long>> getActiveWorkerIdsByRootDepartmentId(@RequestParam Long departmentId);
 
     /* 활성 작업자/티어 검증 */
     @GetMapping("/api/v1/admin/employees/{employeeId}/active-worker")

@@ -47,12 +47,15 @@
         LIMIT 1
     </select>
 
-    <!-- 현재 IN_PROGRESS 기간 ID 조회 -->
+    <!-- 현재 활성 기간 ID 조회 (IN_PROGRESS 우선, 없으면 최신 CONFIRMED) -->
     <select id="findCurrentPeriodId" resultType="long">
         SELECT eval_period_id
         FROM evaluation_period
-        WHERE status = 'IN_PROGRESS'
-        ORDER BY created_at DESC, eval_period_id DESC
+        WHERE status IN ('IN_PROGRESS', 'CONFIRMED')
+        ORDER BY
+            CASE status WHEN 'IN_PROGRESS' THEN 0 ELSE 1 END,
+            created_at DESC,
+            eval_period_id DESC
         LIMIT 1
     </select>
 

@@ -5,6 +5,7 @@ import com.ohgiraffers.team3backendhr.infrastructure.client.AdminClient;
 import com.ohgiraffers.team3backendhr.jwt.EmployeeUserDetails;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import static org.mockito.BDDMockito.given;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,8 +49,8 @@ class DlEvaluationQueryIntegrationTest {
     @BeforeEach
     void setUp() {
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
-        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status = 'IN_PROGRESS')");
-        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status = 'IN_PROGRESS'");
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED'))");
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED')");
         jdbcTemplate.update("DELETE FROM employee WHERE employee_id IN (?, ?)", DL_ID, WORKER_ID);
         jdbcTemplate.update("DELETE FROM department WHERE department_id IN (?, ?)", WORKER_DEPT_ID, DL_DEPT_ID);
         jdbcTemplate.update(
@@ -64,10 +65,13 @@ class DlEvaluationQueryIntegrationTest {
         jdbcTemplate.update(
                 "INSERT INTO employee(employee_id, department_id, employee_code, employee_name, employee_role, employee_status, employee_password, mfa_enabled, login_fail_count, is_locked) VALUES (?,?,?,?,'WORKER','ACTIVE','pw',false,0,false)",
                 WORKER_ID, WORKER_DEPT_ID, "W001", "worker-user");
+        given(adminClient.getTeamMemberIds(DL_ID)).willReturn(List.of(WORKER_ID));
     }
 
     @AfterEach
     void tearDown() {
+        jdbcTemplate.execute("DELETE FROM qualitative_evaluation WHERE evaluation_period_id IN (SELECT eval_period_id FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED'))");
+        jdbcTemplate.execute("DELETE FROM evaluation_period WHERE status IN ('IN_PROGRESS', 'CONFIRMED')");
         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
     }
 
@@ -117,10 +121,16 @@ class DlEvaluationQueryIntegrationTest {
     }
 
     @Test
-    @DisplayName("without periodId and no in-progress period returns 400")
-    void getTargets_fail_noInProgress() throws Exception {
+    @DisplayName("without periodId and no in-progress period falls back to confirmed period")
+    void getTargets_withoutPeriodId_fallsBackToConfirmed() throws Exception {
+        long periodId = insertPeriod("CONFIRMED");
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 1, "SUBMITTED", 80.0);
+        insertEval(idGenerator.generate(), WORKER_ID, periodId, 2, "NO_INPUT", null);
+
         mockMvc.perform(get("/api/v1/hr/department-leader/evaluations/targets")
                         .with(authentication(dlAuth())))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.evalPeriodId").value(periodId))
+                .andExpect(jsonPath("$.data.status").value("CONFIRMED"));
     }
 }

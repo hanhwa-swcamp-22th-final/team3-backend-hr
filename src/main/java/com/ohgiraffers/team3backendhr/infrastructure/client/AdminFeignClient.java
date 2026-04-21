@@ -48,6 +48,13 @@ public class AdminFeignClient implements AdminClient {
     }
 
     @Override
+    public List<EmployeeProfileResponse> getWorkerProfiles(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        AdminApiResponse<List<EmployeeProfileResponse>> response = adminFeignApi.getWorkerProfiles(ids);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
     public List<EmployeeSkillResponse> getWorkerSkills(Long employeeId) {
         AdminApiResponse<List<EmployeeSkillResponse>> response = adminFeignApi.getWorkerSkills(employeeId);
         return response != null && response.getData() != null ? response.getData() : List.of();
@@ -68,6 +75,18 @@ public class AdminFeignClient implements AdminClient {
     @Override
     public List<Long> getActiveWorkerIdsByTier(String tier) {
         AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByTier(tier);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public List<Long> getActiveWorkerIdsByDepartmentId(Long departmentId) {
+        AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByDepartmentId(departmentId);
+        return response != null && response.getData() != null ? response.getData() : List.of();
+    }
+
+    @Override
+    public List<Long> getActiveWorkerIdsByRootDepartmentId(Long departmentId) {
+        AdminApiResponse<List<Long>> response = adminFeignApi.getActiveWorkerIdsByRootDepartmentId(departmentId);
         return response != null && response.getData() != null ? response.getData() : List.of();
     }
 
